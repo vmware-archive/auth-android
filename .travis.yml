@@ -1,0 +1,26 @@
+language: android
+
+android:
+    components:
+        - build-tools-19.1.0
+    licences:
+        - android-sdk-license-5be876d5
+
+branches:
+    only:
+        - master
+        - travis-test
+
+env:
+    global:
+        - secure: eUH1gNZucRA7hmyUdeaP/EIXb0G2HiRqPaAKc7OxJP97lgDHExCCwlSvTi+tRNf1yH9RFscFl/mafJsXFkF67EGa2MKEI0zghSyHdJ17rRUOjggYRY4PxT7SQhbXOVdvo1dIMwHUq62FSECzRZ1Hzm8VIybPZenkR0PahPMXZaI=
+        - secure: f2B+8u/1BXGL/izNjCSLvsEV923WJAQ9hum/qnXhpJ62TTy2syIERgPN4fiSK+VaYewWn0Adl6cH4TXboxl2ou+DvCUx3NrK7JbTupFzAOFzZ8Bnek/eCj6tBaIBP2yWwMHXNsPhUkkaAVbsqQZ1F0DveVk1vZcgH/U8/AHUglg=
+
+before_install:
+    - echo no | android create avd --force --name test-avd --target android-19 --abi armeabi-v7a
+    - emulator -avd test-avd -no-skin -no-audio -no-window &
+
+script:
+    - ./gradlew assemble
+    - ./wait_for_emulator.sh
+    - ./gradlew connectedCheck uploadArchives

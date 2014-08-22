@@ -1,0 +1,11 @@
+dependencies {
+    compile 'com.google.code.gson:gson:2.2.4'
+    compile 'com.google.http-client:google-http-client-jackson2:1.18.0-rc'
+
+    compile ('com.google.oauth-client:google-oauth-client:1.18.0-rc') {
+        exclude (group: 'com.google.android', module: 'android')
+        exclude (group: 'org.apache.httpcomponents', module: 'httpclient')
+        exclude (group: 'junit', module: 'junit')
+        exclude (group: 'xpp3', module: 'xpp3')
+    }
+}

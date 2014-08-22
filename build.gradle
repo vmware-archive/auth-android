@@ -1,0 +1,110 @@
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Ensure your ~/.gradle/gradle.properties file or environment defines the following properties:
+// MAVEN_USER = your user name on the above Artifactory.
+// MAVEN_PASS = your password on the above Artifactory.
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:0.11.+'
+    }
+}
+
+ext {
+    versionName = "2.0.0"
+    versionCode = 1
+    isSnapshot = false
+}
+
+ext.pomInfo = {
+    packaging 'aar'
+    url 'https://github.com/cfmobile/auth-android'
+
+    scm {
+        url 'git@github.com:cfmobile/auth-android.git'
+        connection 'scm:git:git@github.com:cfmobile/auth-android.git'
+        developerConnection 'scm:git:git@github.com:cfmobile/auth-android.git'
+    }
+
+    licenses {
+        license {
+            name 'The Apache Software License, Version 2.0'
+            url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+            distribution 'repo'
+        }
+    }
+
+    developers {
+        developer {
+            id 'rszumlakowski'
+            name 'Robert Szumlakowski'
+            email 'rszumlakowski@pivotal.io'
+        }
+        developer {
+            id 'jwinters'
+            name 'Joshua Winters'
+            email 'jwinters@pivotal.io'
+        }
+    }
+}
+
+allprojects {
+    apply plugin: 'maven'
+
+    group = "io.pivotal.android"
+
+    if (isSnapshot) {
+        version = versionName + "-SNAPSHOT"
+    } else {
+        version = versionName
+    }
+
+    repositories {
+        mavenLocal()
+        mavenCentral()
+    }
+}
+
+subprojects {
+    apply plugin: 'android-library'
+
+    android {
+        compileSdkVersion 19
+        buildToolsVersion "19.1.0"
+
+        defaultConfig {
+            versionCode versionCode
+            versionName versionName
+            minSdkVersion 10
+            targetSdkVersion 19
+        }
+    }
+
+    configurations {
+        archives {
+            extendsFrom configurations.default
+        }
+    }
+
+    uploadArchives {
+        configuration = configurations.archives
+        repositories.mavenDeployer {
+
+            // Publishes AAR to local Maven cache:
+            repository(url: 'file://' + new File(System.getProperty('user.home'), '.m2').absolutePath)
+
+            // Publishes AAR to remote maven.xtremelabs.com:
+
+//            repository(url: 'https://maven.xtremelabs.com/artifactory/libs-release-local') {
+//                authentication(userName: MAVEN_USER, password: MAVEN_PASS)
+//            }
+//            snapshotRepository(url: 'https://maven.xtremelabs.com/artifactory/libs-snapshot-local') {
+//                authentication(userName: MAVEN_USER, password: MAVEN_PASS)
+//            }
+
+        }
+    }
+}
