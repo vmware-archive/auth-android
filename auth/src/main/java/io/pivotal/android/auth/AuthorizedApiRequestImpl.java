@@ -28,9 +28,8 @@ import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.client.util.store.DataStore;
-import com.google.api.client.util.store.FileDataStoreFactory;
+import com.google.api.client.util.store.DataStoreFactory;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -45,7 +44,6 @@ public class AuthorizedApiRequestImpl implements AuthorizedApiRequest {
     private static final ExecutorService threadPool = Executors.newSingleThreadExecutor();
     private static final JsonFactory JSON_FACTORY = new JacksonFactory();
     private static final List<String> SCOPES = Arrays.asList("offline_access", "openid");
-    private static FileDataStoreFactory dataStoreFactory;
 
     // TODO - the state token should be randomly generated, but persisted until the end of the flow
     private static final String STATE_TOKEN = "BLORG";
@@ -57,6 +55,7 @@ public class AuthorizedApiRequestImpl implements AuthorizedApiRequest {
     // It may be problematic if we are already re-reading the CredentialStore from the
     // filesystem over and over.
     private AuthorizationCodeFlow flow;
+    private DataStoreFactory dataStoreFactory;
 
     public AuthorizedApiRequestImpl(Context context,
                                     AuthorizationPreferencesProvider authorizationPreferencesProvider,
@@ -87,13 +86,7 @@ public class AuthorizedApiRequestImpl implements AuthorizedApiRequest {
 
     private void setupDataStore(Context context) {
         if (dataStoreFactory == null) {
-            final File dataStoreDir = context.getDir("oauth2", Context.MODE_PRIVATE);
-            try {
-                dataStoreFactory = new FileDataStoreFactory(dataStoreDir);
-            } catch (IOException e) {
-                // TODO - pass errors back via callback
-                Logger.ex("Could not open file data store", e);
-            }
+            dataStoreFactory = new SharedPrefsDataStoreFactory(context);
         }
     }
 
@@ -111,7 +104,6 @@ public class AuthorizedApiRequestImpl implements AuthorizedApiRequest {
             final HttpTransport transport = apiProvider.getTransport();
             final Credential.AccessMethod method = BearerToken.authorizationHeaderAccessMethod();
             final HttpExecuteInterceptor interceptor = new ClientParametersAuthentication(clientId, clientSecret);
-
             final String authUrl = String.format("%s/oauth/authorize", authBaseUrl);
             final GenericUrl tokenUrl = new GenericUrl(String.format("%s/token", authBaseUrl));
 
