@@ -4,6 +4,8 @@
 package io.pivotal.android.auth;
 
 import android.content.Context;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
@@ -20,7 +22,7 @@ import java.util.Locale;
  */
 public class Logger {
 
-    public static final String TAG_NAME = "PivotalMSS";
+    public static final String TAG_NAME = "Pivotal";
 
     private static final String UI_THREAD = "UI";
     private static final String BACKGROUND_THREAD = "BG";
@@ -37,8 +39,18 @@ public class Logger {
     }
 
     public static void setup(Context context) {
-        Logger.isDebuggable = DebugUtil.getInstance(context).isDebuggable();
+        Logger.isDebuggable = isDebuggable(context);
         Logger.isSetup = true;
+    }
+
+    private static boolean isDebuggable(Context context) {
+        try {
+            PackageManager pm = context.getPackageManager();
+            ApplicationInfo applicationInfo = pm.getApplicationInfo(context.getPackageName(), 0);
+            return (applicationInfo.flags & ApplicationInfo.FLAG_DEBUGGABLE) != 0;
+        } catch (PackageManager.NameNotFoundException e) {
+            return false;
+        }
     }
 
     private Logger() {

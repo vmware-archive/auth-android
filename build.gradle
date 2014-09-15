@@ -39,14 +39,14 @@ ext.pomInfo = {
 
     developers {
         developer {
-            id 'rszumlakowski'
-            name 'Robert Szumlakowski'
-            email 'rszumlakowski@pivotal.io'
-        }
-        developer {
             id 'jwinters'
             name 'Joshua Winters'
             email 'jwinters@pivotal.io'
+        }
+        developer {
+            id 'rszumlakowski'
+            name 'Robert Szumlakowski'
+            email 'rszumlakowski@pivotal.io'
         }
     }
 }
