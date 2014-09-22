@@ -17,8 +17,8 @@ import java.util.Locale;
  * Used by the Logger Library to log messages to the device log.  An optional 'listener'
  * can be registered so an application can watch all the message traffic.
  *
- * If the "debuggable" flag is "false" in the application manifest file then only warning
- * or error messages will be printed to the device log.
+ * If the "debuggable" flag is "false" in the application manifest file then only error messages
+ * will be printed to the device log.
  */
 public class Logger {
 
@@ -27,7 +27,7 @@ public class Logger {
     private static final String UI_THREAD = "UI";
     private static final String BACKGROUND_THREAD = "BG";
 
-    private static boolean isDebuggable = false;
+    private static boolean isDebugEnabled = false;
     private static Logger loggerInstance;
     private static boolean isSetup = false;
     private static Listener listener;
@@ -38,8 +38,10 @@ public class Logger {
         void onLogMessage(String message);
     }
 
+    private Logger() {}
+
     public static void setup(Context context) {
-        Logger.isDebuggable = isDebuggable(context);
+        Logger.isDebugEnabled = isDebuggable(context);
         Logger.isSetup = true;
     }
 
@@ -53,7 +55,8 @@ public class Logger {
         }
     }
 
-    private Logger() {
+    public static boolean isDebugEnabled() {
+        return Logger.isDebugEnabled;
     }
 
     public static boolean isSetup() {
@@ -61,75 +64,75 @@ public class Logger {
     }
 
     public static void i(String message) {
-        final String formattedString = formatMessage(message, new Object[] {});
-        if (isDebuggable) {
+        if (isDebugEnabled) {
+            final String formattedString = formatMessage(message, new Object[] {});
             Log.i(TAG_NAME, formattedString);
+            sendMessageToListener(formattedString);
         }
-        sendMessageToListener(formattedString);
     }
 
     public static void w(String message, Throwable tr) {
-        final String formattedString = formatMessage(message, new Object[] {}) + ": " + Log.getStackTraceString(tr);
-        if (isDebuggable) {
+        if (isDebugEnabled) {
+            final String formattedString = formatMessage(message, new Object[] {}) + ": " + Log.getStackTraceString(tr);
             Log.w(TAG_NAME, formattedString);
+            sendMessageToListener(formattedString);
         }
-        sendMessageToListener(formattedString);
     }
 
     public static void w(Throwable tr) {
-        final String formattedString = formatMessage("", new Object[] {}) + Log.getStackTraceString(tr);
-        if (isDebuggable) {
+        if (isDebugEnabled) {
+            final String formattedString = formatMessage("", new Object[] {}) + Log.getStackTraceString(tr);
             Log.w(TAG_NAME, formattedString);
+            sendMessageToListener(formattedString);
         }
-        sendMessageToListener(formattedString);
     }
 
     public static void w(String message) {
-        final String formattedString = formatMessage(message, new Object[] {});
-        if (isDebuggable) {
+        if (isDebugEnabled) {
+            final String formattedString = formatMessage(message, new Object[] {});
             Log.w(TAG_NAME, formattedString);
+            sendMessageToListener(formattedString);
         }
-        sendMessageToListener(formattedString);
     }
 
     public static void v(String message) {
-        final String formattedString = formatMessage(message, new Object[] {});
-        if (isDebuggable) {
+        if (isDebugEnabled) {
+            final String formattedString = formatMessage(message, new Object[] {});
             Log.v(TAG_NAME, formattedString);
+            sendMessageToListener(formattedString);
         }
-        sendMessageToListener(formattedString);
     }
 
     public static void d(String message) {
-        final String formattedString = formatMessage(message, new Object[] {});
-        if (isDebuggable) {
+        if (isDebugEnabled) {
+            final String formattedString = formatMessage(message, new Object[] {});
             Log.d(TAG_NAME, formattedString);
+            sendMessageToListener(formattedString);
         }
-        sendMessageToListener(formattedString);
     }
 
     public static void d(String message, Throwable tr) {
-        final String formattedString = formatMessage(message, new Object[] {}) + ": " + Log.getStackTraceString(tr);
-        if (isDebuggable) {
+        if (isDebugEnabled) {
+            final String formattedString = formatMessage(message, new Object[] {}) + ": " + Log.getStackTraceString(tr);
             Log.d(TAG_NAME, formattedString);
+            sendMessageToListener(formattedString);
         }
-        sendMessageToListener(formattedString);
     }
 
     public static void d(Throwable tr) {
-        final String formattedString = formatMessage("", new Object[] {}) + Log.getStackTraceString(tr);
-        if (isDebuggable) {
+        if (isDebugEnabled) {
+            final String formattedString = formatMessage("", new Object[] {}) + Log.getStackTraceString(tr);
             Log.d(TAG_NAME, formattedString);
+            sendMessageToListener(formattedString);
         }
-        sendMessageToListener(formattedString);
     }
 
     public static void fd(String message, Object... objects) {
-        final String formattedString = formatMessage(message, objects);
-        if (isDebuggable) {
+        if (isDebugEnabled) {
+            final String formattedString = formatMessage(message, objects);
             Log.d(TAG_NAME, formattedString);
+            sendMessageToListener(formattedString);
         }
-        sendMessageToListener(formattedString);
     }
 
     public static void e(String message) {

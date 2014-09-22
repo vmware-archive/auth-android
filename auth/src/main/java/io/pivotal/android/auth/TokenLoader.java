@@ -22,9 +22,9 @@ import com.google.api.client.auth.oauth2.TokenResponse;
         forceLoad();
     }
 
-    /* package */ static final class ErrorTokenResponse extends TokenResponse {
+    /* package */ static final class ErrorResponse extends TokenResponse {
 
-        public ErrorTokenResponse(final Exception e) {
+        public ErrorResponse(final Exception e) {
             final String message = e.getLocalizedMessage();
             put("error", message != null ? message : "Unknown error.");
         }

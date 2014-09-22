@@ -17,6 +17,9 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.text.TextUtils;
 
+import com.google.api.client.auth.oauth2.RefreshTokenRequest;
+import com.google.api.client.auth.oauth2.TokenResponse;
+
 public class Authenticator extends AbstractAccountAuthenticator {
 
 	private final Context mContext;
@@ -28,7 +31,6 @@ public class Authenticator extends AbstractAccountAuthenticator {
 
 	@Override
 	public Bundle addAccount(final AccountAuthenticatorResponse response, final String accountType, final String authTokenType, final String[] requiredFeatures, final Bundle options) throws NetworkErrorException {
-        Logger.i("addAccount: " + accountType);
 		return newAccountBundle(mContext, response);
 	}
 
@@ -44,18 +46,16 @@ public class Authenticator extends AbstractAccountAuthenticator {
 
 	@Override
 	public Bundle getAuthToken(final AccountAuthenticatorResponse response, final Account account, final String authTokenType, final Bundle options) throws NetworkErrorException {
-        Logger.i("getAuthToken: :" + authTokenType);
 		return newAuthTokenBundle(mContext, response, account, authTokenType);
 	}
 
 	@Override
 	public String getAuthTokenLabel(final String authTokenType) {
-        throw new UnsupportedOperationException();
+        return authTokenType;
 	}
 
 	@Override
 	public Bundle hasFeatures(final AccountAuthenticatorResponse response, final Account account, final String[] features) throws NetworkErrorException {
-        Logger.i("hasFeatures: " + features);
 		return newResultBundle(false);
 	}
 
@@ -76,20 +76,44 @@ public class Authenticator extends AbstractAccountAuthenticator {
 
     private static Intent newLoginIntent(final Context context, final AccountAuthenticatorResponse response) {
         final Intent intent = new Intent(context, Helper.getLoginActivityClass(context));
-        intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
         intent.putExtra(AccountManager.KEY_ACCOUNT_AUTHENTICATOR_RESPONSE, response);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
         return intent;
     }
 
     private static Bundle newAuthTokenBundle(final Context context, final AccountAuthenticatorResponse response, final Account account, final String authTokenType) throws NetworkErrorException {
 		final AccountManager manager = AccountManager.get(context);
-		final String authToken = manager.peekAuthToken(account, authTokenType);
+        final Token.Existing existingToken = new Token.Existing(manager, account);
 
-		if (!TextUtils.isEmpty(authToken)) {
-			return newAuthTokenBundle(account, authToken);
-		} else {
-			return newAccountBundle(context, response);
+        final String accessToken = existingToken.getAccessToken();
+
+        Logger.v("newAuthTokenBundle accessToken: " + accessToken);
+
+		if (!TextUtils.isEmpty(accessToken) && !existingToken.isExpired()) {
+			return newAuthTokenBundle(account, accessToken);
 		}
+
+        Logger.v("newAuthTokenBundle auth token " + (TextUtils.isEmpty(accessToken) ? "empty." : "expired."));
+
+        final String refreshToken = existingToken.getRefreshToken();
+
+        Logger.v("newAuthTokenBundle refreshToken: " + refreshToken);
+
+        if (!TextUtils.isEmpty(refreshToken)) {
+            try {
+                final AuthorizationProvider provider = new AuthorizationProvider();
+                final RefreshTokenRequest request = provider.newRefreshTokenRequest(refreshToken);
+                final TokenResponse resp = request.execute();
+
+                Logger.v("newAuthTokenBundle new accessToken: " + resp.getAccessToken());
+
+                return newAuthTokenBundle(account, resp.getAccessToken());
+            } catch (final Exception e) {
+                Logger.ex(e);
+            }
+        }
+
+        return newAccountBundle(context, response);
 	}
 
 	public static Bundle newAuthTokenBundle(final Account account, final String authToken) {

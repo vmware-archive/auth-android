@@ -29,18 +29,14 @@ import com.google.api.client.auth.oauth2.TokenResponse;
     @Override
     public final void onLoadFinished(final Loader<TokenResponse> loader, final TokenResponse data) {
         if (data.containsKey("error")) {
-            Logger.i("onAuthorizationFailed");
             final String error = data.get("error").toString();
             mListener.onAuthorizationFailed(new Error(error));
         } else {
-            Logger.i("onAuthorizationComplete");
-            final String accessToken = data.getAccessToken();
-            mListener.onAuthorizationComplete(accessToken);
+            final Token token = new Token.New(data);
+            mListener.onAuthorizationComplete(token);
         }
     }
 
     @Override
-    public final void onLoaderReset(final Loader<TokenResponse> loader) {
-        Logger.i("onLoaderReset");
-    }
+    public final void onLoaderReset(final Loader<TokenResponse> loader) {}
 }

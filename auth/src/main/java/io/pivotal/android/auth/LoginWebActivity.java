@@ -67,14 +67,14 @@ public class LoginWebActivity extends AccountAuthenticatorActivity implements To
     }
 
     @Override
-    public void onAuthorizationComplete(final String token) {
+    public void onAuthorizationComplete(final Token token) {
         final String username = getUserName();
         Authorization.addAccount(this, username, token);
 
         final Intent intent = new Intent();
         intent.putExtra(AccountManager.KEY_ACCOUNT_TYPE, Pivotal.Property.ACCOUNT_TYPE);
+        intent.putExtra(AccountManager.KEY_AUTHTOKEN, token.getAccessToken());
         intent.putExtra(AccountManager.KEY_ACCOUNT_NAME, username);
-        intent.putExtra(AccountManager.KEY_AUTHTOKEN, token);
 
         setAccountAuthenticatorResult(intent.getExtras());
         setResult(RESULT_OK, intent);

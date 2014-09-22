@@ -28,7 +28,7 @@ import com.google.api.client.auth.oauth2.TokenResponse;
             return provider.newPasswordTokenRequest(mUsername, mPassword).execute();
         } catch (final Exception e) {
             Logger.ex(e);
-            return new ErrorTokenResponse(e);
+            return new ErrorResponse(e);
         }
     }
 }

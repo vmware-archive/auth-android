@@ -14,7 +14,8 @@ import java.util.Properties;
     public static final class Property {
         public static final String CLIENT_ID = Pivotal.property("pivotal.auth.clientId");
         public static final String CLIENT_SECRET = Pivotal.property("pivotal.auth.clientSecret");
-        public static final String SERVICE_URL = Pivotal.property("pivotal.auth.serviceUrl");
+        public static final String AUTHORIZE_URL = Pivotal.property("pivotal.auth.authorizeUrl");
+        public static final String TOKEN_URL = Pivotal.property("pivotal.auth.tokenUrl");
         public static final String REDIRECT_URL = Pivotal.property("pivotal.auth.redirectUrl");
         public static final String ACCOUNT_TYPE = Pivotal.property("pivotal.auth.accountType");
         public static final String TOKEN_TYPE = Pivotal.property("pivotal.auth.tokenType");

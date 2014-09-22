@@ -13,21 +13,24 @@ import android.os.Bundle;
     private final Authorization.Listener mListener;
 
     public ListenerCallback(final Authorization.Listener listener) {
-        Logger.i("ListenerCallback");
         mListener = listener;
     }
 
     @Override
     public void run(final AccountManagerFuture<Bundle> future) {
         try {
-            Logger.i("AccountManagerCallback run");
             final Bundle bundle = future.getResult();
             final String token = bundle.getString(AccountManager.KEY_AUTHTOKEN);
+
+            Logger.i("getAuthToken new token: " + token);
+
             mListener.onAuthorizationComplete(token);
 
         } catch (final Exception e) {
-            Logger.ex("AccountManagerCallback", e);
+
             final String error = e.getLocalizedMessage();
+            Logger.i("getAuthToken error: " + error);
+
             mListener.onAuthorizationFailure(error);
         }
     }

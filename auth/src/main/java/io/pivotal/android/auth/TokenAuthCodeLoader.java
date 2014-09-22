@@ -26,7 +26,7 @@ import com.google.api.client.auth.oauth2.TokenResponse;
             return provider.newTokenRequest(mAuthCode).execute();
         } catch (final Exception e) {
             Logger.ex(e);
-            return new ErrorTokenResponse(e);
+            return new ErrorResponse(e);
         }
     }
 }

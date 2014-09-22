@@ -44,14 +44,14 @@ public class LoginActivity extends AccountAuthenticatorActivity implements Token
     }
 
     @Override
-    public void onAuthorizationComplete(final String token) {
+    public void onAuthorizationComplete(final Token token) {
         final String username = getUserName();
         Authorization.addAccount(this, username, token);
 
         final Intent intent = new Intent();
         intent.putExtra(AccountManager.KEY_ACCOUNT_TYPE, Pivotal.Property.ACCOUNT_TYPE);
+        intent.putExtra(AccountManager.KEY_AUTHTOKEN, token.getAccessToken());
         intent.putExtra(AccountManager.KEY_ACCOUNT_NAME, username);
-        intent.putExtra(AccountManager.KEY_AUTHTOKEN, token);
 
         setAccountAuthenticatorResult(intent.getExtras());
         setResult(RESULT_OK, intent);
@@ -60,6 +60,6 @@ public class LoginActivity extends AccountAuthenticatorActivity implements Token
 
     @Override
     public void onAuthorizationFailed(final Error error) {
-        Toast.makeText(this, "error: " + error.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "login error: " + error.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
     }
 }
