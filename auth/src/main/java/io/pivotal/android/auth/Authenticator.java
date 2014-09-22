@@ -140,7 +140,7 @@ public class Authenticator extends AbstractAccountAuthenticator {
                 Logger.ex(e);
             }
 
-            return LoginActivity.class;
+            throw new IllegalStateException("No subclass of AccountAuthenticatorActivity found in your AndroidManifest.xml");
         }
 
         private static Class<?> findLoginActivityClass(final Context context) throws Exception {
