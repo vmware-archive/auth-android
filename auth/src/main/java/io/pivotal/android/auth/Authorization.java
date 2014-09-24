@@ -52,33 +52,40 @@ public class Authorization {
         Logger.i("addAccount: " + name + ", token: " + token.getAccessToken());
         final Account account = new Account(name, Pivotal.Property.ACCOUNT_TYPE);
         final AccountManager manager = AccountManager.get(context);
-        manager.addAccountExplicitly(account, null, null);
+        manager.addAccountExplicitly(account, token.getRefreshToken(), null);
         manager.setAuthToken(account, Pivotal.Property.TOKEN_TYPE, token.getAccessToken());
-        manager.setPassword(account, token.getRefreshToken());
-
-        final String authToken = manager.peekAuthToken(account, Pivotal.Property.TOKEN_TYPE);
-        final String refreshToken = manager.getPassword(account);
-        Logger.i("addAccount peek authToken: " + authToken + ", refreshToken: " + refreshToken);
     }
 
     public static Account[] getAccounts(final Context context) {
         Logger.i("getAccounts");
         final AccountManager manager = AccountManager.get(context);
-        final Account[] accounts = manager.getAccountsByType(Pivotal.Property.ACCOUNT_TYPE);
-        return accounts;
+        return manager.getAccountsByType(Pivotal.Property.ACCOUNT_TYPE);
     }
 
     public static Account getAccount(final Context context, final String name) {
         Logger.i("getAccount: " + name);
         final Account[] accounts = getAccounts(context);
-        if (accounts != null) {
-            for (int i = 0; i < accounts.length; i++) {
-                if (name == null || name.equals(accounts[i].name)) {
-                    return accounts[i];
-                }
+        for (int i = 0; i < accounts.length; i++) {
+            if (name == null || name.equals(accounts[i].name)) {
+                return accounts[i];
             }
         }
         return null;
     }
 
+    public static void removeAccount(final Context context, final String name) {
+        Logger.i("removeAccount: " + name);
+        final Account account = new Account(name, Pivotal.Property.ACCOUNT_TYPE);
+        final AccountManager manager = AccountManager.get(context);
+        manager.removeAccount(account, null, null);
+    }
+
+    public static void removeAllAccounts(final Context context) {
+        Logger.i("removeAllAccounts");
+        final AccountManager manager = AccountManager.get(context);
+        final Account[] accounts = getAccounts(context);
+        for (int i = 0; i < accounts.length; i++) {
+            manager.removeAccount(accounts[i], null, null);
+        }
+    }
 }

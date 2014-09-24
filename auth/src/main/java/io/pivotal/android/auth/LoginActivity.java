@@ -42,8 +42,8 @@ public class LoginActivity extends AccountAuthenticatorActivity implements Token
         final String password = getPassword();
 
         if (onValidateCredentials(userName, password)) {
-            final Bundle bundle = TokenPasswordLoaderCallbacks.createBundle(userName, password);
-            final TokenPasswordLoaderCallbacks callback = new TokenPasswordLoaderCallbacks(this, this);
+            final Bundle bundle = PasswordTokenLoaderCallbacks.createBundle(userName, password);
+            final PasswordTokenLoaderCallbacks callback = new PasswordTokenLoaderCallbacks(this, this);
 
             getLoaderManager().restartLoader(1000, bundle, callback);
 

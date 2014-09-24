@@ -20,6 +20,8 @@ import android.text.TextUtils;
 import com.google.api.client.auth.oauth2.RefreshTokenRequest;
 import com.google.api.client.auth.oauth2.TokenResponse;
 
+import java.io.IOException;
+
 public class Authenticator extends AbstractAccountAuthenticator {
 
 	private final Context mContext;
@@ -31,7 +33,7 @@ public class Authenticator extends AbstractAccountAuthenticator {
 
 	@Override
 	public Bundle addAccount(final AccountAuthenticatorResponse response, final String accountType, final String authTokenType, final String[] requiredFeatures, final Bundle options) throws NetworkErrorException {
-		return newAccountBundle(mContext, response);
+		return newAccountBundle(response);
 	}
 
 	@Override
@@ -46,7 +48,7 @@ public class Authenticator extends AbstractAccountAuthenticator {
 
 	@Override
 	public Bundle getAuthToken(final AccountAuthenticatorResponse response, final Account account, final String authTokenType, final Bundle options) throws NetworkErrorException {
-		return newAuthTokenBundle(mContext, response, account, authTokenType);
+		return newAuthTokenBundle(response, account);
 	}
 
 	@Override
@@ -66,25 +68,35 @@ public class Authenticator extends AbstractAccountAuthenticator {
 	
 	
 	// =============================================
-	
-	
-	private static Bundle newAccountBundle(final Context context, final AccountAuthenticatorResponse response) {
+
+
+    /* package */ Token getExistingToken(final Account account) {
+        final TokenManager manager = new TokenManager(mContext);
+        return new Token.Existing(manager, account);
+    }
+
+    /* package */ Token getNewToken(final String refreshToken) throws IOException {
+        final AuthorizationProvider provider = new AuthorizationProvider();
+        final RefreshTokenRequest request = provider.newRefreshTokenRequest(refreshToken);
+        final TokenResponse resp = request.execute();
+        return new Token.New(resp);
+    }
+
+    private Bundle newAccountBundle(final AccountAuthenticatorResponse response) {
 		final Bundle bundle = new Bundle();
-		bundle.putParcelable(AccountManager.KEY_INTENT, newLoginIntent(context, response));
+		bundle.putParcelable(AccountManager.KEY_INTENT, newLoginIntent(response));
 		return bundle;
 	}
 
-    private static Intent newLoginIntent(final Context context, final AccountAuthenticatorResponse response) {
-        final Intent intent = new Intent(context, Helper.getLoginActivityClass(context));
+    private Intent newLoginIntent(final AccountAuthenticatorResponse response) {
+        final Intent intent = new Intent(mContext, Helper.getLoginActivityClass(mContext));
         intent.putExtra(AccountManager.KEY_ACCOUNT_AUTHENTICATOR_RESPONSE, response);
         intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
         return intent;
     }
 
-    private static Bundle newAuthTokenBundle(final Context context, final AccountAuthenticatorResponse response, final Account account, final String authTokenType) throws NetworkErrorException {
-		final AccountManager manager = AccountManager.get(context);
-        final Token.Existing existingToken = new Token.Existing(manager, account);
-
+    private Bundle newAuthTokenBundle(final AccountAuthenticatorResponse response, final Account account) {
+        final Token existingToken = getExistingToken(account);
         final String accessToken = existingToken.getAccessToken();
 
         Logger.v("newAuthTokenBundle accessToken: " + accessToken);
@@ -101,22 +113,19 @@ public class Authenticator extends AbstractAccountAuthenticator {
 
         if (!TextUtils.isEmpty(refreshToken)) {
             try {
-                final AuthorizationProvider provider = new AuthorizationProvider();
-                final RefreshTokenRequest request = provider.newRefreshTokenRequest(refreshToken);
-                final TokenResponse resp = request.execute();
-
-                Logger.v("newAuthTokenBundle new accessToken: " + resp.getAccessToken());
-
-                return newAuthTokenBundle(account, resp.getAccessToken());
+                final Token newToken = getNewToken(refreshToken);
+                final String newAccessToken = newToken.getAccessToken();
+                Logger.v("newAuthTokenBundle new accessToken: " + newAccessToken);
+                return newAuthTokenBundle(account, newAccessToken);
             } catch (final Exception e) {
                 Logger.ex(e);
             }
         }
 
-        return newAccountBundle(context, response);
+        return newAccountBundle(response);
 	}
 
-	public static Bundle newAuthTokenBundle(final Account account, final String authToken) {
+    private Bundle newAuthTokenBundle(final Account account, final String authToken) {
 		final Bundle result = new Bundle();
 		result.putString(AccountManager.KEY_ACCOUNT_NAME, account.name);
 		result.putString(AccountManager.KEY_ACCOUNT_TYPE, account.type);
@@ -124,7 +133,7 @@ public class Authenticator extends AbstractAccountAuthenticator {
 		return result;
 	}
 
-    private static Bundle newResultBundle(final boolean result) {
+    private Bundle newResultBundle(final boolean result) {
         final Bundle bundle = new Bundle();
         bundle.putBoolean(AccountManager.KEY_BOOLEAN_RESULT, result);
         return bundle;
@@ -136,7 +145,7 @@ public class Authenticator extends AbstractAccountAuthenticator {
             try {
                 final Class<?> klass = findLoginActivityClass(context);
                 if (klass != null) return klass;
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 Logger.ex(e);
             }
 
@@ -162,4 +171,5 @@ public class Authenticator extends AbstractAccountAuthenticator {
             return null;
         }
     }
+
 }

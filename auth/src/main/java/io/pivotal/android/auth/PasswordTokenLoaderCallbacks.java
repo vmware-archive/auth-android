@@ -12,7 +12,7 @@ import android.os.Bundle;
 import com.google.api.client.auth.oauth2.TokenResponse;
 
 @TargetApi(Build.VERSION_CODES.HONEYCOMB)
-/* package */ class TokenPasswordLoaderCallbacks extends TokenLoaderCallbacks {
+/* package */ class PasswordTokenLoaderCallbacks extends TokenLoaderCallbacks {
 
     private static interface Args {
         public static final String USERNAME = "username";
@@ -26,7 +26,7 @@ import com.google.api.client.auth.oauth2.TokenResponse;
         return args;
     }
 
-    public TokenPasswordLoaderCallbacks(final Context context, final TokenListener listener) {
+    public PasswordTokenLoaderCallbacks(final Context context, final TokenListener listener) {
         super(context, listener);
     }
 
@@ -34,6 +34,6 @@ import com.google.api.client.auth.oauth2.TokenResponse;
     public final Loader<TokenResponse> onCreateLoader(final int id, final Bundle args) {
         final String username = args.getString(Args.USERNAME);
         final String password = args.getString(Args.PASSWORD);
-        return new TokenPasswordLoader(getContext(), username, password);
+        return new PasswordTokenLoader(getContext(), username, password);
     }
 }

@@ -60,8 +60,8 @@ public class LoginWebActivity extends AccountAuthenticatorActivity implements To
     private void onHandleRedirect(final Intent intent) {
         final String code = intent.getData().getQueryParameter("code");
 
-        final Bundle bundle = TokenAuthCodeLoaderCallbacks.createBundle(code);
-        final TokenAuthCodeLoaderCallbacks callback = new TokenAuthCodeLoaderCallbacks(this, this);
+        final Bundle bundle = AuthCodeTokenLoaderCallbacks.createBundle(code);
+        final AuthCodeTokenLoaderCallbacks callback = new AuthCodeTokenLoaderCallbacks(this, this);
 
         getLoaderManager().restartLoader(2000, bundle, callback);
     }

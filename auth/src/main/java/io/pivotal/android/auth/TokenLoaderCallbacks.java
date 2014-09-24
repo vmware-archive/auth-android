@@ -27,6 +27,11 @@ import com.google.api.client.auth.oauth2.TokenResponse;
     }
 
     @Override
+    public final void onLoaderReset(final Loader<TokenResponse> loader) {
+        // do nothing
+    }
+
+    @Override
     public final void onLoadFinished(final Loader<TokenResponse> loader, final TokenResponse data) {
         if (data.containsKey("error")) {
             final String error = data.get("error").toString();
@@ -36,7 +41,4 @@ import com.google.api.client.auth.oauth2.TokenResponse;
             mListener.onAuthorizationComplete(token);
         }
     }
-
-    @Override
-    public final void onLoaderReset(final Loader<TokenResponse> loader) {}
 }

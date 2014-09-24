@@ -3,8 +3,18 @@
  */
 package io.pivotal.android.auth;
 
-import android.test.AndroidTestCase;
+import android.content.Intent;
+import android.test.ServiceTestCase;
 
-public class AuthenticatorServiceTest extends AndroidTestCase {
-    
+public class AuthenticatorServiceTest extends ServiceTestCase<AuthenticatorService> {
+
+    public AuthenticatorServiceTest() {
+        super(AuthenticatorService.class);
+    }
+
+    public void testBindService() {
+        assertNull(getService());
+        assertNotNull(bindService(new Intent()));
+        assertNotNull(getService());
+    }
 }

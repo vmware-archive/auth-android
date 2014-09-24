@@ -12,7 +12,7 @@ import android.os.Bundle;
 import com.google.api.client.auth.oauth2.TokenResponse;
 
 @TargetApi(Build.VERSION_CODES.HONEYCOMB)
-/* package */ class TokenAuthCodeLoaderCallbacks extends TokenLoaderCallbacks {
+/* package */ class AuthCodeTokenLoaderCallbacks extends TokenLoaderCallbacks {
 
     private static interface Args {
         public static final String AUTH_CODE = "auth_code";
@@ -24,13 +24,13 @@ import com.google.api.client.auth.oauth2.TokenResponse;
         return args;
     }
 
-    public TokenAuthCodeLoaderCallbacks(final Context context, final TokenListener listener) {
+    public AuthCodeTokenLoaderCallbacks(final Context context, final TokenListener listener) {
         super(context, listener);
     }
 
     @Override
     public final Loader<TokenResponse> onCreateLoader(final int id, final Bundle args) {
         final String authCode = args.getString(Args.AUTH_CODE);
-        return new TokenAuthCodeLoader(getContext(), authCode);
+        return new AuthCodeTokenLoader(getContext(), authCode);
     }
 }

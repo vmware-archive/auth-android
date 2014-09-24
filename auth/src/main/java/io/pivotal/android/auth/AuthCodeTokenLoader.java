@@ -10,22 +10,20 @@ import android.os.Build;
 import com.google.api.client.auth.oauth2.TokenResponse;
 
 @TargetApi(Build.VERSION_CODES.HONEYCOMB)
-/* package */ class TokenPasswordLoader extends TokenLoader {
+/* package */ class AuthCodeTokenLoader extends TokenLoader {
 
-    private final String mUsername;
-    private final String mPassword;
+    private final String mAuthCode;
 
-    public TokenPasswordLoader(final Context context, final String username, final String password) {
+    public AuthCodeTokenLoader(final Context context, final String authCode) {
         super(context);
-        mUsername = username;
-        mPassword = password;
+        mAuthCode = authCode;
     }
 
     @Override
     public TokenResponse loadInBackground() {
         try {
             final AuthorizationProvider provider = new AuthorizationProvider();
-            return provider.newPasswordTokenRequest(mUsername, mPassword).execute();
+            return provider.newTokenRequest(mAuthCode).execute();
         } catch (final Exception e) {
             Logger.ex(e);
             return new ErrorResponse(e);

@@ -3,7 +3,7 @@
  */
 package io.pivotal.android.auth;
 
-public interface TokenListener {
+/* package */  interface TokenListener {
     public void onAuthorizationComplete(final Token token);
 
     public void onAuthorizationFailed(final Error error);

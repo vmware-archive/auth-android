@@ -33,17 +33,18 @@ import android.os.Bundle;
             final String accountName = bundle.getString(AccountManager.KEY_ACCOUNT_NAME);
             Logger.i("getAuthToken accountName: " + accountName);
 
-            final AccountManager manager = AccountManager.get(mActivity);
+            final TokenManager manager = new TokenManager(mActivity);
             final Account account = Authorization.getAccount(mActivity, accountName);
             final Token.Existing existingToken = new Token.Existing(manager, account);
 
             if (existingToken.isExpired()) {
                 Logger.i("getAuthToken expired.");
-                manager.invalidateAuthToken(Pivotal.Property.ACCOUNT_TYPE, token);
+                final AccountManager accountManager = AccountManager.get(mActivity);
+                accountManager.invalidateAuthToken(Pivotal.Property.ACCOUNT_TYPE, token);
 
                 Logger.i("getAuthToken invalidated.");
                 final ListenerCallback callback = new ListenerCallback(mListener);
-                manager.getAuthToken(account, Pivotal.Property.TOKEN_TYPE, null, false, callback, null);
+                accountManager.getAuthToken(account, Pivotal.Property.TOKEN_TYPE, null, false, callback, null);
 
             } else {
                 mListener.onAuthorizationComplete(token);
