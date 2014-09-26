@@ -8,67 +8,12 @@ import android.accounts.AccountManager;
 import android.annotation.TargetApi;
 import android.content.Intent;
 import android.os.Build;
-import android.os.Bundle;
-import android.view.View;
-import android.widget.Button;
-import android.widget.EditText;
 import android.widget.Toast;
 
 @TargetApi(Build.VERSION_CODES.HONEYCOMB)
-public class LoginActivity extends AccountAuthenticatorActivity implements TokenListener {
+/* package */ abstract class LoginActivity extends AccountAuthenticatorActivity implements TokenListener {
 
-    @Override
-    protected void onCreate(final Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        onCreateContentView(savedInstanceState);
-    }
-
-    protected void onCreateContentView(final Bundle savedInstanceState) {
-        setContentView(R.layout.activity_login);
-    }
-
-    protected String getUserName() {
-        final EditText editText = (EditText) findViewById(R.id.login_user_name);
-        return editText.getText().toString();
-    }
-
-    protected String getPassword() {
-        final EditText editText = (EditText) findViewById(R.id.login_password);
-        return editText.getText().toString();
-    }
-
-    public void onLoginClicked(final View view) {
-        final String userName = getUserName();
-        final String password = getPassword();
-
-        if (onValidateCredentials(userName, password)) {
-            final Bundle bundle = PasswordTokenLoaderCallbacks.createBundle(userName, password);
-            final PasswordTokenLoaderCallbacks callback = new PasswordTokenLoaderCallbacks(this, this);
-
-            getLoaderManager().restartLoader(1000, bundle, callback);
-
-            onStartLoading();
-        }
-    }
-
-    public boolean onValidateCredentials(final String userName, final String password) {
-        final boolean userNameValid = userName != null && userName.length() > 0;
-        final boolean passwordValid = password != null && password.length() > 0;
-
-        if (!userNameValid || !passwordValid) {
-            Toast.makeText(this, "Username/Password required.", Toast.LENGTH_SHORT).show();
-        }
-
-        return userNameValid && passwordValid;
-    }
-
-    public void onStartLoading() {
-        final Button button = (Button) findViewById(R.id.login_submit);
-        if (button != null) {
-            button.setText("Loading...");
-            button.setEnabled(false);
-        }
-    }
+    protected abstract String getUserName();
 
     @Override
     public void onAuthorizationComplete(final Token token) {
@@ -76,7 +21,7 @@ public class LoginActivity extends AccountAuthenticatorActivity implements Token
         Authorization.addAccount(this, username, token);
 
         final Intent intent = new Intent();
-        intent.putExtra(AccountManager.KEY_ACCOUNT_TYPE, Pivotal.Property.ACCOUNT_TYPE);
+        intent.putExtra(AccountManager.KEY_ACCOUNT_TYPE, Pivotal.get("pivotal.auth.accountType"));
         intent.putExtra(AccountManager.KEY_AUTHTOKEN, token.getAccessToken());
         intent.putExtra(AccountManager.KEY_ACCOUNT_NAME, username);
 
@@ -87,12 +32,6 @@ public class LoginActivity extends AccountAuthenticatorActivity implements Token
 
     @Override
     public void onAuthorizationFailed(final Error error) {
-        Toast.makeText(this, "Login Failed: " + error.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
-
-        final Button button = (Button) findViewById(R.id.login_submit);
-        if (button != null) {
-            button.setText("Submit");
-            button.setEnabled(true);
-        }
+        Toast.makeText(this, "error: " + error.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
     }
 }

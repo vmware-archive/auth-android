@@ -62,6 +62,68 @@ public class AuthenticatorTest extends AndroidTestCase {
         assertTrue(intent.hasExtra(AccountManager.KEY_ACCOUNT_AUTHENTICATOR_RESPONSE));
     }
 
+
+    public void testGetAuthTokenLabelReturnsAuthTokenType() throws Exception {
+        final Authenticator authenticator = new Authenticator(null);
+        final String label = authenticator.getAuthTokenLabel("test_label_type");
+
+        assertEquals("test_label_type", label);
+    }
+
+
+    public void testHasFeaturesReturnsFalseForNullFeatures() throws Exception {
+        final Authenticator authenticator = new Authenticator(null);
+        final Bundle bundle = authenticator.hasFeatures(null, null, null);
+
+        assertFalse(bundle.getBoolean(AccountManager.KEY_BOOLEAN_RESULT));
+    }
+
+    public void testHasFeaturesReturnsFalseForEmptyFeatures() throws Exception {
+        final Authenticator authenticator = new Authenticator(null);
+        final Bundle bundle = authenticator.hasFeatures(null, null, new String[] {});
+
+        assertFalse(bundle.getBoolean(AccountManager.KEY_BOOLEAN_RESULT));
+    }
+
+    public void testHasFeaturesReturnsFalseForOpenIdFeature() throws Exception {
+        final Authenticator authenticator = new Authenticator(null);
+        final Bundle bundle = authenticator.hasFeatures(null, null, new String[] { "openid" });
+
+        assertFalse(bundle.getBoolean(AccountManager.KEY_BOOLEAN_RESULT));
+    }
+
+
+    public void testConfirmCredentialsThrowsUnsupportedOperationException() throws Exception {
+        try {
+            final Authenticator authenticator = new Authenticator(null);
+            authenticator.confirmCredentials(null, null, null);
+            fail();
+        } catch (final UnsupportedOperationException e) {
+            assertNotNull(e);
+        }
+    }
+
+    public void testEditPropertiesThrowsUnsupportedOperationException() throws Exception {
+        try {
+            final Authenticator authenticator = new Authenticator(null);
+            authenticator.editProperties(null, null);
+            fail();
+        } catch (final UnsupportedOperationException e) {
+            assertNotNull(e);
+        }
+    }
+
+    public void testUpdateCredentialsThrowsUnsupportedOperationException() throws Exception {
+        try {
+            final Authenticator authenticator = new Authenticator(null);
+            authenticator.updateCredentials(null, null, null, null);
+            fail();
+        } catch (final UnsupportedOperationException e) {
+            assertNotNull(e);
+        }
+    }
+
+
     public void testGetAuthTokenWithEmptyTokens() throws Exception {
         final Context context = new FakePackageManagerContext(TEST_PACKAGE_NAME, TEST_ACTIVITY_NAME);
         final Authenticator authenticator = new Authenticator(context) {
@@ -121,7 +183,7 @@ public class AuthenticatorTest extends AndroidTestCase {
         final Authenticator authenticator = new Authenticator(context) {
             @Override
             protected Token getExistingToken(final Account account) {
-                return new AuthToken("token", "token");
+                return new AuthToken("new_token", "token");
             }
         };
 
@@ -129,65 +191,7 @@ public class AuthenticatorTest extends AndroidTestCase {
 
         assertEquals(account.name, bundle.getString(AccountManager.KEY_ACCOUNT_NAME));
         assertEquals(account.type, bundle.getString(AccountManager.KEY_ACCOUNT_TYPE));
-        assertEquals("token", bundle.getString(AccountManager.KEY_AUTHTOKEN));
-    }
-
-    public void testGetAuthTokenLabelReturnsAuthTokenType() throws Exception {
-        final Authenticator authenticator = new Authenticator(null);
-        final String label = authenticator.getAuthTokenLabel("test_label_type");
-
-        assertEquals("test_label_type", label);
-    }
-
-    public void testHasFeaturesReturnsFalseForNullFeatures() throws Exception {
-        final Authenticator authenticator = new Authenticator(null);
-        final Bundle bundle = authenticator.hasFeatures(null, null, null);
-
-        assertFalse(bundle.getBoolean(AccountManager.KEY_BOOLEAN_RESULT));
-    }
-
-    public void testHasFeaturesReturnsFalseForEmptyFeatures() throws Exception {
-        final Authenticator authenticator = new Authenticator(null);
-        final Bundle bundle = authenticator.hasFeatures(null, null, new String[] {});
-
-        assertFalse(bundle.getBoolean(AccountManager.KEY_BOOLEAN_RESULT));
-    }
-
-    public void testHasFeaturesReturnsFalseForOpenIdFeature() throws Exception {
-        final Authenticator authenticator = new Authenticator(null);
-        final Bundle bundle = authenticator.hasFeatures(null, null, new String[] { "openid" });
-
-        assertFalse(bundle.getBoolean(AccountManager.KEY_BOOLEAN_RESULT));
-    }
-
-    public void testConfirmCredentialsThrowsUnsupportedOperationException() throws Exception {
-        try {
-            final Authenticator authenticator = new Authenticator(null);
-            authenticator.confirmCredentials(null, null, null);
-            fail();
-        } catch (final UnsupportedOperationException e) {
-            assertNotNull(e);
-        }
-    }
-
-    public void testEditPropertiesThrowsUnsupportedOperationException() throws Exception {
-        try {
-            final Authenticator authenticator = new Authenticator(null);
-            authenticator.editProperties(null, null);
-            fail();
-        } catch (final UnsupportedOperationException e) {
-            assertNotNull(e);
-        }
-    }
-
-    public void testUpdateCredentialsThrowsUnsupportedOperationException() throws Exception {
-        try {
-            final Authenticator authenticator = new Authenticator(null);
-            authenticator.updateCredentials(null, null, null, null);
-            fail();
-        } catch (final UnsupportedOperationException e) {
-            assertNotNull(e);
-        }
+        assertEquals("new_token", bundle.getString(AccountManager.KEY_AUTHTOKEN));
     }
 
 

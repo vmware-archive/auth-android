@@ -3,19 +3,16 @@
  */
 package io.pivotal.android.auth;
 
-import android.accounts.AccountAuthenticatorActivity;
-import android.accounts.AccountManager;
 import android.annotation.TargetApi;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.widget.Toast;
 
 import com.google.api.client.auth.oauth2.AuthorizationCodeRequestUrl;
 
 @TargetApi(Build.VERSION_CODES.HONEYCOMB)
-public class LoginWebActivity extends AccountAuthenticatorActivity implements TokenListener {
+public class LoginAuthCodeActivity extends LoginActivity {
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -35,6 +32,7 @@ public class LoginWebActivity extends AccountAuthenticatorActivity implements To
         setContentView(R.layout.activity_login);
     }
 
+    @Override
     protected String getUserName() {
        return "Account";
     }
@@ -50,7 +48,7 @@ public class LoginWebActivity extends AccountAuthenticatorActivity implements To
 
     private boolean intentHasCallbackUrl(final Intent intent) {
         if (intent != null && intent.hasCategory(Intent.CATEGORY_BROWSABLE) && intent.getData() != null) {
-            final String redirectUrl = Pivotal.Property.REDIRECT_URL.toLowerCase();
+            final String redirectUrl = Pivotal.get(Pivotal.PROP_REDIRECT_URL).toLowerCase();
             return intent.getData().toString().toLowerCase().startsWith(redirectUrl);
         } else {
             return false;
@@ -64,25 +62,5 @@ public class LoginWebActivity extends AccountAuthenticatorActivity implements To
         final AuthCodeTokenLoaderCallbacks callback = new AuthCodeTokenLoaderCallbacks(this, this);
 
         getLoaderManager().restartLoader(2000, bundle, callback);
-    }
-
-    @Override
-    public void onAuthorizationComplete(final Token token) {
-        final String username = getUserName();
-        Authorization.addAccount(this, username, token);
-
-        final Intent intent = new Intent();
-        intent.putExtra(AccountManager.KEY_ACCOUNT_TYPE, Pivotal.Property.ACCOUNT_TYPE);
-        intent.putExtra(AccountManager.KEY_AUTHTOKEN, token.getAccessToken());
-        intent.putExtra(AccountManager.KEY_ACCOUNT_NAME, username);
-
-        setAccountAuthenticatorResult(intent.getExtras());
-        setResult(RESULT_OK, intent);
-        finish();
-    }
-
-    @Override
-    public void onAuthorizationFailed(final Error error) {
-        Toast.makeText(this, "error: " + error.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
     }
 }

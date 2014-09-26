@@ -19,6 +19,7 @@ import android.os.Bundle;
     @Override
     public void run(final AccountManagerFuture<Bundle> future) {
         try {
+
             final Bundle bundle = future.getResult();
             final String token = bundle.getString(AccountManager.KEY_AUTHTOKEN);
 
@@ -27,7 +28,6 @@ import android.os.Bundle;
             mListener.onAuthorizationComplete(token);
 
         } catch (final Exception e) {
-
             final String error = e.getLocalizedMessage();
             Logger.i("getAuthToken error: " + error);
 

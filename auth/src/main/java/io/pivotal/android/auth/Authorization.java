@@ -4,7 +4,6 @@
 package io.pivotal.android.auth;
 
 import android.accounts.Account;
-import android.accounts.AccountManager;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
@@ -21,9 +20,8 @@ public class Authorization {
 
     public static void getAuthToken(final Activity activity, final Listener listener) {
         Logger.i("getAuthToken");
-        final AccountManager manager = AccountManager.get(activity);
-        final ListenerExpirationCheckCallback callback = new ListenerExpirationCheckCallback(activity, listener);
-        manager.getAuthTokenByFeatures(Pivotal.Property.ACCOUNT_TYPE, Pivotal.Property.TOKEN_TYPE, null, activity, null, null, callback, null);
+        final TokenProvider provider = TokenProviderFactory.get(activity);
+        provider.getAuthToken(activity, listener);
     }
 
     public static String getAuthToken(final Context context, final String accountName) {
@@ -37,29 +35,29 @@ public class Authorization {
 
     public static String getAuthTokenOrThrow(final Context context, final String accountName) throws Exception {
         Logger.i("getAuthToken: " + accountName);
+        final TokenProvider provider = TokenProviderFactory.get(context);
         final Account account = getAccount(context, accountName);
-        final AccountManager manager = AccountManager.get(context);
-        return manager.blockingGetAuthToken(account, Pivotal.Property.TOKEN_TYPE, false);
+        return provider.getAuthTokenOrThrow(account);
     }
 
     public static void invalidateAuthToken(final Context context, final String token) {
         Logger.i("invalidateAuthToken");
-        final AccountManager manager = AccountManager.get(context);
-        manager.invalidateAuthToken(Pivotal.Property.ACCOUNT_TYPE, token);
+        final TokenProvider provider = TokenProviderFactory.get(context);
+        provider.invalidateAuthToken(token);
     }
 
     public static void addAccount(final Context context, final String name, final Token token) {
         Logger.i("addAccount: " + name + ", token: " + token.getAccessToken());
-        final Account account = new Account(name, Pivotal.Property.ACCOUNT_TYPE);
-        final AccountManager manager = AccountManager.get(context);
-        manager.addAccountExplicitly(account, token.getRefreshToken(), null);
-        manager.setAuthToken(account, Pivotal.Property.TOKEN_TYPE, token.getAccessToken());
+        final TokenProvider provider = TokenProviderFactory.get(context);
+        final Account account = new Account(name, Pivotal.get(Pivotal.PROP_ACCOUNT_TYPE));
+        provider.addAccount(account, token.getRefreshToken());
+        provider.setAuthToken(account, token.getAccessToken());
     }
 
     public static Account[] getAccounts(final Context context) {
         Logger.i("getAccounts");
-        final AccountManager manager = AccountManager.get(context);
-        return manager.getAccountsByType(Pivotal.Property.ACCOUNT_TYPE);
+        final TokenProvider provider = TokenProviderFactory.get(context);
+        return provider.getAccounts();
     }
 
     public static Account getAccount(final Context context, final String name) {
@@ -75,17 +73,17 @@ public class Authorization {
 
     public static void removeAccount(final Context context, final String name) {
         Logger.i("removeAccount: " + name);
-        final Account account = new Account(name, Pivotal.Property.ACCOUNT_TYPE);
-        final AccountManager manager = AccountManager.get(context);
-        manager.removeAccount(account, null, null);
+        final TokenProvider provider = TokenProviderFactory.get(context);
+        final Account account = new Account(name, Pivotal.get(Pivotal.PROP_ACCOUNT_TYPE));
+        provider.removeAccount(account);
     }
 
     public static void removeAllAccounts(final Context context) {
         Logger.i("removeAllAccounts");
-        final AccountManager manager = AccountManager.get(context);
+        final TokenProvider provider = TokenProviderFactory.get(context);
         final Account[] accounts = getAccounts(context);
         for (int i = 0; i < accounts.length; i++) {
-            manager.removeAccount(accounts[i], null, null);
+            provider.removeAccount(accounts[i]);
         }
     }
 }

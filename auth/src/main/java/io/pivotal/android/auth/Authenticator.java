@@ -5,15 +5,11 @@ package io.pivotal.android.auth;
 
 import android.accounts.AbstractAccountAuthenticator;
 import android.accounts.Account;
-import android.accounts.AccountAuthenticatorActivity;
 import android.accounts.AccountAuthenticatorResponse;
 import android.accounts.AccountManager;
 import android.accounts.NetworkErrorException;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.ActivityInfo;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.text.TextUtils;
 
@@ -71,8 +67,8 @@ public class Authenticator extends AbstractAccountAuthenticator {
 
 
     /* package */ Token getExistingToken(final Account account) {
-        final TokenManager manager = new TokenManager(mContext);
-        return new Token.Existing(manager, account);
+        final TokenProvider provider = TokenProviderFactory.get(mContext);
+        return new Token.Existing(provider, account);
     }
 
     /* package */ Token getNewToken(final String refreshToken) throws IOException {
@@ -89,10 +85,24 @@ public class Authenticator extends AbstractAccountAuthenticator {
 	}
 
     private Intent newLoginIntent(final AccountAuthenticatorResponse response) {
-        final Intent intent = new Intent(mContext, Helper.getLoginActivityClass(mContext));
+        final Intent intent = new Intent(mContext, PackageHelper.getLoginActivityClass(mContext));
         intent.putExtra(AccountManager.KEY_ACCOUNT_AUTHENTICATOR_RESPONSE, response);
         intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
         return intent;
+    }
+
+    private Bundle newAuthTokenBundle(final Account account, final String authToken) {
+		final Bundle result = new Bundle();
+		result.putString(AccountManager.KEY_ACCOUNT_NAME, account.name);
+		result.putString(AccountManager.KEY_ACCOUNT_TYPE, account.type);
+		result.putString(AccountManager.KEY_AUTHTOKEN, authToken);
+		return result;
+	}
+
+    private Bundle newResultBundle(final boolean result) {
+        final Bundle bundle = new Bundle();
+        bundle.putBoolean(AccountManager.KEY_BOOLEAN_RESULT, result);
+        return bundle;
     }
 
     private Bundle newAuthTokenBundle(final AccountAuthenticatorResponse response, final Account account) {
@@ -101,9 +111,9 @@ public class Authenticator extends AbstractAccountAuthenticator {
 
         Logger.v("newAuthTokenBundle accessToken: " + accessToken);
 
-		if (!TextUtils.isEmpty(accessToken) && !existingToken.isExpired()) {
-			return newAuthTokenBundle(account, accessToken);
-		}
+        if (!TextUtils.isEmpty(accessToken) && !existingToken.isExpired()) {
+            return newAuthTokenBundle(account, accessToken);
+        }
 
         Logger.v("newAuthTokenBundle auth token " + (TextUtils.isEmpty(accessToken) ? "empty." : "expired."));
 
@@ -123,53 +133,6 @@ public class Authenticator extends AbstractAccountAuthenticator {
         }
 
         return newAccountBundle(response);
-	}
-
-    private Bundle newAuthTokenBundle(final Account account, final String authToken) {
-		final Bundle result = new Bundle();
-		result.putString(AccountManager.KEY_ACCOUNT_NAME, account.name);
-		result.putString(AccountManager.KEY_ACCOUNT_TYPE, account.type);
-		result.putString(AccountManager.KEY_AUTHTOKEN, authToken);
-		return result;
-	}
-
-    private Bundle newResultBundle(final boolean result) {
-        final Bundle bundle = new Bundle();
-        bundle.putBoolean(AccountManager.KEY_BOOLEAN_RESULT, result);
-        return bundle;
-    }
-
-    private static final class Helper {
-
-        public static Class<?> getLoginActivityClass(final Context context) {
-            try {
-                final Class<?> klass = findLoginActivityClass(context);
-                if (klass != null) return klass;
-            } catch (final Exception e) {
-                Logger.ex(e);
-            }
-
-            throw new IllegalStateException("No subclass of AccountAuthenticatorActivity found in your AndroidManifest.xml");
-        }
-
-        private static Class<?> findLoginActivityClass(final Context context) throws Exception {
-            final PackageManager manager = context.getPackageManager();
-            final PackageInfo info = manager.getPackageInfo(context.getPackageName(), PackageManager.GET_ACTIVITIES);
-            final ActivityInfo[] activities = info.activities;
-            return findLoginActivityClass(activities);
-        }
-
-        private static Class<?> findLoginActivityClass(final ActivityInfo[] activities) throws Exception {
-            if (activities != null) {
-                for (int i =0; i < activities.length; i++) {
-                    final Class<?> klass = Class.forName(activities[i].name);
-                    if (AccountAuthenticatorActivity.class.isAssignableFrom(klass)) {
-                        return klass;
-                    }
-                }
-            }
-            return null;
-        }
     }
 
 }

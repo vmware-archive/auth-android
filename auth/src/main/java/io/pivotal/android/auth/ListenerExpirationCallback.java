@@ -13,12 +13,12 @@ import android.os.Build;
 import android.os.Bundle;
 
 @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
-/* package */ class ListenerExpirationCheckCallback implements AccountManagerCallback<Bundle> {
+/* package */ class ListenerExpirationCallback implements AccountManagerCallback<Bundle> {
 
     private final Activity mActivity;
     private final Authorization.Listener mListener;
 
-    public ListenerExpirationCheckCallback(final Activity activity, final Authorization.Listener listener) {
+    public ListenerExpirationCallback(final Activity activity, final Authorization.Listener listener) {
         mActivity = activity;
         mListener = listener;
     }
@@ -26,6 +26,7 @@ import android.os.Bundle;
     @Override
     public void run(final AccountManagerFuture<Bundle> future) {
         try {
+
             final Bundle bundle = future.getResult();
             final String token = bundle.getString(AccountManager.KEY_AUTHTOKEN);
             Logger.i("getAuthToken token: " + token);
@@ -33,18 +34,16 @@ import android.os.Bundle;
             final String accountName = bundle.getString(AccountManager.KEY_ACCOUNT_NAME);
             Logger.i("getAuthToken accountName: " + accountName);
 
-            final TokenManager manager = new TokenManager(mActivity);
+            final TokenProvider provider = TokenProviderFactory.get(mActivity);
             final Account account = Authorization.getAccount(mActivity, accountName);
-            final Token.Existing existingToken = new Token.Existing(manager, account);
+            final Token.Existing existingToken = new Token.Existing(provider, account);
 
             if (existingToken.isExpired()) {
                 Logger.i("getAuthToken expired.");
-                final AccountManager accountManager = AccountManager.get(mActivity);
-                accountManager.invalidateAuthToken(Pivotal.Property.ACCOUNT_TYPE, token);
+                provider.invalidateAuthToken(token);
 
                 Logger.i("getAuthToken invalidated.");
-                final ListenerCallback callback = new ListenerCallback(mListener);
-                accountManager.getAuthToken(account, Pivotal.Property.TOKEN_TYPE, null, false, callback, null);
+                provider.getAuthToken(account, mListener);
 
             } else {
                 mListener.onAuthorizationComplete(token);
@@ -53,6 +52,7 @@ import android.os.Bundle;
         } catch (final Exception e) {
             final String error = e.getLocalizedMessage();
             Logger.i("getAuthToken error: " + error);
+
             mListener.onAuthorizationFailure(error);
         }
     }

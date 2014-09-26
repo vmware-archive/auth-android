@@ -8,7 +8,7 @@
     <uses-permission android:name="android.permission.GET_ACCOUNTS"/>
 
     <application>
-        <activity android:name=".LoginActivity" />
+        <activity android:name=".LoginPasswordActivity" />
 
         <service android:name=".AuthenticatorService"
             android:permission="android.permission.ACCOUNT_MANAGER" >
