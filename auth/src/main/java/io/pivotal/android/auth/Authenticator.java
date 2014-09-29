@@ -72,7 +72,7 @@ public class Authenticator extends AbstractAccountAuthenticator {
     }
 
     /* package */ Token getNewToken(final String refreshToken) throws IOException {
-        final AuthorizationProvider provider = new AuthorizationProvider();
+        final AuthorizationProvider provider = new AuthorizationProvider.Default();
         final RefreshTokenRequest request = provider.newRefreshTokenRequest(refreshToken);
         final TokenResponse resp = request.execute();
         return new Token(resp);

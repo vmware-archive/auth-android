@@ -38,7 +38,7 @@ public class LoginAuthCodeActivity extends LoginActivity {
     }
 
     public void authorize() {
-        final AuthorizationProvider provider = new AuthorizationProvider();
+        final AuthorizationProvider provider = new AuthorizationProvider.Default();
         final AuthorizationCodeRequestUrl authorizationUrl = provider.newAuthorizationUrl();
         final Uri uri = Uri.parse(authorizationUrl.build());
         final Intent intent = new Intent(Intent.ACTION_VIEW, uri);

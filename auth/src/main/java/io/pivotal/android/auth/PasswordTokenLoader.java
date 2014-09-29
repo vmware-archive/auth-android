@@ -24,7 +24,7 @@ import com.google.api.client.auth.oauth2.TokenResponse;
     @Override
     public TokenResponse loadInBackground() {
         try {
-            final AuthorizationProvider provider = new AuthorizationProvider();
+            final AuthorizationProvider provider = new AuthorizationProvider.Default();
             return provider.newPasswordTokenRequest(mUsername, mPassword).execute();
         } catch (final Exception e) {
             Logger.ex(e);

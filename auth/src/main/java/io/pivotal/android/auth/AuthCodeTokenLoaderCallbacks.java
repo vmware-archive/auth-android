@@ -31,6 +31,7 @@ import com.google.api.client.auth.oauth2.TokenResponse;
     @Override
     public final Loader<TokenResponse> onCreateLoader(final int id, final Bundle args) {
         final String authCode = args.getString(Args.AUTH_CODE);
-        return new AuthCodeTokenLoader(getContext(), authCode);
+        final AuthorizationProvider provider = new AuthorizationProvider.Default();
+        return new AuthCodeTokenLoader(getContext(), provider, authCode);
     }
 }

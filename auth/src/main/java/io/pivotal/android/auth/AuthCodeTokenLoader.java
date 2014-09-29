@@ -13,17 +13,18 @@ import com.google.api.client.auth.oauth2.TokenResponse;
 /* package */ class AuthCodeTokenLoader extends TokenLoader {
 
     private final String mAuthCode;
+    private final AuthorizationProvider mProvider;
 
-    public AuthCodeTokenLoader(final Context context, final String authCode) {
+    public AuthCodeTokenLoader(final Context context, final AuthorizationProvider provider, final String authCode) {
         super(context);
+        mProvider = provider;
         mAuthCode = authCode;
     }
 
     @Override
     public TokenResponse loadInBackground() {
         try {
-            final AuthorizationProvider provider = new AuthorizationProvider();
-            return provider.newTokenRequest(mAuthCode).execute();
+            return mProvider.newTokenRequest(mAuthCode).execute();
         } catch (final Exception e) {
             Logger.ex(e);
             return new ErrorResponse(e);

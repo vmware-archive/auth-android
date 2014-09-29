@@ -22,51 +22,64 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
-public class AuthorizationProvider extends AuthorizationCodeFlow {
+public interface AuthorizationProvider {
 
-    private static final List<String> SCOPES = Arrays.asList("offline_access", "openid");
-    private static final GenericUrl TOKEN_URL = new GenericUrl(Pivotal.get(Pivotal.PROP_TOKEN_URL));
+    public PasswordTokenRequest newPasswordTokenRequest(String username, String password);
 
-    private static final Credential.AccessMethod METHOD = BearerToken.authorizationHeaderAccessMethod();
-    private static final HttpExecuteInterceptor INTERCEPTOR = new ClientParametersAuthentication(Pivotal.get(Pivotal.PROP_CLIENT_ID), Pivotal.get(Pivotal.PROP_CLIENT_SECRET));
+    public RefreshTokenRequest newRefreshTokenRequest(String refreshToken);
 
-    private static final HttpTransport TRANSPORT = new NetHttpTransport();
-    private static final JsonFactory JSON_FACTORY = new JacksonFactory();
+    public AuthorizationCodeTokenRequest newTokenRequest(String authorizationCode);
 
-    public AuthorizationProvider() {
-        super(new Builder(METHOD, TRANSPORT, JSON_FACTORY, TOKEN_URL, INTERCEPTOR, Pivotal.get(Pivotal.PROP_CLIENT_ID), Pivotal.get(Pivotal.PROP_AUTHORIZE_URL)).setScopes(SCOPES));
-    }
+    public AuthorizationCodeRequestUrl newAuthorizationUrl();
 
-    public PasswordTokenRequest newPasswordTokenRequest(final String username, final String password) {
-        final GenericUrl url = new GenericUrl(getTokenServerEncodedUrl());
-        final PasswordTokenRequest request = new PasswordTokenRequest(getTransport(), getJsonFactory(), url, username, password);
-        request.setClientAuthentication(getClientAuthentication());
-        request.setRequestInitializer(getRequestInitializer());
-        request.setScopes(getScopes());
-        return request;
-    }
+    public static class Default extends AuthorizationCodeFlow implements AuthorizationProvider {
 
-    public RefreshTokenRequest newRefreshTokenRequest(final String refreshToken) {
-        final GenericUrl url = new GenericUrl(getTokenServerEncodedUrl());
-        final RefreshTokenRequest request = new RefreshTokenRequest(getTransport(), getJsonFactory(), url, refreshToken);
-        request.setClientAuthentication(getClientAuthentication());
-        request.setRequestInitializer(getRequestInitializer());
-        request.setScopes(getScopes());
-        return request;
-    }
+        private static final List<String> SCOPES = Arrays.asList("offline_access", "openid");
+        private static final GenericUrl TOKEN_URL = new GenericUrl(Pivotal.get(Pivotal.PROP_TOKEN_URL));
 
-    @Override
-    public AuthorizationCodeTokenRequest newTokenRequest(final String authorizationCode) {
-        final AuthorizationCodeTokenRequest request = super.newTokenRequest(authorizationCode);
-        request.setRedirectUri(Pivotal.get(Pivotal.PROP_REDIRECT_URL));
-        return request;
-    }
+        private static final Credential.AccessMethod METHOD = BearerToken.authorizationHeaderAccessMethod();
+        private static final HttpExecuteInterceptor INTERCEPTOR = new ClientParametersAuthentication(Pivotal.get(Pivotal.PROP_CLIENT_ID), Pivotal.get(Pivotal.PROP_CLIENT_SECRET));
 
-    @Override
-    public AuthorizationCodeRequestUrl newAuthorizationUrl() {
-        final AuthorizationCodeRequestUrl requestUrl = super.newAuthorizationUrl();
-        requestUrl.setRedirectUri(Pivotal.get(Pivotal.PROP_REDIRECT_URL));
-        requestUrl.setState(UUID.randomUUID().toString());
-        return requestUrl;
+        private static final HttpTransport TRANSPORT = new NetHttpTransport();
+        private static final JsonFactory JSON_FACTORY = new JacksonFactory();
+
+        public Default() {
+            super(new Builder(METHOD, TRANSPORT, JSON_FACTORY, TOKEN_URL, INTERCEPTOR, Pivotal.get(Pivotal.PROP_CLIENT_ID), Pivotal.get(Pivotal.PROP_AUTHORIZE_URL)).setScopes(SCOPES));
+        }
+
+        @Override
+        public PasswordTokenRequest newPasswordTokenRequest(final String username, final String password) {
+            final GenericUrl url = new GenericUrl(getTokenServerEncodedUrl());
+            final PasswordTokenRequest request = new PasswordTokenRequest(getTransport(), getJsonFactory(), url, username, password);
+            request.setClientAuthentication(getClientAuthentication());
+            request.setRequestInitializer(getRequestInitializer());
+            request.setScopes(getScopes());
+            return request;
+        }
+
+        @Override
+        public RefreshTokenRequest newRefreshTokenRequest(final String refreshToken) {
+            final GenericUrl url = new GenericUrl(getTokenServerEncodedUrl());
+            final RefreshTokenRequest request = new RefreshTokenRequest(getTransport(), getJsonFactory(), url, refreshToken);
+            request.setClientAuthentication(getClientAuthentication());
+            request.setRequestInitializer(getRequestInitializer());
+            request.setScopes(getScopes());
+            return request;
+        }
+
+        @Override
+        public AuthorizationCodeTokenRequest newTokenRequest(final String authorizationCode) {
+            final AuthorizationCodeTokenRequest request = super.newTokenRequest(authorizationCode);
+            request.setRedirectUri(Pivotal.get(Pivotal.PROP_REDIRECT_URL));
+            return request;
+        }
+
+        @Override
+        public AuthorizationCodeRequestUrl newAuthorizationUrl() {
+            final AuthorizationCodeRequestUrl requestUrl = super.newAuthorizationUrl();
+            requestUrl.setRedirectUri(Pivotal.get(Pivotal.PROP_REDIRECT_URL));
+            requestUrl.setState(UUID.randomUUID().toString());
+            return requestUrl;
+        }
     }
 }
