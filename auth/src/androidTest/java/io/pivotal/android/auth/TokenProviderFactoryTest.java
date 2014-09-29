@@ -15,8 +15,8 @@ public class TokenProviderFactoryTest extends AndroidTestCase {
     }
 
     public void testWithoutInitialization() {
-        final TokenProvider instance = TokenProviderFactory.get(mContext);
         TokenProviderFactory.init(null);
+        final TokenProvider instance = TokenProviderFactory.get(mContext);
         final TokenManager manager = (TokenManager) instance;
         assertNotNull(manager);
     }
