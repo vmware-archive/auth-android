@@ -19,6 +19,14 @@ public class Token {
         mRefreshToken = refreshToken;
     }
 
+    /* package */ Token(final TokenResponse response) {
+        this(response.getAccessToken(), response.getRefreshToken());
+    }
+
+    /* package */ Token(final TokenProvider provider, final Account account) {
+        this(provider.getAuthToken(account), provider.getRefreshToken(account));
+    }
+
     public String getAccessToken() {
         return mAccessToken;
     }
@@ -29,17 +37,9 @@ public class Token {
 
     public boolean isExpired() {
         try {
-            final String[] parts = getAccessToken().split("\\.");
-            final byte[] bytes = Base64.decode(parts[1], Base64.DEFAULT);
-            final DecodedToken token = new ObjectMapper().readValue(bytes, DecodedToken.class);
-
-            final long expirationTime = Long.parseLong(token.exp);
-            final long currentTime = System.currentTimeMillis() / 1000;
-
-            final long timeDifference = expirationTime - currentTime;
-
-            Logger.v("isExpired expirationTime: " + expirationTime + ", current: " + currentTime + ", expires in " + timeDifference / 60 + " minutes");
-
+            final DecodedToken token = getDecodedToken();
+            final long timeDifference = getTimeDifference(token.exp);
+            Logger.v("Token expires in " + timeDifference / 60 + " minutes");
             return timeDifference < 30; // expired if valid for less than 30 seconds
         } catch (final Exception e) {
             Logger.ex(e);
@@ -47,22 +47,21 @@ public class Token {
         }
     }
 
+    private DecodedToken getDecodedToken() throws Exception {
+        final String[] parts = getAccessToken().split("\\.");
+        final byte[] bytes = Base64.decode(parts[1], Base64.DEFAULT);
+        return new ObjectMapper().readValue(bytes, DecodedToken.class);
+    }
+
+    private long getTimeDifference(final String expiration) {
+        final long expirationTime = Long.parseLong(expiration);
+        final long currentTime = System.currentTimeMillis() / 1000;
+        final long timeDifference = expirationTime - currentTime;
+        return timeDifference;
+    }
+
     private static final class DecodedToken {
         public String exp, iss, jti, iat;
         public String[] aud;
-    }
-
-    /* package */ static final class New extends Token {
-
-        public New(final TokenResponse response) {
-            super(response.getAccessToken(), response.getRefreshToken());
-        }
-    }
-
-    /* package */ static final class Existing extends Token {
-
-        public Existing(final TokenProvider provider, final Account account) {
-            super(provider.getAuthToken(account), provider.getRefreshToken(account));
-        }
     }
 }

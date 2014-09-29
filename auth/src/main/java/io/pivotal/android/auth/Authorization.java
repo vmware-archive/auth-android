@@ -13,7 +13,7 @@ import android.os.Build;
 public class Authorization {
 
     public static interface Listener {
-        public void onAuthorizationFailure(String error);
+        public void onAuthorizationFailure(Error error);
 
         public void onAuthorizationComplete(String token);
     }

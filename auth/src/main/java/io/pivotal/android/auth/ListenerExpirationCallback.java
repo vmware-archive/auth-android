@@ -28,15 +28,15 @@ import android.os.Bundle;
         try {
 
             final Bundle bundle = future.getResult();
-            final String token = bundle.getString(AccountManager.KEY_AUTHTOKEN);
-            Logger.i("getAuthToken token: " + token);
-
             final String accountName = bundle.getString(AccountManager.KEY_ACCOUNT_NAME);
             Logger.i("getAuthToken accountName: " + accountName);
 
             final TokenProvider provider = TokenProviderFactory.get(mActivity);
             final Account account = Authorization.getAccount(mActivity, accountName);
-            final Token.Existing existingToken = new Token.Existing(provider, account);
+            final Token existingToken = new Token(provider, account);
+
+            final String token = existingToken.getAccessToken();
+            Logger.i("getAuthToken token: " + token);
 
             if (existingToken.isExpired()) {
                 Logger.i("getAuthToken expired.");
@@ -50,7 +50,7 @@ import android.os.Bundle;
             }
 
         } catch (final Exception e) {
-            final String error = e.getLocalizedMessage();
+            final Error error = new Error(e.getLocalizedMessage(), e);
             Logger.i("getAuthToken error: " + error);
 
             mListener.onAuthorizationFailure(error);

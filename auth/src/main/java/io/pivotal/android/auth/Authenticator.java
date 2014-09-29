@@ -68,14 +68,14 @@ public class Authenticator extends AbstractAccountAuthenticator {
 
     /* package */ Token getExistingToken(final Account account) {
         final TokenProvider provider = TokenProviderFactory.get(mContext);
-        return new Token.Existing(provider, account);
+        return new Token(provider, account);
     }
 
     /* package */ Token getNewToken(final String refreshToken) throws IOException {
         final AuthorizationProvider provider = new AuthorizationProvider();
         final RefreshTokenRequest request = provider.newRefreshTokenRequest(refreshToken);
         final TokenResponse resp = request.execute();
-        return new Token.New(resp);
+        return new Token(resp);
     }
 
     private Bundle newAccountBundle(final AccountAuthenticatorResponse response) {

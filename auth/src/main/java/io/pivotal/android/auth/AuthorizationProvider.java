@@ -33,8 +33,6 @@ public class AuthorizationProvider extends AuthorizationCodeFlow {
     private static final HttpTransport TRANSPORT = new NetHttpTransport();
     private static final JsonFactory JSON_FACTORY = new JacksonFactory();
 
-    private static final String STATE_TOKEN = UUID.randomUUID().toString().substring(0, 10);
-
     public AuthorizationProvider() {
         super(new Builder(METHOD, TRANSPORT, JSON_FACTORY, TOKEN_URL, INTERCEPTOR, Pivotal.get(Pivotal.PROP_CLIENT_ID), Pivotal.get(Pivotal.PROP_AUTHORIZE_URL)).setScopes(SCOPES));
     }
@@ -68,7 +66,7 @@ public class AuthorizationProvider extends AuthorizationCodeFlow {
     public AuthorizationCodeRequestUrl newAuthorizationUrl() {
         final AuthorizationCodeRequestUrl requestUrl = super.newAuthorizationUrl();
         requestUrl.setRedirectUri(Pivotal.get(Pivotal.PROP_REDIRECT_URL));
-        requestUrl.setState(STATE_TOKEN);
+        requestUrl.setState(UUID.randomUUID().toString());
         return requestUrl;
     }
 }

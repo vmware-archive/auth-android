@@ -28,7 +28,7 @@ import android.os.Bundle;
             mListener.onAuthorizationComplete(token);
 
         } catch (final Exception e) {
-            final String error = e.getLocalizedMessage();
+            final Error error = new Error(e.getLocalizedMessage(), e);
             Logger.i("getAuthToken error: " + error);
 
             mListener.onAuthorizationFailure(error);
