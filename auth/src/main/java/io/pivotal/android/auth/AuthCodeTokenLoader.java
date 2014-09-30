@@ -12,8 +12,9 @@ import com.google.api.client.auth.oauth2.TokenResponse;
 @TargetApi(Build.VERSION_CODES.HONEYCOMB)
 /* package */ class AuthCodeTokenLoader extends TokenLoader {
 
-    private final String mAuthCode;
     private final AuthorizationProvider mProvider;
+
+    private final String mAuthCode;
 
     public AuthCodeTokenLoader(final Context context, final AuthorizationProvider provider, final String authCode) {
         super(context);

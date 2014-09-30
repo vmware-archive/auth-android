@@ -12,11 +12,14 @@ import com.google.api.client.auth.oauth2.TokenResponse;
 @TargetApi(Build.VERSION_CODES.HONEYCOMB)
 /* package */ class PasswordTokenLoader extends TokenLoader {
 
+    private final AuthorizationProvider mProvider;
+
     private final String mUsername;
     private final String mPassword;
 
-    public PasswordTokenLoader(final Context context, final String username, final String password) {
+    public PasswordTokenLoader(final Context context, final AuthorizationProvider provider, final String username, final String password) {
         super(context);
+        mProvider = provider;
         mUsername = username;
         mPassword = password;
     }
@@ -24,8 +27,7 @@ import com.google.api.client.auth.oauth2.TokenResponse;
     @Override
     public TokenResponse loadInBackground() {
         try {
-            final AuthorizationProvider provider = new AuthorizationProvider.Default();
-            return provider.newPasswordTokenRequest(mUsername, mPassword).execute();
+            return mProvider.newPasswordTokenRequest(mUsername, mPassword).execute();
         } catch (final Exception e) {
             Logger.ex(e);
             return new ErrorResponse(e);
