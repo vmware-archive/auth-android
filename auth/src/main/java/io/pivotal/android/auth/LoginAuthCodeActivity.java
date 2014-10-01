@@ -48,7 +48,7 @@ public class LoginAuthCodeActivity extends LoginActivity {
 
     private boolean intentHasCallbackUrl(final Intent intent) {
         if (intent != null && intent.hasCategory(Intent.CATEGORY_BROWSABLE) && intent.getData() != null) {
-            final String redirectUrl = Pivotal.get(Pivotal.PROP_REDIRECT_URL).toLowerCase();
+            final String redirectUrl = Pivotal.getRedirectUrl().toLowerCase();
             return intent.getData().toString().toLowerCase().startsWith(redirectUrl);
         } else {
             return false;

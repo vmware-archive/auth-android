@@ -70,7 +70,6 @@ public class PasswordTokenLoaderTest extends AndroidTestCase {
 
         @Override
         public TokenResponse execute() throws IOException {
-            mTokenResponse = new TokenResponse();
             return mTokenResponse;
         }
     }

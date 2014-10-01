@@ -49,7 +49,7 @@ public class Authorization {
     public static void addAccount(final Context context, final String name, final Token token) {
         Logger.i("addAccount: " + name + ", token: " + token.getAccessToken());
         final TokenProvider provider = TokenProviderFactory.get(context);
-        final Account account = new Account(name, Pivotal.get(Pivotal.PROP_ACCOUNT_TYPE));
+        final Account account = new Account(name, Pivotal.getAccountType());
         provider.addAccount(account, token.getRefreshToken());
         provider.setAuthToken(account, token.getAccessToken());
     }
@@ -74,7 +74,7 @@ public class Authorization {
     public static void removeAccount(final Context context, final String name) {
         Logger.i("removeAccount: " + name);
         final TokenProvider provider = TokenProviderFactory.get(context);
-        final Account account = new Account(name, Pivotal.get(Pivotal.PROP_ACCOUNT_TYPE));
+        final Account account = new Account(name, Pivotal.getAccountType());
         provider.removeAccount(account);
     }
 

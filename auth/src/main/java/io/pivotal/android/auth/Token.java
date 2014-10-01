@@ -39,7 +39,7 @@ public class Token {
         try {
             final DecodedToken token = getDecodedToken();
             final long timeDifference = getTimeDifference(token.exp);
-            Logger.v("Token expires in " + timeDifference / 60 + " minutes");
+            Logger.v("Token expires in " + (timeDifference / 60) + " minutes");
             return timeDifference < 30; // expired if valid for less than 30 seconds
         } catch (final Exception e) {
             Logger.ex(e);

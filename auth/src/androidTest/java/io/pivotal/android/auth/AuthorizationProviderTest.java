@@ -44,13 +44,13 @@ public class AuthorizationProviderTest extends AndroidTestCase {
         final AuthorizationProvider provider = new AuthorizationProvider.Default();
         final AuthorizationCodeTokenRequest request = provider.newTokenRequest("");
 
-        assertEquals(Pivotal.get(Pivotal.PROP_REDIRECT_URL), request.getRedirectUri());
+        assertEquals(Pivotal.getRedirectUrl(), request.getRedirectUri());
     }
 
     public void testCreateNewAuthorizationCodeRequestUrl() throws Exception {
         final AuthorizationProvider provider = new AuthorizationProvider.Default();
         final AuthorizationCodeRequestUrl url = provider.newAuthorizationUrl();
 
-        assertEquals(Pivotal.get(Pivotal.PROP_REDIRECT_URL), url.getRedirectUri());
+        assertEquals(Pivotal.getRedirectUrl(), url.getRedirectUri());
     }
 }

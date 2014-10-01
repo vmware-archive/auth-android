@@ -14,7 +14,7 @@ public class AuthCodeTokenLoaderCallbacksTest extends AndroidTestCase {
         assertEquals("code", bundle.getString("auth_code"));
     }
 
-    public void test() {
+    public void testOnCreateLoader() {
         final AuthCodeTokenLoaderCallbacks callbacks = new AuthCodeTokenLoaderCallbacks(mContext, null);
         final AuthCodeTokenLoader loader = (AuthCodeTokenLoader) callbacks.onCreateLoader(0, Bundle.EMPTY);
 

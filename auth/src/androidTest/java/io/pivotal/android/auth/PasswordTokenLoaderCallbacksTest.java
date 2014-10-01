@@ -15,7 +15,7 @@ public class PasswordTokenLoaderCallbacksTest extends AndroidTestCase {
         assertEquals("password", bundle.getString("password"));
     }
 
-    public void test() {
+    public void testOnCreateLoader() {
         final PasswordTokenLoaderCallbacks callbacks = new PasswordTokenLoaderCallbacks(mContext, null);
         final PasswordTokenLoader loader = (PasswordTokenLoader) callbacks.onCreateLoader(0, Bundle.EMPTY);
 

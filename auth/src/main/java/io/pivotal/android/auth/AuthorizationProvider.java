@@ -35,16 +35,16 @@ public interface AuthorizationProvider {
     public static class Default extends AuthorizationCodeFlow implements AuthorizationProvider {
 
         private static final List<String> SCOPES = Arrays.asList("offline_access", "openid");
-        private static final GenericUrl TOKEN_URL = new GenericUrl(Pivotal.get(Pivotal.PROP_TOKEN_URL));
+        private static final GenericUrl TOKEN_URL = new GenericUrl(Pivotal.getTokenUrl());
 
         private static final Credential.AccessMethod METHOD = BearerToken.authorizationHeaderAccessMethod();
-        private static final HttpExecuteInterceptor INTERCEPTOR = new ClientParametersAuthentication(Pivotal.get(Pivotal.PROP_CLIENT_ID), Pivotal.get(Pivotal.PROP_CLIENT_SECRET));
+        private static final HttpExecuteInterceptor INTERCEPTOR = new ClientParametersAuthentication(Pivotal.getClientId(), Pivotal.getClientSecret());
 
         private static final HttpTransport TRANSPORT = new NetHttpTransport();
         private static final JsonFactory JSON_FACTORY = new JacksonFactory();
 
         public Default() {
-            super(new Builder(METHOD, TRANSPORT, JSON_FACTORY, TOKEN_URL, INTERCEPTOR, Pivotal.get(Pivotal.PROP_CLIENT_ID), Pivotal.get(Pivotal.PROP_AUTHORIZE_URL)).setScopes(SCOPES));
+            super(new Builder(METHOD, TRANSPORT, JSON_FACTORY, TOKEN_URL, INTERCEPTOR, Pivotal.getClientId(), Pivotal.getAuthorizeUrl()).setScopes(SCOPES));
         }
 
         @Override
@@ -70,14 +70,14 @@ public interface AuthorizationProvider {
         @Override
         public AuthorizationCodeTokenRequest newTokenRequest(final String authorizationCode) {
             final AuthorizationCodeTokenRequest request = super.newTokenRequest(authorizationCode);
-            request.setRedirectUri(Pivotal.get(Pivotal.PROP_REDIRECT_URL));
+            request.setRedirectUri(Pivotal.getRedirectUrl());
             return request;
         }
 
         @Override
         public AuthorizationCodeRequestUrl newAuthorizationUrl() {
             final AuthorizationCodeRequestUrl requestUrl = super.newAuthorizationUrl();
-            requestUrl.setRedirectUri(Pivotal.get(Pivotal.PROP_REDIRECT_URL));
+            requestUrl.setRedirectUri(Pivotal.getRedirectUrl());
             requestUrl.setState(UUID.randomUUID().toString());
             return requestUrl;
         }

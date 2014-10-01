@@ -11,13 +11,15 @@ import java.util.Properties;
 
 /* package */ class Pivotal {
 
-    public static final String PROP_CLIENT_ID = "pivotal.auth.clientId";
-    public static final String PROP_CLIENT_SECRET = "pivotal.auth.clientSecret";
-    public static final String PROP_AUTHORIZE_URL = "pivotal.auth.authorizeUrl";
-    public static final String PROP_TOKEN_URL = "pivotal.auth.tokenUrl";
-    public static final String PROP_REDIRECT_URL = "pivotal.auth.redirectUrl";
-    public static final String PROP_ACCOUNT_TYPE = "pivotal.auth.accountType";
-    public static final String PROP_TOKEN_TYPE = "pivotal.auth.tokenType";
+    private static final class Keys {
+        private static final String CLIENT_ID = "pivotal.auth.clientId";
+        private static final String CLIENT_SECRET = "pivotal.auth.clientSecret";
+        private static final String AUTHORIZE_URL = "pivotal.auth.authorizeUrl";
+        private static final String TOKEN_URL = "pivotal.auth.tokenUrl";
+        private static final String REDIRECT_URL = "pivotal.auth.redirectUrl";
+        private static final String ACCOUNT_TYPE = "pivotal.auth.accountType";
+        private static final String TOKEN_TYPE = "pivotal.auth.tokenType";
+    }
 
 
     private static String[] sLocations = {
@@ -26,11 +28,15 @@ import java.util.Properties;
 
     private static Properties sProperties;
 
-    private static Properties getProperties() {
+    /* package */ static Properties getProperties() {
         if (sProperties == null) {
             sProperties = loadProperties();
         }
         return sProperties;
+    }
+
+    /* package */ static void setProperties(final Properties properties) {
+        sProperties = properties;
     }
 
     private static Properties loadProperties() {
@@ -62,5 +68,33 @@ import java.util.Properties;
             throw new IllegalStateException("'" + key + "' not found in pivotal.properties");
         }
         return value;
+    }
+
+    public static String getClientId() {
+        return get(Keys.CLIENT_ID);
+    }
+
+    public static String getClientSecret() {
+        return get(Keys.CLIENT_SECRET);
+    }
+
+    public static String getAuthorizeUrl() {
+        return get(Keys.AUTHORIZE_URL);
+    }
+
+    public static String getTokenUrl() {
+        return get(Keys.TOKEN_URL);
+    }
+
+    public static String getRedirectUrl() {
+        return get(Keys.REDIRECT_URL);
+    }
+
+    public static String getAccountType() {
+        return get(Keys.ACCOUNT_TYPE);
+    }
+
+    public static String getTokenType() {
+        return get(Keys.TOKEN_TYPE);
     }
 }

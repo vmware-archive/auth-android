@@ -120,7 +120,7 @@ public class ListenerExpirationCallbackTest extends AndroidTestCase {
 
         @Override
         public String getAuthToken(final Account account) {
-            final long timeInFuture = System.currentTimeMillis() + 60 * 1000;
+            final long timeInFuture = System.currentTimeMillis() / 1000 + 60;
             final String expirationComponent = "{ \"exp\": \"" + timeInFuture + "\" }";
             return "." + Base64.encodeToString(expirationComponent.getBytes(), Base64.DEFAULT);
         }

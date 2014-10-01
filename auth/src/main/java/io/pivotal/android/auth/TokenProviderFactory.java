@@ -12,7 +12,7 @@ import android.content.Context;
 
     public static TokenProvider get(final Context context) {
         if (sProvider == null) {
-            return new TokenManager(context);
+            return new TokenProvider.Default(context);
         } else {
             return sProvider;
         }
