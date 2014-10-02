@@ -20,8 +20,8 @@ import java.io.IOException;
 
 public class AuthenticatorTest extends AndroidTestCase {
 
-    public static final String TEST_PACKAGE_NAME = "io.pivotal.android.auth";
-    public static final String TEST_ACTIVITY_NAME = "AuthenticatorTest$LoginActivity";
+    private static final String TEST_PACKAGE_NAME = "io.pivotal.android.auth";
+    private static final String TEST_ACTIVITY_NAME = "AuthenticatorTest$LoginActivity";
 
     public void testAddAccountFailsIfActivityNotFound() throws Exception {
         try {
@@ -62,14 +62,12 @@ public class AuthenticatorTest extends AndroidTestCase {
         assertTrue(intent.hasExtra(AccountManager.KEY_ACCOUNT_AUTHENTICATOR_RESPONSE));
     }
 
-
     public void testGetAuthTokenLabelReturnsAuthTokenType() throws Exception {
         final Authenticator authenticator = new Authenticator(null);
         final String label = authenticator.getAuthTokenLabel("test_label_type");
 
         assertEquals("test_label_type", label);
     }
-
 
     public void testHasFeaturesReturnsFalseForNullFeatures() throws Exception {
         final Authenticator authenticator = new Authenticator(null);
@@ -91,7 +89,6 @@ public class AuthenticatorTest extends AndroidTestCase {
 
         assertFalse(bundle.getBoolean(AccountManager.KEY_BOOLEAN_RESULT));
     }
-
 
     public void testConfirmCredentialsThrowsUnsupportedOperationException() throws Exception {
         try {
@@ -129,7 +126,7 @@ public class AuthenticatorTest extends AndroidTestCase {
         final Authenticator authenticator = new Authenticator(context) {
             @Override
             protected Token getExistingToken(final Account account) {
-                return new EmptyToken();
+                return new AuthToken("", "");
             }
         };
 
@@ -142,7 +139,7 @@ public class AuthenticatorTest extends AndroidTestCase {
         final Authenticator authenticator = new Authenticator(context) {
             @Override
             protected Token getExistingToken(final Account account) {
-                return new RefreshToken("token");
+                return new AuthToken("", "token");
             }
 
             @Override
@@ -161,7 +158,7 @@ public class AuthenticatorTest extends AndroidTestCase {
         final Authenticator authenticator = new Authenticator(context) {
             @Override
             protected Token getExistingToken(final Account account) {
-                return new RefreshToken("token");
+                return new AuthToken("", "token");
             }
 
             @Override
@@ -198,20 +195,6 @@ public class AuthenticatorTest extends AndroidTestCase {
     // ====================================================
 
 
-    private static class EmptyToken extends Token {
-
-        public EmptyToken() {
-            super("", "");
-        }
-    }
-
-    private static class RefreshToken extends Token {
-
-        public RefreshToken(final String refreshToken) {
-            super("", refreshToken);
-        }
-    }
-
     private static class AuthToken extends Token {
 
         public AuthToken(final String authToken, final String refreshToken) {
@@ -235,13 +218,13 @@ public class AuthenticatorTest extends AndroidTestCase {
         }
 
         @Override
-        public PackageManager getPackageManager() {
-            return mPackageManager;
+        public String getPackageName() {
+            return mPackageName;
         }
 
         @Override
-        public String getPackageName() {
-            return mPackageName;
+        public PackageManager getPackageManager() {
+            return mPackageManager;
         }
     }
 
@@ -258,7 +241,7 @@ public class AuthenticatorTest extends AndroidTestCase {
         @Override
         public PackageInfo getPackageInfo(final String packageName, final int flags) throws NameNotFoundException {
             if (!mPackageName.equals(packageName)) {
-                throw new NameNotFoundException("Required package name: " + mPackageName + " doesnt' match: " + packageName);
+                throw new NameNotFoundException("Required package name: " + mPackageName + " doesn't match: " + packageName);
             }
 
             final ActivityInfo[] activities = new ActivityInfo[1];

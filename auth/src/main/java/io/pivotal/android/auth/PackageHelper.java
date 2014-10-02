@@ -9,6 +9,9 @@ import android.content.pm.ActivityInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /* package */ class PackageHelper {
 
     public static Class<?> getLoginActivityClass(final Context context) {
@@ -31,32 +34,21 @@ import android.content.pm.PackageManager;
 
     private static Class<?> findLoginActivityClass(final ActivityInfo[] activities) throws Exception {
         if (activities != null) {
+            final List<Class<?>> klasses = new ArrayList<Class<?>>();
             for (int i =0; i < activities.length; i++) {
                 final Class<?> klass = Class.forName(activities[i].name);
                 if (AccountAuthenticatorActivity.class.isAssignableFrom(klass)) {
-                    return klass;
+                    klasses.add(klass);
                 }
+            }
+            if (klasses.size() > 2) {
+                klasses.remove(LoginPasswordActivity.class);
+                klasses.remove(LoginAuthCodeActivity.class);
+            }
+            if (klasses.size() > 0) {
+                return klasses.get(0);
             }
         }
         return null;
     }
-
-    // TODO
-
-//    private static Class<?> findLoginActivityClass(final ActivityInfo[] activities) throws Exception {
-//        if (activities != null) {
-//            final Set<Class<?>> klasses = new HashSet<Class<?>>();
-//            for (int i =0; i < activities.length; i++) {
-//                final Class<?> klass = Class.forName(activities[i].name);
-//                if (AccountAuthenticatorActivity.class.isAssignableFrom(klass)) {
-//                    klasses.add(klass);
-//                }
-//            }
-//            if (klasses.size() > 1) {
-//                klasses.remove(LoginPasswordActivity.class);
-//                klasses.remove(LoginAuthCodeActivity.class);
-//            }
-//        }
-//        return null;
-//    }
 }

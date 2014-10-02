@@ -6,7 +6,7 @@ package io.pivotal.android.auth;
 import android.accounts.Account;
 import android.app.Activity;
 
-/* package */ class MockTokenProvider implements TokenProvider {
+public class MockTokenProvider implements TokenProvider {
 
     @Override
     public String getRefreshToken(final Account account) {
