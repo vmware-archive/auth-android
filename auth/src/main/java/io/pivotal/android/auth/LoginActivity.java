@@ -16,22 +16,30 @@ import android.widget.Toast;
     protected abstract String getUserName();
 
     @Override
-    public void onAuthorizationComplete(final Token token) {
-        final String username = getUserName();
-        Authorization.addAccount(this, username, token);
-
-        final Intent intent = new Intent();
-        intent.putExtra(AccountManager.KEY_ACCOUNT_TYPE, Pivotal.get("pivotal.auth.accountType"));
-        intent.putExtra(AccountManager.KEY_AUTHTOKEN, token.getAccessToken());
-        intent.putExtra(AccountManager.KEY_ACCOUNT_NAME, username);
-
-        setAccountAuthenticatorResult(intent.getExtras());
-        setResult(RESULT_OK, intent);
-        finish();
+    public void onAuthorizationFailed(final Error error) {
+        final String message = error.getLocalizedMessage();
+        Toast.makeText(this, "error: " + message, Toast.LENGTH_SHORT).show();
     }
 
     @Override
-    public void onAuthorizationFailed(final Error error) {
-        Toast.makeText(this, "error: " + error.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
+    public void onAuthorizationComplete(final Token token) {
+        final String username = getUserName();
+        Authorization.addAccount(this, username, token);
+        setResultIntent(token, username);
+        finish();
+    }
+
+    private void setResultIntent(final Token token, final String username) {
+        final Intent intent = getResultIntent(token, username);
+        setAccountAuthenticatorResult(intent.getExtras());
+        setResult(RESULT_OK, intent);
+    }
+
+    private Intent getResultIntent(final Token token, final String username) {
+        final Intent intent = new Intent();
+        intent.putExtra(AccountManager.KEY_ACCOUNT_TYPE, Pivotal.getAccountType());
+        intent.putExtra(AccountManager.KEY_AUTHTOKEN, token.getAccessToken());
+        intent.putExtra(AccountManager.KEY_ACCOUNT_NAME, username);
+        return intent;
     }
 }
