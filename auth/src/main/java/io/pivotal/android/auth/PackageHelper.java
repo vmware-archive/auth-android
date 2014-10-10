@@ -35,15 +35,14 @@ import java.util.List;
     private static Class<?> findLoginActivityClass(final ActivityInfo[] activities) throws Exception {
         if (activities != null) {
             final List<Class<?>> klasses = new ArrayList<Class<?>>();
-            for (int i =0; i < activities.length; i++) {
+            for (int i = 0; i < activities.length; i++) {
                 final Class<?> klass = Class.forName(activities[i].name);
                 if (AccountAuthenticatorActivity.class.isAssignableFrom(klass)) {
                     klasses.add(klass);
                 }
             }
-            if (klasses.size() > 2) {
+            if (klasses.size() > 1) {
                 klasses.remove(LoginPasswordActivity.class);
-                klasses.remove(LoginAuthCodeActivity.class);
             }
             if (klasses.size() > 0) {
                 return klasses.get(0);

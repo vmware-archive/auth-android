@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="waiting_for_authorization">Waiting for authorization.</string>
+    <string name="enter_your_credentials">Please enter your credentials.</string>
+    <string name="username">username</string>
+    <string name="password">password</string>
+    <string name="submit">Submit</string>
+</resources>

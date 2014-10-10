@@ -21,7 +21,7 @@ public class LoginPasswordActivity extends LoginActivity {
     }
 
     protected void onCreateContentView(final Bundle savedInstanceState) {
-        setContentView(R.layout.activity_login);
+        setContentView(R.layout.activity_login_password);
     }
 
     @Override

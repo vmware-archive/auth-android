@@ -11,28 +11,24 @@ import android.os.Looper;
 import android.util.Log;
 
 import java.net.UnknownHostException;
-import java.util.Locale;
 
-/**
- * Used by the Logger Library to log messages to the device log.  An optional 'listener'
- * can be registered so an application can watch all the message traffic.
- *
- * If the "debuggable" flag is "false" in the application manifest file then only error messages
- * will be printed to the device log.
- */
 public class Logger {
 
-    public static final String TAG_NAME = "Pivotal";
+    private static final Object LOCK = new Object();
 
+    private static final String TAG_NAME = "Pivotal";
     private static final String UI_THREAD = "UI";
-    private static final String BACKGROUND_THREAD = "BG";
+    private static final String BG_THREAD = "BG";
 
-    private static boolean isDebugEnabled = false;
-    private static Logger loggerInstance;
-    private static boolean isSetup = false;
-    private static Listener listener;
-    private static Object lock = new Object();
-    private static Handler mainHandler;
+    private static boolean sIsDebugEnabled = false;
+    private static boolean sIsSetup = false;
+
+    private static Listener sListener;
+    private static Handler sMainHandler;
+
+    private static class Holder {
+        public static final Logger INSTANCE = new Logger();
+    }
 
     public static interface Listener {
         void onLogMessage(String message);
@@ -40,15 +36,15 @@ public class Logger {
 
     private Logger() {}
 
-    public static void setup(Context context) {
-        Logger.isDebugEnabled = isDebuggable(context);
-        Logger.isSetup = true;
+    public static void setup(final Context context) {
+        Logger.sIsDebugEnabled = isDebuggable(context);
+        Logger.sIsSetup = true;
     }
 
-    private static boolean isDebuggable(Context context) {
+    private static boolean isDebuggable(final Context context) {
         try {
-            PackageManager pm = context.getPackageManager();
-            ApplicationInfo applicationInfo = pm.getApplicationInfo(context.getPackageName(), 0);
+            final PackageManager pm = context.getPackageManager();
+            final ApplicationInfo applicationInfo = pm.getApplicationInfo(context.getPackageName(), 0);
             return (applicationInfo.flags & ApplicationInfo.FLAG_DEBUGGABLE) != 0;
         } catch (PackageManager.NameNotFoundException e) {
             return false;
@@ -56,189 +52,141 @@ public class Logger {
     }
 
     public static boolean isDebugEnabled() {
-        return Logger.isDebugEnabled;
+        return Logger.sIsDebugEnabled;
     }
 
     public static boolean isSetup() {
-        return Logger.isSetup;
+        return Logger.sIsSetup;
     }
 
-    public static void i(String message) {
-        if (isDebugEnabled) {
-            final String formattedString = formatMessage(message, new Object[] {});
+    public static void i(final String message) {
+        if (sIsDebugEnabled) {
+            final String formattedString = format(message);
             Log.i(TAG_NAME, formattedString);
             sendMessageToListener(formattedString);
         }
     }
 
-    public static void w(String message, Throwable tr) {
-        if (isDebugEnabled) {
-            final String formattedString = formatMessage(message, new Object[] {}) + ": " + Log.getStackTraceString(tr);
+    public static void w(final String message, final Throwable tr) {
+        if (sIsDebugEnabled) {
+            final String formattedString = format(message) + ": " + Log.getStackTraceString(tr);
             Log.w(TAG_NAME, formattedString);
             sendMessageToListener(formattedString);
         }
     }
 
-    public static void w(Throwable tr) {
-        if (isDebugEnabled) {
-            final String formattedString = formatMessage("", new Object[] {}) + Log.getStackTraceString(tr);
+    public static void w(final Throwable tr) {
+        if (sIsDebugEnabled) {
+            final String formattedString = format("") + Log.getStackTraceString(tr);
             Log.w(TAG_NAME, formattedString);
             sendMessageToListener(formattedString);
         }
     }
 
-    public static void w(String message) {
-        if (isDebugEnabled) {
-            final String formattedString = formatMessage(message, new Object[] {});
+    public static void w(final String message) {
+        if (sIsDebugEnabled) {
+            final String formattedString = format(message);
             Log.w(TAG_NAME, formattedString);
             sendMessageToListener(formattedString);
         }
     }
 
-    public static void v(String message) {
-        if (isDebugEnabled) {
-            final String formattedString = formatMessage(message, new Object[] {});
+    public static void v(final String message) {
+        if (sIsDebugEnabled) {
+            final String formattedString = format(message);
             Log.v(TAG_NAME, formattedString);
             sendMessageToListener(formattedString);
         }
     }
 
-    public static void d(String message) {
-        if (isDebugEnabled) {
-            final String formattedString = formatMessage(message, new Object[] {});
+    public static void d(final String message) {
+        if (sIsDebugEnabled) {
+            final String formattedString = format(message);
             Log.d(TAG_NAME, formattedString);
             sendMessageToListener(formattedString);
         }
     }
 
-    public static void d(String message, Throwable tr) {
-        if (isDebugEnabled) {
-            final String formattedString = formatMessage(message, new Object[] {}) + ": " + Log.getStackTraceString(tr);
+    public static void d(final String message, final Throwable tr) {
+        if (sIsDebugEnabled) {
+            final String formattedString = format(message) + ": " + Log.getStackTraceString(tr);
             Log.d(TAG_NAME, formattedString);
             sendMessageToListener(formattedString);
         }
     }
 
-    public static void d(Throwable tr) {
-        if (isDebugEnabled) {
-            final String formattedString = formatMessage("", new Object[] {}) + Log.getStackTraceString(tr);
+    public static void d(final Throwable tr) {
+        if (sIsDebugEnabled) {
+            final String formattedString = format("") + Log.getStackTraceString(tr);
             Log.d(TAG_NAME, formattedString);
             sendMessageToListener(formattedString);
         }
     }
 
-    public static void fd(String message, Object... objects) {
-        if (isDebugEnabled) {
-            final String formattedString = formatMessage(message, objects);
+    public static void fd(final String message, final Object... objects) {
+        if (sIsDebugEnabled) {
+            final String formattedString = format(message, objects);
             Log.d(TAG_NAME, formattedString);
             sendMessageToListener(formattedString);
         }
     }
 
-    public static void e(String message) {
-        final String formattedString = formatMessage(message, new Object[] {});
+    public static void e(final String message) {
+        final String formattedString = format(message);
         sendMessageToListener(formattedString);
         Log.e(TAG_NAME, formattedString);
     }
 
-    public static void ex(String message, Throwable tr) {
+    public static void ex(final String message, final Throwable tr) {
         final String stackTraceString;
         if (tr instanceof UnknownHostException) {
-            // Note: can't get the stack trace of an UnknownHostException
             stackTraceString = tr.getLocalizedMessage();
         } else {
             stackTraceString = Log.getStackTraceString(tr);
         }
-        final String formattedString = formatMessage(message, new Object[] {}) + ": " + stackTraceString;
+        final String formattedString = format(message) + ": " + stackTraceString;
         sendMessageToListener(formattedString);
         Log.e(TAG_NAME, formattedString);
     }
 
-    public static void ex(Throwable tr) {
-        final String formattedString = formatMessage("", new Object[] {}) + Log.getStackTraceString(tr);
+    public static void ex(final Throwable tr) {
+        final String formattedString = format("") + Log.getStackTraceString(tr);
         sendMessageToListener(formattedString);
         Log.e(TAG_NAME, formattedString);
     }
 
-    private static String formatMessage(String message, Object... objects) {
+    private static String format(final String message, final Object... objects) {
+        final StackTraceElement s = StackUtils.getCallingStackTraceElement();
 
-        final StackTraceElement s = getCallingStackTraceElement();
-        String formattedMessage = String.format(Locale.getDefault(), "[%s:%s:%d:tid%d] ", s.getClassName(), s.getMethodName(), s.getLineNumber(), Thread.currentThread().getId());
+        final String thread = isUiThread() ? UI_THREAD : BG_THREAD;
+        final long threadId = Thread.currentThread().getId();
 
-        if (objects.length > 0)
-            formattedMessage += String.format(message, objects);
-        else
-            formattedMessage += message;
+        final String klass = s.getClassName();
+        final String method = s.getMethodName();
+        final int line = s.getLineNumber();
 
-        return addThreadInfo(formattedMessage);
-    }
-
-    private static StackTraceElement getCallingStackTraceElement() {
-        final StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
-        final int indexForFirstElementInLoggerClass = getFirstElementIndexForLoggerClass(stackTraceElements);
-        return getFirstElementInCallingClass(stackTraceElements, indexForFirstElementInLoggerClass);
-    }
-
-    private static int getFirstElementIndexForLoggerClass(final StackTraceElement[] stackTraceElements) {
-        for (int i = 0; i < stackTraceElements.length; i += 1) {
-            final StackTraceElement s = stackTraceElements[i];
-            if (stackTraceElementIsForLoggerClass(s)) {
-                return i;
-            }
-        }
-        throw new IllegalArgumentException("No " + TAG_NAME + " Logger class reference found");
-    }
-
-    private static StackTraceElement getFirstElementInCallingClass(StackTraceElement[] stackTraceElements, int indexForFirstElementInLoggerClass) {
-        for (int i = indexForFirstElementInLoggerClass; i < stackTraceElements.length; i += 1) {
-            final StackTraceElement s = stackTraceElements[i];
-            if (!stackTraceElementIsForLoggerClass(s)) {
-                return s;
-            }
-        }
-        throw new IllegalArgumentException("No calling class reference found");
-    }
-
-    private static String getLoggerClassName() {
-        return getInstance().getClass().getName();
-    }
-
-    private static boolean stackTraceElementIsForLoggerClass(StackTraceElement s) {
-        final String loggerClassName = getLoggerClassName();
-        return s.getClassName().equals(loggerClassName);
-    }
-
-    private static String addThreadInfo(String string) {
-        if (isUiThread()) {
-            return "*" + UI_THREAD + "* " + string;
-        }
-        return "*" + BACKGROUND_THREAD + "* " + string;
+        final String formatted = String.format(message, objects);
+        return String.format("*%s* (%d) [%s:%s:%d] %s", thread, threadId, klass, method, line, formatted);
     }
 
     private static boolean isUiThread() {
         return Looper.myLooper() == Looper.getMainLooper();
     }
 
-    private static Logger getInstance() {
-        if (loggerInstance == null)
-            loggerInstance = new Logger();
-        return loggerInstance;
-    }
-
-    public static void setListener(Listener listener) {
-        synchronized (lock) {
-            Logger.listener = listener;
-            if (Logger.listener != null && Logger.mainHandler == null) {
-                Logger.mainHandler = new Handler(Looper.getMainLooper());
+    public static void setListener(final Listener listener) {
+        synchronized (LOCK) {
+            Logger.sListener = listener;
+            if (Logger.sListener != null && Logger.sMainHandler == null) {
+                Logger.sMainHandler = new Handler(Looper.getMainLooper());
             }
         }
     }
 
     public static void sendMessageToListener(final String message) {
-        synchronized (lock) {
-            if (listener != null && mainHandler != null) {
-                final Listener localListener = listener;
-                mainHandler.post(new Runnable() {
+        synchronized (LOCK) {
+            if (sListener != null && sMainHandler != null) {
+                final Listener localListener = sListener;
+                sMainHandler.post(new Runnable() {
                     @Override
                     public void run() {
                         int indexBracket = message.indexOf("] ");
@@ -251,6 +199,40 @@ public class Logger {
                     }
                 });
             }
+        }
+    }
+
+    private static final class StackUtils {
+
+        private static StackTraceElement getCallingStackTraceElement() {
+            final StackTraceElement[] elements = Thread.currentThread().getStackTrace();
+            final int index = getFirstElementIndexForLoggerClass(elements);
+            return getFirstElementInCallingClass(elements, index);
+        }
+
+        private static int getFirstElementIndexForLoggerClass(final StackTraceElement[] elements) {
+            for (int i = 0; i < elements.length; i += 1) {
+                final StackTraceElement s = elements[i];
+                if (stackTraceElementIsForLoggerClass(s)) {
+                    return i;
+                }
+            }
+            throw new IllegalArgumentException("No class reference found");
+        }
+
+        private static StackTraceElement getFirstElementInCallingClass(final StackTraceElement[] elements, final int index) {
+            for (int i = index; i < elements.length; i += 1) {
+                final StackTraceElement s = elements[i];
+                if (!stackTraceElementIsForLoggerClass(s)) {
+                    return s;
+                }
+            }
+            throw new IllegalArgumentException("No calling class reference found");
+        }
+
+        private static boolean stackTraceElementIsForLoggerClass(final StackTraceElement s) {
+            final String className = Logger.class.getName();
+            return s.getClassName().equals(className);
         }
     }
 }

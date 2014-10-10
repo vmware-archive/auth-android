@@ -15,7 +15,7 @@ import com.google.api.client.auth.oauth2.AuthorizationCodeRequestUrl;
 public class LoginAuthCodeActivity extends LoginActivity {
 
     @Override
-    protected void onCreate(final Bundle savedInstanceState) {
+     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         onCreateContentView(savedInstanceState);
 
@@ -29,7 +29,7 @@ public class LoginAuthCodeActivity extends LoginActivity {
     }
 
     protected void onCreateContentView(final Bundle savedInstanceState) {
-        setContentView(R.layout.activity_login);
+        setContentView(R.layout.activity_login_auth_code);
     }
 
     @Override
