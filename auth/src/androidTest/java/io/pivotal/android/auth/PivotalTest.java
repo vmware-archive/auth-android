@@ -9,6 +9,13 @@ import java.util.Properties;
 
 public class PivotalTest extends AndroidTestCase {
 
+    @Override
+    protected void tearDown() throws Exception {
+        super.tearDown();
+
+        Pivotal.setProperties(null);
+    }
+
     public void testGetSucceeds() {
         final String key = "key";
         final String value = "value";
@@ -37,37 +44,30 @@ public class PivotalTest extends AndroidTestCase {
     }
 
     public void testGetClientId() {
-        Pivotal.setProperties(null);
         assertEquals("test_client_id", Pivotal.getClientId());
     }
 
     public void testGetClientSecret() {
-        Pivotal.setProperties(null);
         assertEquals("test_client_secret", Pivotal.getClientSecret());
     }
 
     public void testGetAuthorizeUrl() {
-        Pivotal.setProperties(null);
         assertEquals("http://example.com/authorize", Pivotal.getAuthorizeUrl());
     }
 
     public void testGetTokenUrl() {
-        Pivotal.setProperties(null);
         assertEquals("http://example.com/token", Pivotal.getTokenUrl());
     }
 
     public void testGetRedirectUrl() {
-        Pivotal.setProperties(null);
         assertEquals("http://example.com/redirect", Pivotal.getRedirectUrl());
     }
 
     public void testAccountType() {
-        Pivotal.setProperties(null);
         assertEquals("test_account_type", Pivotal.getAccountType());
     }
 
     public void testTokenType() {
-        Pivotal.setProperties(null);
         assertEquals("test_token_type", Pivotal.getTokenType());
     }
 }

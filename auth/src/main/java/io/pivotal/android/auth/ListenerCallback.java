@@ -29,7 +29,7 @@ import android.os.Bundle;
 
         } catch (final Exception e) {
             final Error error = new Error(e.getLocalizedMessage(), e);
-            Logger.i("getAuthToken error: " + error);
+            Logger.i("getAuthToken error: " + error.getLocalizedMessage());
 
             mListener.onAuthorizationFailure(error);
         }

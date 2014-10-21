@@ -7,3 +7,14 @@ dependencies {
         exclude (group: 'org.apache.httpcomponents', module: 'httpclient')
     }
 }
+
+uploadArchives {
+    repositories.mavenDeployer {
+
+        pom.project pomInfo
+        pom.project {
+            name 'Pivotal-CF Mobile Services Auth Client SDK for Android'
+            description 'Lightweight SDK designed to authorize a user against an Identity service.'
+        }
+    }
+}

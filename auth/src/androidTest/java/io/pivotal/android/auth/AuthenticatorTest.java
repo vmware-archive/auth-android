@@ -136,6 +136,7 @@ public class AuthenticatorTest extends AndroidTestCase {
 
     public void testGetAuthTokenWithEmptyAuthTokenAndInvalidRefreshToken() throws Exception {
         final Context context = new FakePackageManagerContext(TEST_PACKAGE_NAME, TEST_ACTIVITY_NAME);
+        final Account account = new Account("account", "account_type");
         final Authenticator authenticator = new Authenticator(context) {
             @Override
             protected Token getExistingToken(final Account account) {
@@ -148,8 +149,9 @@ public class AuthenticatorTest extends AndroidTestCase {
             }
         };
 
-        final Bundle bundle = authenticator.getAuthToken(null, null, null, null);
-        assertTrue(bundle.containsKey(AccountManager.KEY_INTENT));
+        final Bundle bundle = authenticator.getAuthToken(null, account, null, null);
+        assertTrue(bundle.containsKey(AccountManager.KEY_ERROR_CODE));
+        assertTrue(bundle.containsKey(AccountManager.KEY_ERROR_MESSAGE));
     }
 
     public void testGetAuthTokenWithEmptyAuthTokenAndValidRefreshToken() throws Exception {

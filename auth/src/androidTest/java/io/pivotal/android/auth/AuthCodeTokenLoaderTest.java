@@ -28,7 +28,7 @@ public class AuthCodeTokenLoaderTest extends AndroidTestCase {
         final MockAuthorizationProvider provider = new MockAuthorizationProvider() {
 
             @Override
-            public AuthorizationCodeTokenRequest newTokenRequest(String authorizationCode) {
+            public AuthorizationCodeTokenRequest newAuthorizationCodeTokenRequest(String authorizationCode) {
                 latch.countDown();
                 return new TestAuthorizationCodeTokenRequest(response);
             }
@@ -43,7 +43,7 @@ public class AuthCodeTokenLoaderTest extends AndroidTestCase {
         final MockAuthorizationProvider provider = new MockAuthorizationProvider() {
 
             @Override
-            public AuthorizationCodeTokenRequest newTokenRequest(String authorizationCode) {
+            public AuthorizationCodeTokenRequest newAuthorizationCodeTokenRequest(String authorizationCode) {
                 latch.countDown();
                 throw new RuntimeException();
             }

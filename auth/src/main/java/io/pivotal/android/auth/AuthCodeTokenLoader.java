@@ -25,7 +25,7 @@ import com.google.api.client.auth.oauth2.TokenResponse;
     @Override
     public TokenResponse loadInBackground() {
         try {
-            return mProvider.newTokenRequest(mAuthCode).execute();
+            return mProvider.newAuthorizationCodeTokenRequest(mAuthCode).execute();
         } catch (final Exception e) {
             Logger.ex(e);
             return new ErrorResponse(e);

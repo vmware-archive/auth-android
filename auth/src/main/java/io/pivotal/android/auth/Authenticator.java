@@ -15,6 +15,7 @@ import android.text.TextUtils;
 
 import com.google.api.client.auth.oauth2.RefreshTokenRequest;
 import com.google.api.client.auth.oauth2.TokenResponse;
+import com.google.api.client.auth.oauth2.TokenResponseException;
 
 import java.io.IOException;
 
@@ -79,12 +80,14 @@ public class Authenticator extends AbstractAccountAuthenticator {
     }
 
     private Bundle newAccountBundle(final AccountAuthenticatorResponse response) {
+        Logger.v("newAccountBundle");
 		final Bundle bundle = new Bundle();
 		bundle.putParcelable(AccountManager.KEY_INTENT, newLoginIntent(response));
 		return bundle;
 	}
 
     private Intent newLoginIntent(final AccountAuthenticatorResponse response) {
+        Logger.v("newLoginIntent");
         final Intent intent = new Intent(mContext, PackageHelper.getLoginActivityClass(mContext));
         intent.putExtra(AccountManager.KEY_ACCOUNT_AUTHENTICATOR_RESPONSE, response);
         intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
@@ -92,16 +95,28 @@ public class Authenticator extends AbstractAccountAuthenticator {
     }
 
     private Bundle newAuthTokenBundle(final Account account, final String authToken) {
-		final Bundle result = new Bundle();
-		result.putString(AccountManager.KEY_ACCOUNT_NAME, account.name);
-		result.putString(AccountManager.KEY_ACCOUNT_TYPE, account.type);
-		result.putString(AccountManager.KEY_AUTHTOKEN, authToken);
-		return result;
+        Logger.v("newAuthTokenBundle: " + authToken);
+		final Bundle bundle = new Bundle();
+        bundle.putString(AccountManager.KEY_ACCOUNT_NAME, account.name);
+        bundle.putString(AccountManager.KEY_ACCOUNT_TYPE, account.type);
+        bundle.putString(AccountManager.KEY_AUTHTOKEN, authToken);
+		return bundle;
 	}
 
     private Bundle newResultBundle(final boolean result) {
+        Logger.v("newResultBundle: " + result);
         final Bundle bundle = new Bundle();
         bundle.putBoolean(AccountManager.KEY_BOOLEAN_RESULT, result);
+        return bundle;
+    }
+
+    private Bundle newErrorBundle(final Account account, final String message) {
+        Logger.v("newErrorBundle: " + message);
+        final Bundle bundle = new Bundle();
+        bundle.putString(AccountManager.KEY_ACCOUNT_NAME, account.name);
+        bundle.putString(AccountManager.KEY_ACCOUNT_TYPE, account.type);
+        bundle.putString(AccountManager.KEY_ERROR_MESSAGE, message);
+        bundle.putInt(AccountManager.KEY_ERROR_CODE, 1);
         return bundle;
     }
 
@@ -115,7 +130,7 @@ public class Authenticator extends AbstractAccountAuthenticator {
             return newAuthTokenBundle(account, accessToken);
         }
 
-        Logger.v("newAuthTokenBundle auth token " + (TextUtils.isEmpty(accessToken) ? "empty." : "expired."));
+        Logger.v("newAuthTokenBundle accessToken " + (TextUtils.isEmpty(accessToken) ? "empty." : "expired."));
 
         final String refreshToken = existingToken.getRefreshToken();
 
@@ -127,12 +142,21 @@ public class Authenticator extends AbstractAccountAuthenticator {
                 final String newAccessToken = newToken.getAccessToken();
                 Logger.v("newAuthTokenBundle new accessToken: " + newAccessToken);
                 return newAuthTokenBundle(account, newAccessToken);
+
+            } catch (final TokenResponseException e) {
+                Logger.ex(e);
+
+                if (e.getStatusCode() != 401) {
+                    return newErrorBundle(account, e.getLocalizedMessage());
+                }
+
             } catch (final Exception e) {
                 Logger.ex(e);
+
+                return newErrorBundle(account, e.getLocalizedMessage());
             }
         }
 
         return newAccountBundle(response);
     }
-
 }

@@ -21,12 +21,12 @@ public class MockAuthorizationProvider implements AuthorizationProvider {
     }
 
     @Override
-    public AuthorizationCodeTokenRequest newTokenRequest(String authorizationCode) {
+    public AuthorizationCodeTokenRequest newAuthorizationCodeTokenRequest(String authorizationCode) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public AuthorizationCodeRequestUrl newAuthorizationUrl() {
+    public AuthorizationCodeRequestUrl newAuthorizationCodeUrl() {
         throw new UnsupportedOperationException();
     }
 }

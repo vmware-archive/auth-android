@@ -9,12 +9,12 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:0.11.+'
+        classpath 'com.android.tools.build:gradle:0.13.0'
     }
 }
 
 ext {
-    versionName = "2.0.0"
+    versionName = "1.0.0"
     versionCode = 1
     isSnapshot = false
 }

@@ -4,7 +4,6 @@
 package io.pivotal.android.auth;
 
 import android.test.AndroidTestCase;
-import android.text.TextUtils;
 
 import com.google.api.client.auth.oauth2.AuthorizationCodeRequestUrl;
 import com.google.api.client.auth.oauth2.AuthorizationCodeTokenRequest;
@@ -19,12 +18,6 @@ public class AuthorizationProviderTest extends AndroidTestCase {
 
         assertEquals("username", request.getUsername());
         assertEquals("password", request.getPassword());
-        assertEquals(provider.getTokenServerEncodedUrl(), request.getTokenServerUrl().build());
-        assertEquals(provider.getTransport(), request.getTransport());
-        assertEquals(provider.getJsonFactory(), request.getJsonFactory());
-        assertEquals(provider.getClientAuthentication(), request.getClientAuthentication());
-        assertEquals(provider.getRequestInitializer(), request.getRequestInitializer());
-        assertEquals(TextUtils.join(" ", provider.getScopes()), request.getScopes());
     }
 
     public void testCreateNewRefreshTokenRequest() throws Exception {
@@ -32,24 +25,18 @@ public class AuthorizationProviderTest extends AndroidTestCase {
         final RefreshTokenRequest request = provider.newRefreshTokenRequest("refresh");
 
         assertEquals("refresh", request.getRefreshToken());
-        assertEquals(provider.getTokenServerEncodedUrl(), request.getTokenServerUrl().build());
-        assertEquals(provider.getTransport(), request.getTransport());
-        assertEquals(provider.getJsonFactory(), request.getJsonFactory());
-        assertEquals(provider.getClientAuthentication(), request.getClientAuthentication());
-        assertEquals(provider.getRequestInitializer(), request.getRequestInitializer());
-        assertEquals(TextUtils.join(" ", provider.getScopes()), request.getScopes());
     }
 
     public void testCreateNewAuthorizationCodeTokenRequest() throws Exception {
         final AuthorizationProvider provider = new AuthorizationProvider.Default();
-        final AuthorizationCodeTokenRequest request = provider.newTokenRequest("");
+        final AuthorizationCodeTokenRequest request = provider.newAuthorizationCodeTokenRequest("");
 
         assertEquals(Pivotal.getRedirectUrl(), request.getRedirectUri());
     }
 
     public void testCreateNewAuthorizationCodeRequestUrl() throws Exception {
         final AuthorizationProvider provider = new AuthorizationProvider.Default();
-        final AuthorizationCodeRequestUrl url = provider.newAuthorizationUrl();
+        final AuthorizationCodeRequestUrl url = provider.newAuthorizationCodeUrl();
 
         assertEquals(Pivotal.getRedirectUrl(), url.getRedirectUri());
     }
