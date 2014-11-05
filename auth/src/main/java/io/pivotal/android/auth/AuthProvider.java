@@ -22,7 +22,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
-public interface AuthorizationProvider {
+public interface AuthProvider {
 
     public PasswordTokenRequest newPasswordTokenRequest(String username, String password);
 
@@ -32,7 +32,7 @@ public interface AuthorizationProvider {
 
     public AuthorizationCodeRequestUrl newAuthorizationCodeUrl();
 
-    public static class Default implements AuthorizationProvider {
+    public static class Default implements AuthProvider {
 
         private static final List<String> SCOPES = Arrays.asList("offline_access", "openid");
         private static final GenericUrl TOKEN_URL = new GenericUrl(Pivotal.getTokenUrl());

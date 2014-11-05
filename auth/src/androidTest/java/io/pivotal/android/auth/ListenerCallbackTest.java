@@ -21,15 +21,15 @@ public class ListenerCallbackTest extends AndroidTestCase {
 
     public void testAuthorizationFailsWhenExceptionIsThrown() {
         final AssertionLatch latch = new AssertionLatch(1);
-        final ListenerCallback callback = new ListenerCallback(new Authorization.Listener() {
+        final ListenerCallback callback = new ListenerCallback(new Auth.Listener() {
             @Override
-            public void onAuthorizationFailure(final Error error) {
+            public void onFailure(final Error error) {
                 latch.countDown();
                 assertEquals("error", error.getMessage());
             }
 
             @Override
-            public void onAuthorizationComplete(final String token) {
+            public void onComplete(final String token, final String name) {
                 fail();
             }
         });
@@ -44,14 +44,14 @@ public class ListenerCallbackTest extends AndroidTestCase {
 
     public void testAuthorizationSucceedsWithTokenFromResultBundle() {
         final AssertionLatch latch = new AssertionLatch(1);
-        final ListenerCallback callback = new ListenerCallback(new Authorization.Listener() {
+        final ListenerCallback callback = new ListenerCallback(new Auth.Listener() {
             @Override
-            public void onAuthorizationFailure(final Error error) {
+            public void onFailure(final Error error) {
                 fail();
             }
 
             @Override
-            public void onAuthorizationComplete(final String token) {
+            public void onComplete(final String token, final String account) {
                 latch.countDown();
                 assertEquals("token", token);
             }

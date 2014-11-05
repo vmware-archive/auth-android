@@ -7,24 +7,24 @@ import android.accounts.Account;
 import android.app.Activity;
 import android.test.AndroidTestCase;
 
-import io.pivotal.android.auth.Authorization.Listener;
+import io.pivotal.android.auth.Auth.Listener;
 
-public class AuthorizationTest extends AndroidTestCase {
+public class AuthTest extends AndroidTestCase {
 
-    public void testGetAuthTokenInvokesProvider() throws Exception {
+    public void testGetAccessTokenInvokesProvider() throws Exception {
         final AssertionLatch latch = new AssertionLatch(1);
         TokenProviderFactory.init(new MockTokenProvider() {
             @Override
-            public void getAuthToken(final Activity activity, final Listener listener) {
+            public void getAccessToken(final Activity activity, final Listener listener) {
                 latch.countDown();
             }
         });
 
-        Authorization.getAuthToken(null, (Listener) null);
+        Auth.getAccessToken(null, (Listener) null);
         latch.assertComplete();
     }
 
-    public void testGetAuthTokenByNameInvokesProviderAndReturnsToken() throws Exception {
+    public void testGetAccessTokenByNameInvokesProviderAndReturnsToken() throws Exception {
         final AssertionLatch latch1 = new AssertionLatch(1);
         final AssertionLatch latch2 = new AssertionLatch(1);
         TokenProviderFactory.init(new MockTokenProvider() {
@@ -35,19 +35,19 @@ public class AuthorizationTest extends AndroidTestCase {
             }
 
             @Override
-            public String getAuthTokenOrThrow(final Account account) throws Exception {
+            public String getAccessTokenOrThrow(final Account account) throws Exception {
                 latch2.countDown();
                 return "token";
             }
         });
 
-        assertEquals("token", Authorization.getAuthToken(null, (String) null));
+        assertEquals("token", Auth.getAccessToken(null, (String) null));
 
         latch1.assertComplete();
         latch2.assertComplete();
     }
 
-    public void testGetAuthTokenByNameInvokesProviderAndReturnsNull() throws Exception {
+    public void testGetAccessTokenByNameInvokesProviderAndReturnsNull() throws Exception {
         final AssertionLatch latch1 = new AssertionLatch(1);
         final AssertionLatch latch2 = new AssertionLatch(1);
         TokenProviderFactory.init(new MockTokenProvider() {
@@ -58,19 +58,19 @@ public class AuthorizationTest extends AndroidTestCase {
             }
 
             @Override
-            public String getAuthTokenOrThrow(final Account account) throws Exception {
+            public String getAccessTokenOrThrow(final Account account) throws Exception {
                 latch2.countDown();
                 return null;
             }
         });
 
-        assertNull(Authorization.getAuthToken(null, (String) null));
+        assertNull(Auth.getAccessToken(null, (String) null));
 
         latch1.assertComplete();
         latch2.assertComplete();
     }
 
-    public void testGetAuthTokenByNameInvokesProviderThrowsAndReturnsNull() throws Exception {
+    public void testGetAccessTokenByNameInvokesProviderThrowsAndReturnsNull() throws Exception {
         final AssertionLatch latch1 = new AssertionLatch(1);
         final AssertionLatch latch2 = new AssertionLatch(1);
         TokenProviderFactory.init(new MockTokenProvider() {
@@ -81,19 +81,19 @@ public class AuthorizationTest extends AndroidTestCase {
             }
 
             @Override
-            public String getAuthTokenOrThrow(final Account account) throws Exception {
+            public String getAccessTokenOrThrow(final Account account) throws Exception {
                 latch2.countDown();
                 throw new RuntimeException();
             }
         });
 
-        assertNull(Authorization.getAuthToken(null, (String) null));
+        assertNull(Auth.getAccessToken(null, (String) null));
 
         latch1.assertComplete();
         latch2.assertComplete();
     }
 
-    public void testGetAuthTokenOrThrowInvokesProviderAndThrows() throws Exception {
+    public void testGetAccessTokenOrThrowInvokesProviderAndThrows() throws Exception {
         final AssertionLatch latch1 = new AssertionLatch(1);
         final AssertionLatch latch2 = new AssertionLatch(1);
         TokenProviderFactory.init(new MockTokenProvider() {
@@ -104,14 +104,14 @@ public class AuthorizationTest extends AndroidTestCase {
             }
 
             @Override
-            public String getAuthTokenOrThrow(final Account account) throws Exception {
+            public String getAccessTokenOrThrow(final Account account) throws Exception {
                 latch2.countDown();
                 throw new RuntimeException();
             }
         });
 
         try {
-            Authorization.getAuthTokenOrThrow(null, null);
+            Auth.getAccessTokenOrThrow(null, null);
             fail();
         } catch (final Exception e) {
             assertNotNull(e);
@@ -121,23 +121,23 @@ public class AuthorizationTest extends AndroidTestCase {
         latch2.assertComplete();
     }
 
-    public void testInvalidateAuthTokenInvokesProvider() throws Exception {
+    public void testInvalidateAccessTokenInvokesProvider() throws Exception {
         final AssertionLatch latch = new AssertionLatch(1);
         TokenProviderFactory.init(new MockTokenProvider() {
             @Override
-            public void invalidateAuthToken(final String accessToken) {
+            public void invalidateAccessToken(final String accessToken) {
                 latch.countDown();
             }
         });
 
-        Authorization.invalidateAuthToken(null, null);
+        Auth.invalidateAccessToken(null, null);
         latch.assertComplete();
     }
 
     public void testAddAccountThrowsWithNullAccountName() throws Exception {
         try {
             TokenProviderFactory.init(new MockTokenProvider());
-            Authorization.addAccount(null, null, new Token("", ""));
+            Auth.addAccount(null, null, new Token("", ""));
             fail();
         } catch (final Exception e) {
             assertNotNull(e);
@@ -147,7 +147,7 @@ public class AuthorizationTest extends AndroidTestCase {
     public void testAddAccountThrowsWithEmptyAccountName() throws Exception {
         try {
             TokenProviderFactory.init(new MockTokenProvider());
-            Authorization.addAccount(null, "", new Token("", ""));
+            Auth.addAccount(null, "", new Token("", ""));
             fail();
         } catch (final Exception e) {
             assertNotNull(e);
@@ -165,12 +165,12 @@ public class AuthorizationTest extends AndroidTestCase {
             }
 
             @Override
-            public void setAuthToken(final Account account, final String accessToken) {
+            public void setAccessToken(final Account account, final String accessToken) {
                 latch2.countDown();
             }
         });
 
-        Authorization.addAccount(null, "account", new Token("access", "refresh"));
+        Auth.addAccount(null, "account", new Token("access", "refresh"));
 
         latch1.assertComplete();
         latch2.assertComplete();
@@ -186,7 +186,7 @@ public class AuthorizationTest extends AndroidTestCase {
             }
         });
 
-        Authorization.getAccounts(null);
+        Auth.getAccounts(null);
 
         latch.assertComplete();
     }
@@ -201,7 +201,7 @@ public class AuthorizationTest extends AndroidTestCase {
             }
         });
 
-        assertNull(Authorization.getAccount(null, null));
+        assertNull(Auth.getAccount(null, null));
 
         latch.assertComplete();
     }
@@ -216,7 +216,7 @@ public class AuthorizationTest extends AndroidTestCase {
             }
         });
 
-        assertNull(Authorization.getAccount(null, ""));
+        assertNull(Auth.getAccount(null, ""));
 
         latch.assertComplete();
     }
@@ -235,7 +235,7 @@ public class AuthorizationTest extends AndroidTestCase {
             }
         });
 
-        assertNull(Authorization.getAccount(null, "account"));
+        assertNull(Auth.getAccount(null, "account"));
 
         latch.assertComplete();
     }
@@ -254,7 +254,7 @@ public class AuthorizationTest extends AndroidTestCase {
             }
         });
 
-        assertEquals("account1", Authorization.getAccount(null, "account1").name);
+        assertEquals("account1", Auth.getAccount(null, "account1").name);
 
         latch.assertComplete();
     }
@@ -262,7 +262,7 @@ public class AuthorizationTest extends AndroidTestCase {
     public void testRemoveAccountThrowsWithNullAccountName() throws Exception {
         try {
             TokenProviderFactory.init(new MockTokenProvider());
-            Authorization.removeAccount(null, null);
+            Auth.removeAccount(null, null);
             fail();
         } catch (final Exception e) {
             assertNotNull(e);
@@ -272,7 +272,7 @@ public class AuthorizationTest extends AndroidTestCase {
     public void testRemoveAccountThrowsWithEmptyAccountName() throws Exception {
         try {
             TokenProviderFactory.init(new MockTokenProvider());
-            Authorization.removeAccount(null, "");
+            Auth.removeAccount(null, "");
             fail();
         } catch (final Exception e) {
             assertNotNull(e);
@@ -288,7 +288,7 @@ public class AuthorizationTest extends AndroidTestCase {
             }
         });
 
-        Authorization.removeAccount(null, "account");
+        Auth.removeAccount(null, "account");
 
         latch.assertComplete();
     }
@@ -314,7 +314,7 @@ public class AuthorizationTest extends AndroidTestCase {
             }
         });
 
-        Authorization.removeAllAccounts(null);
+        Auth.removeAllAccounts(null);
 
         latch1.assertComplete();
         latch2.assertComplete();

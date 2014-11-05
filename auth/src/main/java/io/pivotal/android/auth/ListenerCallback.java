@@ -10,9 +10,9 @@ import android.os.Bundle;
 
 /* package */ class ListenerCallback implements AccountManagerCallback<Bundle> {
 
-    private final Authorization.Listener mListener;
+    private final Auth.Listener mListener;
 
-    public ListenerCallback(final Authorization.Listener listener) {
+    public ListenerCallback(final Auth.Listener listener) {
         mListener = listener;
     }
 
@@ -22,16 +22,21 @@ import android.os.Bundle;
 
             final Bundle bundle = future.getResult();
             final String token = bundle.getString(AccountManager.KEY_AUTHTOKEN);
+            final String name = bundle.getString(AccountManager.KEY_ACCOUNT_NAME);
 
-            Logger.i("getAuthToken new token: " + token);
+            if (token == null) {
+                throw new IllegalArgumentException("Auth token not found.");
+            }
 
-            mListener.onAuthorizationComplete(token);
+            Logger.i("getAccessToken new token: " + token);
+
+            mListener.onComplete(token, name);
 
         } catch (final Exception e) {
             final Error error = new Error(e.getLocalizedMessage(), e);
-            Logger.i("getAuthToken error: " + error.getLocalizedMessage());
+            Logger.i("getAccessToken error: " + error.getLocalizedMessage());
 
-            mListener.onAuthorizationFailure(error);
+            mListener.onFailure(error);
         }
     }
 }

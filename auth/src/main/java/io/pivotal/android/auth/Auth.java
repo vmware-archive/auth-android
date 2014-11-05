@@ -4,46 +4,60 @@
 package io.pivotal.android.auth;
 
 import android.accounts.Account;
-import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
-import android.os.Build;
 
-@TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
-public class Authorization {
+public class Auth {
 
     public static interface Listener {
-        public void onAuthorizationFailure(Error error);
+        public void onComplete(String token, String account);
 
-        public void onAuthorizationComplete(String token);
+        public void onFailure(Error error);
     }
 
-    public static void getAuthToken(final Activity activity, final Listener listener) {
-        Logger.i("getAuthToken");
+    public static void getAccessToken(final Activity activity, final Listener listener) {
+        Logger.i("getAccessToken");
         final TokenProvider provider = TokenProviderFactory.get(activity);
-        provider.getAuthToken(activity, listener);
+        provider.getAccessToken(activity, listener);
     }
 
-    public static String getAuthToken(final Context context, final String accountName) {
+    public static void getAccessToken(final Context context, final boolean promptUser, final Listener listener) {
+        Logger.i("getLastUsedAccessToken");
+        final TokenProvider provider = TokenProviderFactory.get(context);
+        final Account[] accounts = getAccounts(context);
+
+        if (accounts.length == 1) {
+            provider.getAccessToken(accounts[0], promptUser, listener);
+        } else {
+
+            final String accountName = AuthPreferences.getLastUsedAccountName(context);
+            final Account account = getAccount(context, accountName);
+            if (account != null) {
+                provider.getAccessToken(account, promptUser, listener);
+            } else {
+                listener.onFailure(new Error("Could not determine last used account."));
+            }
+        }
+    }
+
+    public static String getAccessToken(final Context context, final String accountName) {
         try {
-            return getAuthTokenOrThrow(context, accountName);
+            return getAccessTokenOrThrow(context, accountName);
         } catch (final Exception e) {
             Logger.ex(e);
             return null;
         }
     }
 
-    public static String getAuthTokenOrThrow(final Context context, final String accountName) throws Exception {
-        Logger.i("getAuthToken: " + accountName);
-        final TokenProvider provider = TokenProviderFactory.get(context);
+    public static String getAccessTokenOrThrow(final Context context, final String accountName) throws Exception {
+        Logger.i("getAccessToken: " + accountName);
         final Account account = getAccount(context, accountName);
-        return provider.getAuthTokenOrThrow(account);
+        return TokenProviderFactory.get(context).getAccessTokenOrThrow(account);
     }
 
-    public static void invalidateAuthToken(final Context context, final String token) {
-        Logger.i("invalidateAuthToken");
-        final TokenProvider provider = TokenProviderFactory.get(context);
-        provider.invalidateAuthToken(token);
+    public static void invalidateAccessToken(final Context context, final String token) {
+        Logger.i("invalidateAccessToken");
+        TokenProviderFactory.get(context).invalidateAccessToken(token);
     }
 
     public static void addAccount(final Context context, final String name, final Token token) {
@@ -51,13 +65,12 @@ public class Authorization {
         final TokenProvider provider = TokenProviderFactory.get(context);
         final Account account = new Account(name, Pivotal.getAccountType());
         provider.addAccount(account, token.getRefreshToken());
-        provider.setAuthToken(account, token.getAccessToken());
+        provider.setAccessToken(account, token.getAccessToken());
     }
 
     public static Account[] getAccounts(final Context context) {
         Logger.i("getAccounts");
-        final TokenProvider provider = TokenProviderFactory.get(context);
-        return provider.getAccounts();
+        return TokenProviderFactory.get(context).getAccounts();
     }
 
     public static Account getAccount(final Context context, final String name) {
@@ -73,9 +86,8 @@ public class Authorization {
 
     public static void removeAccount(final Context context, final String name) {
         Logger.i("removeAccount: " + name);
-        final TokenProvider provider = TokenProviderFactory.get(context);
         final Account account = new Account(name, Pivotal.getAccountType());
-        provider.removeAccount(account);
+        TokenProviderFactory.get(context).removeAccount(account);
     }
 
     public static void removeAllAccounts(final Context context) {

@@ -67,16 +67,20 @@ public class Authenticator extends AbstractAccountAuthenticator {
 	// =============================================
 
 
-    /* package */ Token getExistingToken(final Account account) {
+    protected Token getExistingToken(final Account account) {
         final TokenProvider provider = TokenProviderFactory.get(mContext);
         return new Token(provider, account);
     }
 
-    /* package */ Token getNewToken(final String refreshToken) throws IOException {
-        final AuthorizationProvider provider = new AuthorizationProvider.Default();
+    protected Token getNewToken(final String refreshToken) throws IOException {
+        final AuthProvider provider = new AuthProvider.Default();
         final RefreshTokenRequest request = provider.newRefreshTokenRequest(refreshToken);
         final TokenResponse resp = request.execute();
         return new Token(resp);
+    }
+
+    protected Class<?> getLoginActivityClass() {
+        return PackageHelper.getLoginActivityClass(mContext);
     }
 
     private Bundle newAccountBundle(final AccountAuthenticatorResponse response) {
@@ -88,7 +92,7 @@ public class Authenticator extends AbstractAccountAuthenticator {
 
     private Intent newLoginIntent(final AccountAuthenticatorResponse response) {
         Logger.v("newLoginIntent");
-        final Intent intent = new Intent(mContext, PackageHelper.getLoginActivityClass(mContext));
+        final Intent intent = new Intent(mContext, getLoginActivityClass());
         intent.putExtra(AccountManager.KEY_ACCOUNT_AUTHENTICATOR_RESPONSE, response);
         intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
         return intent;

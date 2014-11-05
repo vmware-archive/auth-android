@@ -3,23 +3,32 @@
  */
 package io.pivotal.android.auth;
 
+import android.content.Loader;
 import android.os.Bundle;
 import android.test.AndroidTestCase;
 
+import com.google.api.client.auth.oauth2.TokenResponse;
+
+import java.util.UUID;
+
 public class PasswordTokenLoaderCallbacksTest extends AndroidTestCase {
 
-    public void testCreateBundle() {
-        final Bundle bundle = PasswordTokenLoaderCallbacks.createBundle("username", "password");
+    private static final String USERNAME = UUID.randomUUID().toString();
+    private static final String PASSWORD = UUID.randomUUID().toString();
 
-        assertEquals("username", bundle.getString("username"));
-        assertEquals("password", bundle.getString("password"));
+
+    public void testCreateBundle() {
+        final Bundle bundle = PasswordTokenLoaderCallbacks.createBundle(USERNAME, PASSWORD);
+
+        assertEquals(USERNAME, bundle.getString("username"));
+        assertEquals(PASSWORD, bundle.getString("password"));
     }
 
     public void testOnCreateLoader() {
         final PasswordTokenLoaderCallbacks callbacks = new PasswordTokenLoaderCallbacks(mContext, null);
-        final PasswordTokenLoader loader = (PasswordTokenLoader) callbacks.onCreateLoader(0, Bundle.EMPTY);
+        final Loader<TokenResponse> loader = callbacks.onCreateLoader(0, Bundle.EMPTY);
 
-        assertNotNull(loader);
+        assertTrue(loader instanceof PasswordTokenLoader);
     }
 
 }

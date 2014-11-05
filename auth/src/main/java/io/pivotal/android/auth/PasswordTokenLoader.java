@@ -12,12 +12,12 @@ import com.google.api.client.auth.oauth2.TokenResponse;
 @TargetApi(Build.VERSION_CODES.HONEYCOMB)
 /* package */ class PasswordTokenLoader extends TokenLoader {
 
-    private final AuthorizationProvider mProvider;
+    private final AuthProvider mProvider;
 
     private final String mUsername;
     private final String mPassword;
 
-    public PasswordTokenLoader(final Context context, final AuthorizationProvider provider, final String username, final String password) {
+    public PasswordTokenLoader(final Context context, final AuthProvider provider, final String username, final String password) {
         super(context);
         mProvider = provider;
         mUsername = username;

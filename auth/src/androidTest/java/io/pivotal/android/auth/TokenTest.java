@@ -41,7 +41,7 @@ public class TokenTest extends AndroidTestCase {
         final TokenProvider provider = new MockTokenProvider() {
 
             @Override
-            public String getAuthToken(Account account) {
+            public String getAccessToken(Account account) {
                 return TEST_ACCESS_TOKEN;
             }
 

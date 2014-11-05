@@ -13,17 +13,19 @@ import android.os.Build;
 /* package */ interface TokenProvider {
     public String getRefreshToken(Account account);
 
-    public String getAuthToken(Account account);
+    public String getAccessToken(Account account);
 
-    public String getAuthTokenOrThrow(Account account) throws Exception;
+    public String getAccessTokenOrThrow(Account account) throws Exception;
 
-    public void getAuthToken(Activity activity, Authorization.Listener listener);
+    public void getAccessToken(Activity activity, Auth.Listener listener);
 
-    public void getAuthToken(Account account, Authorization.Listener listener);
+    public void getAccessToken(Activity activity, Account account, Auth.Listener listener);
 
-    public void setAuthToken(Account account, String accessToken);
+    public void getAccessToken(Account account, boolean promptUser, Auth.Listener listener);
 
-    public void invalidateAuthToken(String accessToken);
+    public void setAccessToken(Account account, String accessToken);
+
+    public void invalidateAccessToken(String accessToken);
 
     public void addAccount(Account account, String refreshToken);
 
@@ -45,35 +47,41 @@ import android.os.Build;
         }
 
         @Override
-        public String getAuthToken(final Account account) {
+        public String getAccessToken(final Account account) {
             return mManager.peekAuthToken(account, Pivotal.getTokenType());
         }
 
         @Override
-        public String getAuthTokenOrThrow(final Account account) throws Exception {
+        public String getAccessTokenOrThrow(final Account account) throws Exception {
             return mManager.blockingGetAuthToken(account, Pivotal.getTokenType(), false);
         }
 
         @Override
-        public void getAuthToken(final Activity activity, final Authorization.Listener listener) {
+        public void getAccessToken(final Activity activity, final Auth.Listener listener) {
             final ListenerExpirationCallback callback = new ListenerExpirationCallback(activity, listener);
             mManager.getAuthTokenByFeatures(Pivotal.getAccountType(), Pivotal.getTokenType(), null, activity, null, null, callback, null);
         }
 
         @Override
-        @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
-        public void getAuthToken(final Account account, final Authorization.Listener listener) {
+        public void getAccessToken(final Activity activity, final Account account, final Auth.Listener listener) {
             final ListenerCallback callback = new ListenerCallback(listener);
-            mManager.getAuthToken(account, Pivotal.getTokenType(), null, false, callback, null);
+            mManager.getAuthToken(account, Pivotal.getTokenType(), null, activity, callback, null);
         }
 
         @Override
-        public void setAuthToken(final Account account, final String accessToken) {
-            mManager.setAuthToken(account, Pivotal.getTokenType(), accessToken);
+        @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
+        public void getAccessToken(final Account account, final boolean promptUser, final Auth.Listener listener) {
+            final ListenerCallback callback = new ListenerCallback(listener);
+            mManager.getAuthToken(account, Pivotal.getTokenType(), null, promptUser, callback, null);
         }
 
         @Override
-        public void invalidateAuthToken(final String token) {
+        public void setAccessToken(final Account account, final String token) {
+            mManager.setAuthToken(account, Pivotal.getTokenType(), token);
+        }
+
+        @Override
+        public void invalidateAccessToken(final String token) {
             mManager.invalidateAuthToken(Pivotal.getAccountType(), token);
         }
 

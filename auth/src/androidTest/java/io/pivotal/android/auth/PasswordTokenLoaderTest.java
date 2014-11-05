@@ -25,7 +25,7 @@ public class PasswordTokenLoaderTest extends AndroidTestCase {
     public void testLoadInBackgroundSucceedsWithTokenResponse() {
         final AssertionLatch latch = new AssertionLatch(1);
         final TokenResponse response = new TokenResponse();
-        final MockAuthorizationProvider provider = new MockAuthorizationProvider() {
+        final MockAuthProvider provider = new MockAuthProvider() {
 
             @Override
             public PasswordTokenRequest newPasswordTokenRequest(final String username, final String password) {
@@ -40,7 +40,7 @@ public class PasswordTokenLoaderTest extends AndroidTestCase {
 
     public void testLoadInBackgroundFailsWithErrorResponse() {
         final AssertionLatch latch = new AssertionLatch(1);
-        final MockAuthorizationProvider provider = new MockAuthorizationProvider() {
+        final MockAuthProvider provider = new MockAuthProvider() {
 
             @Override
             public PasswordTokenRequest newPasswordTokenRequest(final String username, final String password) {

@@ -14,32 +14,37 @@ public class MockTokenProvider implements TokenProvider {
     }
 
     @Override
-    public String getAuthToken(final Account account) {
+    public String getAccessToken(final Account account) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public String getAuthTokenOrThrow(final Account account) throws Exception {
+    public String getAccessTokenOrThrow(final Account account) throws Exception {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public void getAuthToken(final Activity activity, final Authorization.Listener listener) {
+    public void getAccessToken(final Activity activity, final Auth.Listener listener) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public void getAuthToken(final Account account, final Authorization.Listener listener) {
+    public void getAccessToken(final Activity activity, final Account account, final Auth.Listener listener) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public void setAuthToken(final Account account, final String accessToken) {
+    public void getAccessToken(final Account account, final boolean promptUser, final Auth.Listener listener) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public void invalidateAuthToken(final String accessToken) {
+    public void setAccessToken(final Account account, final String accessToken) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void invalidateAccessToken(final String accessToken) {
         throw new UnsupportedOperationException();
     }
 

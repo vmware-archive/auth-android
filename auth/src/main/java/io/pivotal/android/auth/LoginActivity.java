@@ -24,18 +24,18 @@ import android.widget.Toast;
     @Override
     public void onAuthorizationComplete(final Token token) {
         final String username = getUserName();
-        Authorization.addAccount(this, username, token);
+        Auth.addAccount(this, username, token);
         setResultIntent(token, username);
         finish();
     }
 
-    private void setResultIntent(final Token token, final String username) {
+    protected void setResultIntent(final Token token, final String username) {
         final Intent intent = getResultIntent(token, username);
         setAccountAuthenticatorResult(intent.getExtras());
         setResult(RESULT_OK, intent);
     }
 
-    private Intent getResultIntent(final Token token, final String username) {
+    protected Intent getResultIntent(final Token token, final String username) {
         final Intent intent = new Intent();
         intent.putExtra(AccountManager.KEY_ACCOUNT_TYPE, Pivotal.getAccountType());
         intent.putExtra(AccountManager.KEY_AUTHTOKEN, token.getAccessToken());

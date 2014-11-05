@@ -16,9 +16,9 @@ import android.os.Bundle;
 /* package */ class ListenerExpirationCallback implements AccountManagerCallback<Bundle> {
 
     private final Activity mActivity;
-    private final Authorization.Listener mListener;
+    private final Auth.Listener mListener;
 
-    public ListenerExpirationCallback(final Activity activity, final Authorization.Listener listener) {
+    public ListenerExpirationCallback(final Activity activity, final Auth.Listener listener) {
         mActivity = activity;
         mListener = listener;
     }
@@ -29,31 +29,34 @@ import android.os.Bundle;
 
             final Bundle bundle = future.getResult();
             final String accountName = bundle.getString(AccountManager.KEY_ACCOUNT_NAME);
-            Logger.i("getAuthToken accountName: " + accountName);
+
+            AuthPreferences.setLastUsedAccountName(mActivity, accountName);
+
+            Logger.i("getAccessToken accountName: " + accountName);
 
             final TokenProvider provider = TokenProviderFactory.get(mActivity);
-            final Account account = Authorization.getAccount(mActivity, accountName);
-            final Token existingToken = new Token(provider, account);
+            final Account account = Auth.getAccount(mActivity, accountName);
+            final Token token = new Token(provider, account);
 
-            final String token = existingToken.getAccessToken();
-            Logger.i("getAuthToken token: " + token);
+            final String accessToken = token.getAccessToken();
+            Logger.i("getAccessToken accessToken: " + accessToken);
 
-            if (existingToken.isExpired()) {
-                Logger.i("getAuthToken expired.");
-                provider.invalidateAuthToken(token);
+            if (token.isExpired()) {
+                Logger.i("getAccessToken expired.");
+                provider.invalidateAccessToken(accessToken);
 
-                Logger.i("getAuthToken invalidated.");
-                provider.getAuthToken(account, mListener);
+                Logger.i("getAccessToken invalidated.");
+                provider.getAccessToken(mActivity, account, mListener);
 
             } else {
-                mListener.onAuthorizationComplete(token);
+                mListener.onComplete(accessToken, accountName);
             }
 
         } catch (final Exception e) {
             final Error error = new Error(e.getLocalizedMessage(), e);
-            Logger.i("getAuthToken error: " + error.getLocalizedMessage());
+            Logger.i("getAccessToken error: " + error.getLocalizedMessage());
 
-            mListener.onAuthorizationFailure(error);
+            mListener.onFailure(error);
         }
     }
 }

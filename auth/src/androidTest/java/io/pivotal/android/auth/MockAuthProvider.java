@@ -8,7 +8,7 @@ import com.google.api.client.auth.oauth2.AuthorizationCodeTokenRequest;
 import com.google.api.client.auth.oauth2.PasswordTokenRequest;
 import com.google.api.client.auth.oauth2.RefreshTokenRequest;
 
-public class MockAuthorizationProvider implements AuthorizationProvider {
+public class MockAuthProvider implements AuthProvider {
 
     @Override
     public PasswordTokenRequest newPasswordTokenRequest(String username, String password) {

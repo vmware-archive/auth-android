@@ -14,6 +14,8 @@ import com.google.api.client.auth.oauth2.TokenResponse;
 @TargetApi(Build.VERSION_CODES.HONEYCOMB)
 /* package */ abstract class TokenLoaderCallbacks implements LoaderManager.LoaderCallbacks<TokenResponse> {
 
+    private static final String ERROR = "error";
+
     private final Context mContext;
     private final TokenListener mListener;
 
@@ -33,8 +35,8 @@ import com.google.api.client.auth.oauth2.TokenResponse;
 
     @Override
     public final void onLoadFinished(final Loader<TokenResponse> loader, final TokenResponse data) {
-        if (data.containsKey("error")) {
-            final String error = data.get("error").toString();
+        if (data.containsKey(ERROR)) {
+            final String error = data.get(ERROR).toString();
             mListener.onAuthorizationFailed(new Error(error));
         } else {
             final Token token = new Token(data);

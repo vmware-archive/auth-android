@@ -3,22 +3,28 @@
  */
 package io.pivotal.android.auth;
 
+import android.content.Loader;
 import android.os.Bundle;
 import android.test.AndroidTestCase;
 
+import com.google.api.client.auth.oauth2.TokenResponse;
+
+import java.util.UUID;
+
 public class AuthCodeTokenLoaderCallbacksTest extends AndroidTestCase {
 
-    public void testCreateBundle() {
-        final Bundle bundle = AuthCodeTokenLoaderCallbacks.createBundle("code");
+    private static final String AUTH_CODE = UUID.randomUUID().toString();
 
-        assertEquals("code", bundle.getString("auth_code"));
+    public void testCreateBundle() {
+        final Bundle bundle = AuthCodeTokenLoaderCallbacks.createBundle(AUTH_CODE);
+
+        assertEquals(AUTH_CODE, bundle.getString("auth_code"));
     }
 
     public void testOnCreateLoader() {
         final AuthCodeTokenLoaderCallbacks callbacks = new AuthCodeTokenLoaderCallbacks(mContext, null);
-        final AuthCodeTokenLoader loader = (AuthCodeTokenLoader) callbacks.onCreateLoader(0, Bundle.EMPTY);
+        final Loader<TokenResponse> loader = callbacks.onCreateLoader(0, Bundle.EMPTY);
 
-        assertNotNull(loader);
+        assertTrue(loader instanceof AuthCodeTokenLoader);
     }
-
 }

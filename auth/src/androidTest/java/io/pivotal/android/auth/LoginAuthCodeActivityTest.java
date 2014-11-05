@@ -3,64 +3,164 @@
  */
 package io.pivotal.android.auth;
 
+import android.annotation.TargetApi;
 import android.app.LoaderManager;
+import android.content.Context;
 import android.content.Intent;
-import android.content.Loader;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.test.ActivityUnitTestCase;
 
-public class LoginAuthCodeActivityTest extends ActivityUnitTestCase<LoginAuthCodeActivityTest.TestLoginAuthCodeActivity> {
+import org.mockito.Mockito;
+
+import java.util.UUID;
+
+@TargetApi(Build.VERSION_CODES.HONEYCOMB)
+public class LoginAuthCodeActivityTest extends ActivityUnitTestCase<LoginAuthCodeActivity> {
+
+    private static final String AUTH_CODE = UUID.randomUUID().toString();
 
     public LoginAuthCodeActivityTest() {
-        super(TestLoginAuthCodeActivity.class);
+        super(LoginAuthCodeActivity.class);
     }
 
-    public void testInitialAuthorize() {
-        TestLoginAuthCodeActivity.sWasRestartLoaderCalled = false;
-        TestLoginAuthCodeActivity.sWasStartActivityCalled = false;
-        startActivity(new Intent(), null, null);
-        assertFalse(TestLoginAuthCodeActivity.sWasRestartLoaderCalled);
-        assertTrue(TestLoginAuthCodeActivity.sWasStartActivityCalled);
+    @Override
+    protected void setUp() throws Exception {
+        super.setUp();
+        final Context context = getInstrumentation().getContext();
+        System.setProperty("dexmaker.dexcache", context.getCacheDir().getPath());
     }
 
-    public void testCallback() {
-        TestLoginAuthCodeActivity.sWasRestartLoaderCalled = false;
-        TestLoginAuthCodeActivity.sWasStartActivityCalled = false;
-        startActivity(getIntentForCallback(), null, null);
-        assertTrue(TestLoginAuthCodeActivity.sWasRestartLoaderCalled);
-        assertFalse(TestLoginAuthCodeActivity.sWasStartActivityCalled);
-    }
-
-    private Intent getIntentForCallback() {
+    public void testOnCreateInvokesOnHandleRedirect() {
         final Intent intent = new Intent();
-        intent.addCategory(Intent.CATEGORY_BROWSABLE);
-        intent.setData(Uri.parse(Pivotal.getRedirectUrl().toLowerCase()));
-        return intent;
+        final Bundle bundle = Bundle.EMPTY;
+
+        final LoginAuthCodeActivity activity = Mockito.spy(startActivity(intent, null, null));
+
+        Mockito.doNothing().when(activity).onCreateContentView(bundle);
+        Mockito.doReturn(true).when(activity).intentHasCallbackUrl(intent);
+        Mockito.doNothing().when(activity).onHandleRedirect(intent);
+
+        activity.onCreate(bundle);
+
+        Mockito.verify(activity).onCreateContentView(bundle);
+        Mockito.verify(activity).intentHasCallbackUrl(intent);
+        Mockito.verify(activity).onHandleRedirect(intent);
     }
 
-    public static class TestLoginAuthCodeActivity extends LoginAuthCodeActivity {
+    public void testOnCreateInvokesAuthorize() {
+        final Intent intent = new Intent();
+        final Bundle bundle = Bundle.EMPTY;
 
-        private static boolean sWasRestartLoaderCalled;
-        private static boolean sWasStartActivityCalled;
+        final LoginAuthCodeActivity activity = Mockito.spy(startActivity(intent, null, null));
 
-        @Override
-        public void startActivity(Intent intent) {
-            super.startActivity(intent);
-            sWasStartActivityCalled = true;
-        }
+        Mockito.doNothing().when(activity).onCreateContentView(bundle);
+        Mockito.doReturn(false).when(activity).intentHasCallbackUrl(intent);
+        Mockito.doNothing().when(activity).authorize();
 
-        @Override
-        public LoaderManager getLoaderManager() {
-            return new MockLoaderManager() {
+        activity.onCreate(bundle);
 
-                @Override
-                public <D> Loader<D> restartLoader(int i, Bundle bundle, LoaderCallbacks<D> dLoaderCallbacks) {
-                    sWasRestartLoaderCalled = true;
-                    return null;
-                }
-            };
-        }
+        Mockito.verify(activity).onCreateContentView(bundle);
+        Mockito.verify(activity).intentHasCallbackUrl(intent);
+        Mockito.verify(activity).authorize();
     }
 
+    public void testCreateContentViewInvokesSetContentView() {
+        final LoginAuthCodeActivity activity = Mockito.spy(startActivity(new Intent(), null, null));
+
+        Mockito.doNothing().when(activity).setContentView(R.layout.activity_login_auth_code);
+
+        activity.onCreateContentView(null);
+
+        Mockito.verify(activity).setContentView(R.layout.activity_login_auth_code);
+    }
+
+    public void testGetUserNameDefaultValue() {
+        final LoginAuthCodeActivity activity = Mockito.spy(startActivity(new Intent(), null, null));
+
+        assertEquals("Account", activity.getUserName());
+    }
+
+    public void testIntentHasCallbackUrlReturnsTrue() {
+        final Uri uri = Uri.parse(Pivotal.getRedirectUrl());
+        final Intent intent = Mockito.mock(Intent.class);
+
+        Mockito.when(intent.hasCategory(Intent.CATEGORY_BROWSABLE)).thenReturn(true);
+        Mockito.when(intent.getData()).thenReturn(uri);
+
+        final LoginAuthCodeActivity activity = Mockito.spy(startActivity(new Intent(), null, null));
+
+        assertTrue(activity.intentHasCallbackUrl(intent));
+
+        Mockito.verify(intent).hasCategory(Intent.CATEGORY_BROWSABLE);
+        Mockito.verify(intent, Mockito.times(2)).getData();
+    }
+
+    public void testIntentHasCallbackUrlWithoutCategoryBrowsable() {
+        final Intent intent = Mockito.mock(Intent.class);
+
+        Mockito.when(intent.hasCategory(Intent.CATEGORY_BROWSABLE)).thenReturn(false);
+
+        final LoginAuthCodeActivity activity = Mockito.spy(startActivity(new Intent(), null, null));
+
+        assertFalse(activity.intentHasCallbackUrl(intent));
+
+        Mockito.verify(intent).hasCategory(Intent.CATEGORY_BROWSABLE);
+    }
+
+    public void testIntentHasCallbackUrlWithoutData() {
+        final Intent intent = Mockito.mock(Intent.class);
+
+        Mockito.when(intent.hasCategory(Intent.CATEGORY_BROWSABLE)).thenReturn(true);
+
+        final LoginAuthCodeActivity activity = Mockito.spy(startActivity(new Intent(), null, null));
+
+        assertFalse(activity.intentHasCallbackUrl(intent));
+
+        Mockito.verify(intent).hasCategory(Intent.CATEGORY_BROWSABLE);
+        Mockito.verify(intent).getData();
+    }
+
+    public void testIntentHasCallbackUrlWithoutRedirectUrl() {
+        final Uri uri = Mockito.mock(Uri.class);
+        final Intent intent = Mockito.mock(Intent.class);
+
+        Mockito.when(intent.hasCategory(Intent.CATEGORY_BROWSABLE)).thenReturn(true);
+        Mockito.when(intent.getData()).thenReturn(uri);
+
+        final LoginAuthCodeActivity activity = Mockito.spy(startActivity(new Intent(), null, null));
+
+        assertFalse(activity.intentHasCallbackUrl(intent));
+
+        Mockito.verify(intent).hasCategory(Intent.CATEGORY_BROWSABLE);
+        Mockito.verify(intent, Mockito.times(2)).getData();
+    }
+
+    public void testIntentHasCallbackUrlWithoutIntent() {
+        final LoginAuthCodeActivity activity = Mockito.spy(startActivity(new Intent(), null, null));
+
+        assertFalse(activity.intentHasCallbackUrl(null));
+    }
+
+    public void testOnHandleRedirectInvokesRestartLoader() {
+        final Uri uri = Mockito.mock(Uri.class);
+        final Intent intent = Mockito.mock(Intent.class);
+        final LoaderManager manager = Mockito.mock(LoaderManager.class);
+
+        Mockito.when(intent.getData()).thenReturn(uri);
+        Mockito.when(uri.getQueryParameter("code")).thenReturn(AUTH_CODE);
+
+        final LoginAuthCodeActivity activity = Mockito.spy(startActivity(new Intent(), null, null));
+
+        Mockito.doReturn(manager).when(activity).getLoaderManager();
+        Mockito.when(manager.restartLoader(Mockito.anyInt(), Mockito.any(Bundle.class), Mockito.any(AuthCodeTokenLoaderCallbacks.class))).thenReturn(null);
+
+        activity.onHandleRedirect(intent);
+
+        Mockito.verify(intent).getData();
+        Mockito.verify(uri).getQueryParameter("code");
+        Mockito.verify(activity).getLoaderManager();
+        Mockito.verify(manager).restartLoader(Mockito.anyInt(), Mockito.any(Bundle.class), Mockito.any(AuthCodeTokenLoaderCallbacks.class));
+    }
 }

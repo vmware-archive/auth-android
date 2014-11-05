@@ -4,6 +4,7 @@
 package io.pivotal.android.auth;
 
 import android.accounts.Account;
+import android.app.Activity;
 import android.os.Bundle;
 import android.test.AndroidTestCase;
 import android.util.Base64;
@@ -21,15 +22,15 @@ public class ListenerExpirationCallbackTest extends AndroidTestCase {
 
     public void testAuthorizationFailsWhenExceptionIsThrown() {
         final AssertionLatch latch = new AssertionLatch(1);
-        final ListenerExpirationCallback callback = new ListenerExpirationCallback(null, new Authorization.Listener() {
+        final ListenerExpirationCallback callback = new ListenerExpirationCallback(null, new Auth.Listener() {
             @Override
-            public void onAuthorizationFailure(final Error error) {
+            public void onFailure(final Error error) {
                 latch.countDown();
                 assertEquals("error", error.getMessage());
             }
 
             @Override
-            public void onAuthorizationComplete(final String token) {
+            public void onComplete(final String token, final String name) {
                 fail();
             }
         });
@@ -47,12 +48,12 @@ public class ListenerExpirationCallbackTest extends AndroidTestCase {
         final AssertionLatch latch2 = new AssertionLatch(1);
         TokenProviderFactory.init(new ExpiredTokenProvider() {
             @Override
-            public void invalidateAuthToken(final String accessToken) {
+            public void invalidateAccessToken(final String accessToken) {
                 latch1.countDown();
             }
 
             @Override
-            public void getAuthToken(final Account account, final Authorization.Listener listener) {
+            public void getAccessToken(final Activity activity, final Account account, final Auth.Listener listener) {
                 latch2.countDown();
             }
         });
@@ -72,14 +73,14 @@ public class ListenerExpirationCallbackTest extends AndroidTestCase {
 
         TokenProviderFactory.init(new ValidTokenProvider());
 
-        final ListenerExpirationCallback callback = new ListenerExpirationCallback(null, new Authorization.Listener() {
+        final ListenerExpirationCallback callback = new ListenerExpirationCallback(null, new Auth.Listener() {
             @Override
-            public void onAuthorizationFailure(final Error error) {
+            public void onFailure(final Error error) {
                 fail();
             }
 
             @Override
-            public void onAuthorizationComplete(final String token) {
+            public void onComplete(final String token, final String name) {
                 latch.countDown();
             }
         });
@@ -101,7 +102,7 @@ public class ListenerExpirationCallbackTest extends AndroidTestCase {
         }
 
         @Override
-        public String getAuthToken(final Account account) {
+        public String getAccessToken(final Account account) {
             return "expired";
         }
 
@@ -119,7 +120,7 @@ public class ListenerExpirationCallbackTest extends AndroidTestCase {
         }
 
         @Override
-        public String getAuthToken(final Account account) {
+        public String getAccessToken(final Account account) {
             final long timeInFuture = System.currentTimeMillis() / 1000 + 60;
             final String expirationComponent = "{ \"exp\": \"" + timeInFuture + "\" }";
             return "." + Base64.encodeToString(expirationComponent.getBytes(), Base64.DEFAULT);

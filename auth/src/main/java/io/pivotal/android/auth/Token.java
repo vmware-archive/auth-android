@@ -24,7 +24,7 @@ public class Token {
     }
 
     /* package */ Token(final TokenProvider provider, final Account account) {
-        this(provider.getAuthToken(account), provider.getRefreshToken(account));
+        this(provider.getAccessToken(account), provider.getRefreshToken(account));
     }
 
     public String getAccessToken() {
