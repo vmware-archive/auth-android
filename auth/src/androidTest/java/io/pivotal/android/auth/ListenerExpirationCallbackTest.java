@@ -4,6 +4,7 @@
 package io.pivotal.android.auth;
 
 import android.accounts.Account;
+import android.accounts.AccountManager;
 import android.app.Activity;
 import android.os.Bundle;
 import android.test.AndroidTestCase;
@@ -60,7 +61,13 @@ public class ListenerExpirationCallbackTest extends AndroidTestCase {
         new ListenerExpirationCallback(null, null).run(new MockAccountManagerFuture() {
             @Override
             public Bundle getResult() {
-                return Bundle.EMPTY;
+                final long timeInPast = System.currentTimeMillis() / 1000 - 60;
+                final String expiration = "{ \"exp\": \"" + timeInPast + "\" }";
+                final String token = "." + Base64.encodeToString(expiration.getBytes(), Base64.DEFAULT);
+
+                final Bundle bundle = new Bundle();
+                bundle.putString(AccountManager.KEY_AUTHTOKEN, token);
+                return bundle;
             }
         });
 
@@ -104,8 +111,8 @@ public class ListenerExpirationCallbackTest extends AndroidTestCase {
         @Override
         public String getAccessToken(final Account account) {
             final long timeInPast = System.currentTimeMillis() / 1000 - 60;
-            final String expirationComponent = "{ \"exp\": \"" + timeInPast + "\" }";
-            return "." + Base64.encodeToString(expirationComponent.getBytes(), Base64.DEFAULT);
+            final String expiration = "{ \"exp\": \"" + timeInPast + "\" }";
+            return "." + Base64.encodeToString(expiration.getBytes(), Base64.DEFAULT);
         }
 
         @Override
@@ -124,8 +131,8 @@ public class ListenerExpirationCallbackTest extends AndroidTestCase {
         @Override
         public String getAccessToken(final Account account) {
             final long timeInFuture = System.currentTimeMillis() / 1000 + 60;
-            final String expirationComponent = "{ \"exp\": \"" + timeInFuture + "\" }";
-            return "." + Base64.encodeToString(expirationComponent.getBytes(), Base64.DEFAULT);
+            final String expiration = "{ \"exp\": \"" + timeInFuture + "\" }";
+            return "." + Base64.encodeToString(expiration.getBytes(), Base64.DEFAULT);
         }
 
         @Override

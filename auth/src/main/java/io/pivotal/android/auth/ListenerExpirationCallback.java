@@ -28,20 +28,19 @@ import android.os.Bundle;
         try {
 
             final Bundle bundle = future.getResult();
+            final String accessToken = bundle.getString(AccountManager.KEY_AUTHTOKEN);
             final String accountName = bundle.getString(AccountManager.KEY_ACCOUNT_NAME);
 
             AuthPreferences.setLastUsedAccountName(mActivity, accountName);
 
             Logger.i("getAccessToken accountName: " + accountName);
-
-            final TokenProvider provider = TokenProviderFactory.get(mActivity);
-            final Account account = Auth.getAccount(mActivity, accountName);
-            final Token token = new Token(provider, account);
-
-            final String accessToken = token.getAccessToken();
             Logger.i("getAccessToken accessToken: " + accessToken);
 
-            if (token.isExpired()) {
+            if (Token.isExpired(accessToken)) {
+
+                final TokenProvider provider = TokenProviderFactory.get(mActivity);
+                final Account account = Auth.getAccount(mActivity, accountName);
+
                 Logger.i("getAccessToken expired.");
                 provider.invalidateAccessToken(accessToken);
 

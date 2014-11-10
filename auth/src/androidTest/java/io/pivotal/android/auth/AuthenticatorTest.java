@@ -32,13 +32,13 @@ public class AuthenticatorTest extends AndroidTestCase {
         System.setProperty("dexmaker.dexcache", mContext.getCacheDir().getPath());
     }
 
-    public void testAddAccountFailsIfActivityNotFound() throws Exception {
+    public void testAddAccountSucceeds() throws Exception {
         final Context context = Mockito.mock(Context.class);
         final Authenticator authenticator = Mockito.spy(new Authenticator(context));
-        final AccountAuthenticatorResponse response = Mockito.mock(AccountAuthenticatorResponse.class);
 
         Mockito.doReturn(Object.class).when(authenticator).getLoginActivityClass();
 
+        final AccountAuthenticatorResponse response = Mockito.mock(AccountAuthenticatorResponse.class);
         final Bundle bundle = authenticator.addAccount(response, null, null, null, null);
         final Intent intent = bundle.getParcelable(AccountManager.KEY_INTENT);
 

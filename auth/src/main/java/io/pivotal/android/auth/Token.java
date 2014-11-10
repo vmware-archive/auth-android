@@ -3,11 +3,9 @@
  */
 package io.pivotal.android.auth;
 
-import android.accounts.Account;
 import android.util.Base64;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.api.client.auth.oauth2.TokenResponse;
 
 public class Token {
 
@@ -19,14 +17,6 @@ public class Token {
         mRefreshToken = refreshToken;
     }
 
-    /* package */ Token(final TokenResponse response) {
-        this(response.getAccessToken(), response.getRefreshToken());
-    }
-
-    /* package */ Token(final TokenProvider provider, final Account account) {
-        this(provider.getAccessToken(account), provider.getRefreshToken(account));
-    }
-
     public String getAccessToken() {
         return mAccessToken;
     }
@@ -36,9 +26,13 @@ public class Token {
     }
 
     public boolean isExpired() {
+        return isExpired(mAccessToken);
+    }
+
+    public static boolean isExpired(final String token) {
         try {
-            final DecodedToken token = getDecodedToken();
-            final long timeDifference = getTimeDifference(token.exp);
+            final DecodedToken decoded = getDecodedToken(token);
+            final long timeDifference = getTimeDifference(decoded.exp);
             Logger.v("Token expires in " + (timeDifference / 60) + " minutes");
             return timeDifference < 30; // expired if valid for less than 30 seconds
         } catch (final Exception e) {
@@ -47,13 +41,13 @@ public class Token {
         }
     }
 
-    private DecodedToken getDecodedToken() throws Exception {
-        final String[] parts = getAccessToken().split("\\.");
+    private static DecodedToken getDecodedToken(final String token) throws Exception {
+        final String[] parts = token.split("\\.");
         final byte[] bytes = Base64.decode(parts[1], Base64.DEFAULT);
         return new ObjectMapper().readValue(bytes, DecodedToken.class);
     }
 
-    private long getTimeDifference(final String expiration) {
+    private static long getTimeDifference(final String expiration) {
         final long expirationTime = Long.parseLong(expiration);
         final long currentTime = System.currentTimeMillis() / 1000;
         final long timeDifference = expirationTime - currentTime;

@@ -39,7 +39,7 @@ import com.google.api.client.auth.oauth2.TokenResponse;
             final String error = data.get(ERROR).toString();
             mListener.onAuthorizationFailed(new Error(error));
         } else {
-            final Token token = new Token(data);
+            final Token token = new Token(data.getAccessToken(), data.getRefreshToken());
             mListener.onAuthorizationComplete(token);
         }
     }

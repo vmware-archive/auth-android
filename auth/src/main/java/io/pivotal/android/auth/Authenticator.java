@@ -69,14 +69,16 @@ public class Authenticator extends AbstractAccountAuthenticator {
 
     protected Token getExistingToken(final Account account) {
         final TokenProvider provider = TokenProviderFactory.get(mContext);
-        return new Token(provider, account);
+        final String accessToken = provider.getAccessToken(account);
+        final String refreshToken = provider.getRefreshToken(account);
+        return new Token(accessToken, refreshToken);
     }
 
     protected Token getNewToken(final String refreshToken) throws IOException {
         final AuthProvider provider = new AuthProvider.Default();
         final RefreshTokenRequest request = provider.newRefreshTokenRequest(refreshToken);
         final TokenResponse resp = request.execute();
-        return new Token(resp);
+        return new Token(resp.getAccessToken(), resp.getRefreshToken());
     }
 
     protected Class<?> getLoginActivityClass() {

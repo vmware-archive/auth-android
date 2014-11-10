@@ -4,7 +4,7 @@
 package io.pivotal.android.auth;
 
 import android.accounts.Account;
-import android.app.Activity;
+import android.accounts.AccountManager;
 import android.os.Bundle;
 import android.test.AndroidTestCase;
 import android.util.Base64;
@@ -13,7 +13,7 @@ public class ListenerAccountCallbackTest extends AndroidTestCase {
 
     public void testCallbackWithNullListenerThrowsException() {
         try {
-            new ListenerExpirationCallback(null, null).run(new MockAccountManagerFuture());
+            new ListenerAccountCallback(null, null, null).run(new MockAccountManagerFuture());
             fail();
         } catch (final NullPointerException e) {
             assertNotNull(e);
@@ -22,7 +22,7 @@ public class ListenerAccountCallbackTest extends AndroidTestCase {
 
     public void testAuthorizationFailsWhenExceptionIsThrown() {
         final AssertionLatch latch = new AssertionLatch(1);
-        final ListenerExpirationCallback callback = new ListenerExpirationCallback(null, new Auth.Listener() {
+        final ListenerAccountCallback callback = new ListenerAccountCallback(null, null, new Auth.Listener() {
             @Override
             public void onFailure(final Error error) {
                 latch.countDown();
@@ -53,14 +53,20 @@ public class ListenerAccountCallbackTest extends AndroidTestCase {
             }
 
             @Override
-            public void getAccessToken(final Activity activity, final Account account, final Auth.Listener listener) {
+            public void getAccessToken(final Account account, final boolean prompt, final Auth.Listener listener) {
                 latch2.countDown();
             }
         });
-        new ListenerExpirationCallback(null, null).run(new MockAccountManagerFuture() {
+        new ListenerAccountCallback(null, null, null).run(new MockAccountManagerFuture() {
             @Override
             public Bundle getResult() {
-                return Bundle.EMPTY;
+                final long timeInPast = System.currentTimeMillis() / 1000 - 60;
+                final String expiration = "{ \"exp\": \"" + timeInPast + "\" }";
+                final String token = "." + Base64.encodeToString(expiration.getBytes(), Base64.DEFAULT);
+
+                final Bundle bundle = new Bundle();
+                bundle.putString(AccountManager.KEY_AUTHTOKEN, token);
+                return bundle;
             }
         });
 
@@ -73,7 +79,7 @@ public class ListenerAccountCallbackTest extends AndroidTestCase {
 
         TokenProviderFactory.init(new ValidTokenProvider());
 
-        final ListenerExpirationCallback callback = new ListenerExpirationCallback(null, new Auth.Listener() {
+        final ListenerAccountCallback callback = new ListenerAccountCallback(null, null, new Auth.Listener() {
             @Override
             public void onFailure(final Error error) {
                 fail();
@@ -104,8 +110,8 @@ public class ListenerAccountCallbackTest extends AndroidTestCase {
         @Override
         public String getAccessToken(final Account account) {
             final long timeInPast = System.currentTimeMillis() / 1000 - 60;
-            final String expirationComponent = "{ \"exp\": \"" + timeInPast + "\" }";
-            return "." + Base64.encodeToString(expirationComponent.getBytes(), Base64.DEFAULT);
+            final String expiration = "{ \"exp\": \"" + timeInPast + "\" }";
+            return "." + Base64.encodeToString(expiration.getBytes(), Base64.DEFAULT);
         }
 
         @Override
@@ -124,8 +130,8 @@ public class ListenerAccountCallbackTest extends AndroidTestCase {
         @Override
         public String getAccessToken(final Account account) {
             final long timeInFuture = System.currentTimeMillis() / 1000 + 60;
-            final String expirationComponent = "{ \"exp\": \"" + timeInFuture + "\" }";
-            return "." + Base64.encodeToString(expirationComponent.getBytes(), Base64.DEFAULT);
+            final String expiration = "{ \"exp\": \"" + timeInFuture + "\" }";
+            return "." + Base64.encodeToString(expiration.getBytes(), Base64.DEFAULT);
         }
 
         @Override
