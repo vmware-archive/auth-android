@@ -15,44 +15,40 @@ public class Auth {
         public void onFailure(Error error);
     }
 
-    public static void getAccessToken(final Activity activity, final Listener listener) {
-        Logger.i("getAccessToken");
-        final TokenProvider provider = TokenProviderFactory.get(activity);
-        provider.getAccessToken(activity, listener);
-    }
-
-    public static void getAccessToken(final Context context, final boolean promptUser, final Listener listener) {
-        Logger.i("getLastUsedAccessToken");
-        final TokenProvider provider = TokenProviderFactory.get(context);
-        final Account[] accounts = getAccounts(context);
-
-        if (accounts.length == 1) {
-            provider.getAccessToken(accounts[0], promptUser, listener);
-        } else {
-
-            final String accountName = AuthPreferences.getLastUsedAccountName(context);
-            final Account account = getAccount(context, accountName);
-            if (account != null) {
-                provider.getAccessToken(account, promptUser, listener);
-            } else {
-                listener.onFailure(new Error("Could not determine last used account."));
-            }
-        }
-    }
-
     public static String getAccessToken(final Context context, final String accountName) {
         try {
-            return getAccessTokenOrThrow(context, accountName);
+            Logger.i("getAccessToken: " + accountName);
+            final Account account = getAccount(context, accountName);
+            return TokenProviderFactory.get(context).getAccessTokenOrThrow(account);
         } catch (final Exception e) {
             Logger.ex(e);
             return null;
         }
     }
 
-    public static String getAccessTokenOrThrow(final Context context, final String accountName) throws Exception {
-        Logger.i("getAccessToken: " + accountName);
-        final Account account = getAccount(context, accountName);
-        return TokenProviderFactory.get(context).getAccessTokenOrThrow(account);
+    public static void getAccessToken(final Activity activity, final Listener listener) {
+        Logger.i("getAccessToken");
+        final TokenProvider provider = TokenProviderFactory.get(activity);
+        provider.getAccessToken(activity, listener);
+    }
+
+    public static void getAccessToken(final Context context, final boolean notifyUser, final Listener listener) {
+        Logger.i("getLastUsedAccessToken");
+        final TokenProvider provider = TokenProviderFactory.get(context);
+        final Account[] accounts = getAccounts(context);
+
+        if (accounts.length == 1) {
+            provider.getAccessToken(context, accounts[0], notifyUser, listener);
+        } else {
+
+            final String accountName = AuthPreferences.getLastUsedAccountName(context);
+            final Account account = getAccount(context, accountName);
+            if (account != null) {
+                provider.getAccessToken(context, account, notifyUser, listener);
+            } else {
+                listener.onFailure(new Error("Could not determine last used account."));
+            }
+        }
     }
 
     public static void invalidateAccessToken(final Context context, final String token) {

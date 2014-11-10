@@ -5,6 +5,7 @@ package io.pivotal.android.auth;
 
 import android.accounts.Account;
 import android.app.Activity;
+import android.content.Context;
 
 public class MockTokenProvider implements TokenProvider {
 
@@ -30,6 +31,11 @@ public class MockTokenProvider implements TokenProvider {
 
     @Override
     public void getAccessToken(final Activity activity, final Account account, final Auth.Listener listener) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void getAccessToken(final Context context, final Account account, final boolean promptUser, final Auth.Listener listener) {
         throw new UnsupportedOperationException();
     }
 

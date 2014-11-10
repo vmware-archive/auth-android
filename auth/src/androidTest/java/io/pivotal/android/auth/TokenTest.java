@@ -74,14 +74,14 @@ public class TokenTest extends AndroidTestCase {
 
     public void testExpiredTokenWithInvalidTokenFormat() {
         final Token token = new Token(TEST_ACCESS_TOKEN, TEST_REFRESH_TOKEN);
-        assertTrue(token.isExpired());
+        assertFalse(token.isExpired());
     }
 
     public void testExpiredTokenThatDoesNotDecode() {
         final long expiration = System.currentTimeMillis() / 1000 + 60;
         final String accessToken = getAccessTokenMissingExpField(expiration);
         final Token token = new Token(accessToken, TEST_REFRESH_TOKEN);
-        assertTrue(token.isExpired());
+        assertFalse(token.isExpired());
     }
 
     private String getAccessToken(final long expirationInSeconds) {

@@ -43,7 +43,7 @@ public class Token {
             return timeDifference < 30; // expired if valid for less than 30 seconds
         } catch (final Exception e) {
             Logger.ex(e);
-            return true;
+            return false;
         }
     }
 

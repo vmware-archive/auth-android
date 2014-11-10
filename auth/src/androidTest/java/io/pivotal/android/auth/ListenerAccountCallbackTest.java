@@ -9,7 +9,7 @@ import android.os.Bundle;
 import android.test.AndroidTestCase;
 import android.util.Base64;
 
-public class ListenerExpirationCallbackTest extends AndroidTestCase {
+public class ListenerAccountCallbackTest extends AndroidTestCase {
 
     public void testCallbackWithNullListenerThrowsException() {
         try {

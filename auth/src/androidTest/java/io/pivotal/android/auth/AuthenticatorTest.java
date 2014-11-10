@@ -5,6 +5,7 @@ package io.pivotal.android.auth;
 
 import android.accounts.Account;
 import android.accounts.AccountAuthenticatorActivity;
+import android.accounts.AccountAuthenticatorResponse;
 import android.accounts.AccountManager;
 import android.content.Context;
 import android.content.Intent;
@@ -25,24 +26,27 @@ public class AuthenticatorTest extends AndroidTestCase {
     private static final String TEST_PACKAGE_NAME = "io.pivotal.android.auth";
     private static final String TEST_ACTIVITY_NAME = "AuthenticatorTest$LoginActivity";
 
+    @Override
+    protected void setUp() throws Exception {
+        super.setUp();
+        System.setProperty("dexmaker.dexcache", mContext.getCacheDir().getPath());
+    }
+
     public void testAddAccountFailsIfActivityNotFound() throws Exception {
         final Context context = Mockito.mock(Context.class);
         final Authenticator authenticator = Mockito.spy(new Authenticator(context));
+        final AccountAuthenticatorResponse response = Mockito.mock(AccountAuthenticatorResponse.class);
 
         Mockito.doReturn(Object.class).when(authenticator).getLoginActivityClass();
+
+        final Bundle bundle = authenticator.addAccount(response, null, null, null, null);
+        final Intent intent = bundle.getParcelable(AccountManager.KEY_INTENT);
+
+        assertEquals(response, intent.getParcelableExtra(AccountManager.KEY_ACCOUNT_AUTHENTICATOR_RESPONSE));
+        assertEquals(Intent.FLAG_ACTIVITY_NO_HISTORY, intent.getFlags() & Intent.FLAG_ACTIVITY_NO_HISTORY);
+
+        Mockito.verify(authenticator).getLoginActivityClass();
     }
-
-
-//    public void testAddAccountFailsIfActivityNotFound() throws Exception {
-//        try {
-//            final Context context = new FakePackageManagerContext(TEST_PACKAGE_NAME, "FakeActivity");
-//            final Authenticator authenticator = new Authenticator(context);
-//            authenticator.addAccount(null, null, null, null, null);
-//            fail();
-//        } catch (final IllegalStateException e) {
-//            assertNotNull(e);
-//        }
-//    }
 
     public void testAddAccountHasCorrectComponentInfo() throws Exception {
         final Context context = new FakePackageManagerContext(TEST_PACKAGE_NAME, TEST_ACTIVITY_NAME);

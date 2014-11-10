@@ -21,6 +21,8 @@ import android.os.Build;
 
     public void getAccessToken(Activity activity, Account account, Auth.Listener listener);
 
+    public void getAccessToken(Context context, Account account, boolean promptUser, Auth.Listener listener);
+
     public void getAccessToken(Account account, boolean promptUser, Auth.Listener listener);
 
     public void setAccessToken(Account account, String accessToken);
@@ -66,6 +68,13 @@ import android.os.Build;
         public void getAccessToken(final Activity activity, final Account account, final Auth.Listener listener) {
             final ListenerCallback callback = new ListenerCallback(listener);
             mManager.getAuthToken(account, Pivotal.getTokenType(), null, activity, callback, null);
+        }
+
+        @Override
+        @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
+        public void getAccessToken(final Context context, final Account account, final boolean promptUser, final Auth.Listener listener) {
+            final ListenerAccountCallback callback = new ListenerAccountCallback(context, account, listener);
+            mManager.getAuthToken(account, Pivotal.getTokenType(), null, promptUser, callback, null);
         }
 
         @Override

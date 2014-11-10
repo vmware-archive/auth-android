@@ -93,34 +93,6 @@ public class AuthTest extends AndroidTestCase {
         latch2.assertComplete();
     }
 
-    public void testGetAccessTokenOrThrowInvokesProviderAndThrows() throws Exception {
-        final AssertionLatch latch1 = new AssertionLatch(1);
-        final AssertionLatch latch2 = new AssertionLatch(1);
-        TokenProviderFactory.init(new MockTokenProvider() {
-            @Override
-            public Account[] getAccounts() {
-                latch1.countDown();
-                return new Account[0];
-            }
-
-            @Override
-            public String getAccessTokenOrThrow(final Account account) throws Exception {
-                latch2.countDown();
-                throw new RuntimeException();
-            }
-        });
-
-        try {
-            Auth.getAccessTokenOrThrow(null, null);
-            fail();
-        } catch (final Exception e) {
-            assertNotNull(e);
-        }
-
-        latch1.assertComplete();
-        latch2.assertComplete();
-    }
-
     public void testInvalidateAccessTokenInvokesProvider() throws Exception {
         final AssertionLatch latch = new AssertionLatch(1);
         TokenProviderFactory.init(new MockTokenProvider() {
