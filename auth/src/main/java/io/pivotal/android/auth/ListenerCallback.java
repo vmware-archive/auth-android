@@ -21,16 +21,17 @@ import android.os.Bundle;
         try {
 
             final Bundle bundle = future.getResult();
-            final String token = bundle.getString(AccountManager.KEY_AUTHTOKEN);
-            final String name = bundle.getString(AccountManager.KEY_ACCOUNT_NAME);
+            final String accessToken = bundle.getString(AccountManager.KEY_AUTHTOKEN);
+            final String accountName = bundle.getString(AccountManager.KEY_ACCOUNT_NAME);
 
-            if (token == null) {
+            Logger.i("getAccessToken accountName: " + accountName);
+            Logger.i("getAccessToken accessToken: " + accessToken);
+
+            if (accessToken == null) {
                 throw new IllegalArgumentException("Auth token not found.");
             }
 
-            Logger.i("getAccessToken new token: " + token);
-
-            mListener.onComplete(token, name);
+            mListener.onComplete(accessToken, accountName);
 
         } catch (final Exception e) {
             final Error error = new Error(e.getLocalizedMessage(), e);

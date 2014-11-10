@@ -34,14 +34,14 @@ public interface AuthProvider {
 
     public static class Default implements AuthProvider {
 
-        private static final List<String> SCOPES = Arrays.asList("offline_access", "openid");
-        private static final GenericUrl TOKEN_URL = new GenericUrl(Pivotal.getTokenUrl());
-
-        private static final Credential.AccessMethod METHOD = BearerToken.authorizationHeaderAccessMethod();
-        private static final HttpExecuteInterceptor INTERCEPTOR = new ClientParametersAuthentication(Pivotal.getClientId(), Pivotal.getClientSecret());
-
         private static final HttpTransport TRANSPORT = new NetHttpTransport();
         private static final JsonFactory JSON_FACTORY = new JacksonFactory();
+
+        private static final GenericUrl TOKEN_URL = new GenericUrl(Pivotal.getTokenUrl());
+
+        private static final HttpExecuteInterceptor INTERCEPTOR = new ClientParametersAuthentication(Pivotal.getClientId(), Pivotal.getClientSecret());
+
+        private static final List<String> SCOPES = Arrays.asList("offline_access", "openid");
 
         @Override
         public PasswordTokenRequest newPasswordTokenRequest(final String username, final String password) {
@@ -72,6 +72,8 @@ public interface AuthProvider {
         }
 
         private static final class DefaultAuthorizationCodeFlow extends AuthorizationCodeFlow {
+
+            private static final Credential.AccessMethod METHOD = BearerToken.authorizationHeaderAccessMethod();
 
             public DefaultAuthorizationCodeFlow() {
                 super(new Builder(METHOD, TRANSPORT, JSON_FACTORY, TOKEN_URL, INTERCEPTOR, Pivotal.getClientId(), Pivotal.getAuthorizeUrl()).setScopes(SCOPES));

@@ -30,6 +30,7 @@ import android.os.Bundle;
             final String accessToken = bundle.getString(AccountManager.KEY_AUTHTOKEN);
             final String accountName = bundle.getString(AccountManager.KEY_ACCOUNT_NAME);
 
+            Logger.i("getAccessToken accountName: " + accountName);
             Logger.i("getAccessToken accessToken: " + accessToken);
 
             if (Token.isExpired(accessToken)) {

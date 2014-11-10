@@ -7,12 +7,9 @@ import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.accounts.AccountManagerCallback;
 import android.accounts.AccountManagerFuture;
-import android.annotation.TargetApi;
 import android.app.Activity;
-import android.os.Build;
 import android.os.Bundle;
 
-@TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
 /* package */ class ListenerExpirationCallback implements AccountManagerCallback<Bundle> {
 
     private final Activity mActivity;
@@ -37,7 +34,6 @@ import android.os.Bundle;
             Logger.i("getAccessToken accessToken: " + accessToken);
 
             if (Token.isExpired(accessToken)) {
-
                 final TokenProvider provider = TokenProviderFactory.get(mActivity);
                 final Account account = Auth.getAccount(mActivity, accountName);
 

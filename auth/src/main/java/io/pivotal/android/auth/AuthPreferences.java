@@ -6,7 +6,7 @@ package io.pivotal.android.auth;
 import android.content.Context;
 import android.content.SharedPreferences;
 
-public class AuthPreferences {
+/* package */ class AuthPreferences {
 
     public static final String AUTH = "io.pivotal.android.auth";
 
