@@ -14,10 +14,7 @@ import android.os.Bundle;
 import android.text.TextUtils;
 
 import com.google.api.client.auth.oauth2.RefreshTokenRequest;
-import com.google.api.client.auth.oauth2.TokenResponse;
-import com.google.api.client.auth.oauth2.TokenResponseException;
-
-import java.io.IOException;
+import com.google.api.client.http.HttpResponseException;
 
 public class Authenticator extends AbstractAccountAuthenticator {
 
@@ -67,32 +64,18 @@ public class Authenticator extends AbstractAccountAuthenticator {
 	// =============================================
 
 
-    protected Token getExistingToken(final Account account) {
-        final TokenProvider provider = TokenProviderFactory.get(mContext);
-        final String accessToken = provider.getAccessToken(account);
-        final String refreshToken = provider.getRefreshToken(account);
-        return new Token(accessToken, refreshToken);
-    }
-
-    protected Token getNewToken(final String refreshToken) throws IOException {
-        final AuthProvider provider = new AuthProvider.Default();
-        final RefreshTokenRequest request = provider.newRefreshTokenRequest(refreshToken);
-        final TokenResponse resp = request.execute();
-        return new Token(resp.getAccessToken(), resp.getRefreshToken());
-    }
-
     protected Class<?> getLoginActivityClass() {
         return PackageHelper.getLoginActivityClass(mContext);
     }
 
-    private Bundle newAccountBundle(final AccountAuthenticatorResponse response) {
+    protected Bundle newAccountBundle(final AccountAuthenticatorResponse response) {
         Logger.v("newAccountBundle");
 		final Bundle bundle = new Bundle();
 		bundle.putParcelable(AccountManager.KEY_INTENT, newLoginIntent(response));
 		return bundle;
 	}
 
-    private Intent newLoginIntent(final AccountAuthenticatorResponse response) {
+    protected Intent newLoginIntent(final AccountAuthenticatorResponse response) {
         Logger.v("newLoginIntent");
         final Intent intent = new Intent(mContext, getLoginActivityClass());
         intent.putExtra(AccountManager.KEY_ACCOUNT_AUTHENTICATOR_RESPONSE, response);
@@ -100,7 +83,7 @@ public class Authenticator extends AbstractAccountAuthenticator {
         return intent;
     }
 
-    private Bundle newAuthTokenBundle(final Account account, final String authToken) {
+    protected Bundle newAuthTokenBundle(final Account account, final String authToken) {
         Logger.v("newAuthTokenBundle: " + authToken);
 		final Bundle bundle = new Bundle();
         bundle.putString(AccountManager.KEY_ACCOUNT_NAME, account.name);
@@ -109,14 +92,14 @@ public class Authenticator extends AbstractAccountAuthenticator {
 		return bundle;
 	}
 
-    private Bundle newResultBundle(final boolean result) {
+    protected Bundle newResultBundle(final boolean result) {
         Logger.v("newResultBundle: " + result);
         final Bundle bundle = new Bundle();
         bundle.putBoolean(AccountManager.KEY_BOOLEAN_RESULT, result);
         return bundle;
     }
 
-    private Bundle newErrorBundle(final Account account, final String message) {
+    protected Bundle newErrorBundle(final Account account, final String message) {
         Logger.v("newErrorBundle: " + message);
         final Bundle bundle = new Bundle();
         bundle.putString(AccountManager.KEY_ACCOUNT_NAME, account.name);
@@ -126,43 +109,53 @@ public class Authenticator extends AbstractAccountAuthenticator {
         return bundle;
     }
 
-    private Bundle newAuthTokenBundle(final AccountAuthenticatorResponse response, final Account account) {
-        final Token existingToken = getExistingToken(account);
-        final String accessToken = existingToken.getAccessToken();
+    protected Bundle newAuthTokenBundle(final AccountAuthenticatorResponse response, final Account account) {
+
+        final TokenProvider provider = TokenProviderFactory.get(mContext);
+        final String accessToken = provider.getAccessToken(account);
 
         Logger.v("newAuthTokenBundle accessToken: " + accessToken);
 
-        if (!TextUtils.isEmpty(accessToken) && !existingToken.isExpired()) {
+        if (!TextUtils.isEmpty(accessToken) && !Token.isExpired(accessToken)) {
             return newAuthTokenBundle(account, accessToken);
-        }
 
-        Logger.v("newAuthTokenBundle accessToken " + (TextUtils.isEmpty(accessToken) ? "empty." : "expired."));
+        } else {
+            final String refreshToken = provider.getRefreshToken(account);
 
-        final String refreshToken = existingToken.getRefreshToken();
+            Logger.v("newAuthTokenBundle accessToken " + (TextUtils.isEmpty(accessToken) ? "empty." : "expired."));
+            Logger.v("newAuthTokenBundle refreshToken: " + refreshToken);
 
-        Logger.v("newAuthTokenBundle refreshToken: " + refreshToken);
-
-        if (!TextUtils.isEmpty(refreshToken)) {
-            try {
-                final Token newToken = getNewToken(refreshToken);
-                final String newAccessToken = newToken.getAccessToken();
-                Logger.v("newAuthTokenBundle new accessToken: " + newAccessToken);
-                return newAuthTokenBundle(account, newAccessToken);
-
-            } catch (final TokenResponseException e) {
-                Logger.ex(e);
-
-                if (e.getStatusCode() != 401) {
-                    return newErrorBundle(account, e.getLocalizedMessage());
-                }
-
-            } catch (final Exception e) {
-                Logger.ex(e);
-
-                return newErrorBundle(account, e.getLocalizedMessage());
+            if (!TextUtils.isEmpty(refreshToken)) {
+                return newAuthTokenBundle(response, account, refreshToken);
+            } else {
+                return newAccountBundle(response);
             }
         }
+    }
 
-        return newAccountBundle(response);
+    protected Bundle newAuthTokenBundle(final AccountAuthenticatorResponse response, final Account account, final String refreshToken) {
+        try {
+            final AuthProvider provider = AuthProviderFactory.get();
+            final RefreshTokenRequest request = provider.newRefreshTokenRequest(refreshToken);
+            final String accessToken = request.execute().getAccessToken();
+
+            Logger.v("newAuthTokenBundle new accessToken: " + accessToken);
+
+            return newAuthTokenBundle(account, accessToken);
+
+        } catch (final HttpResponseException e) {
+            Logger.ex(e);
+
+            if (e.getStatusCode() == 401) {
+                return newAccountBundle(response);
+            } else {
+                return newErrorBundle(account, e.getLocalizedMessage());
+            }
+
+        } catch (final Exception e) {
+            Logger.ex(e);
+
+            return newErrorBundle(account, e.getLocalizedMessage());
+        }
     }
 }

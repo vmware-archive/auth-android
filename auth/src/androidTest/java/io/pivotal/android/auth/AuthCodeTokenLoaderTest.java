@@ -31,7 +31,9 @@ public class AuthCodeTokenLoaderTest extends AndroidTestCase {
         final TokenResponse response = Mockito.mock(TokenResponse.class);
         final AuthProvider provider = Mockito.mock(AuthProvider.class);
         final AuthorizationCodeTokenRequest request = Mockito.mock(AuthorizationCodeTokenRequest.class);
-        final AuthCodeTokenLoader loader = new AuthCodeTokenLoader(context, provider, AUTH_CODE);
+        final AuthCodeTokenLoader loader = new AuthCodeTokenLoader(context, AUTH_CODE);
+
+        AuthProviderFactory.init(provider);
 
         Mockito.when(provider.newAuthorizationCodeTokenRequest(AUTH_CODE)).thenReturn(request);
         Mockito.when(request.execute()).thenReturn(response);
@@ -46,7 +48,9 @@ public class AuthCodeTokenLoaderTest extends AndroidTestCase {
         final Context context = Mockito.mock(Context.class);
         final AuthProvider provider = Mockito.mock(AuthProvider.class);
         final AuthorizationCodeTokenRequest request = Mockito.mock(AuthorizationCodeTokenRequest.class);
-        final AuthCodeTokenLoader loader = new AuthCodeTokenLoader(context, provider, AUTH_CODE);
+        final AuthCodeTokenLoader loader = new AuthCodeTokenLoader(context, AUTH_CODE);
+
+        AuthProviderFactory.init(provider);
 
         Mockito.when(provider.newAuthorizationCodeTokenRequest(AUTH_CODE)).thenReturn(request);
         Mockito.doThrow(new RuntimeException()).when(request).execute();

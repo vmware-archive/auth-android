@@ -7,24 +7,28 @@ import android.accounts.Account;
 import android.accounts.AccountAuthenticatorActivity;
 import android.accounts.AccountAuthenticatorResponse;
 import android.accounts.AccountManager;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.ActivityInfo;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.test.AndroidTestCase;
-import android.test.mock.MockContext;
-import android.test.mock.MockPackageManager;
+import android.util.Base64;
+
+import com.google.api.client.auth.oauth2.RefreshTokenRequest;
+import com.google.api.client.auth.oauth2.TokenResponse;
+import com.google.api.client.http.HttpHeaders;
+import com.google.api.client.http.HttpResponseException;
 
 import org.mockito.Mockito;
 
 import java.io.IOException;
+import java.util.UUID;
 
 public class AuthenticatorTest extends AndroidTestCase {
 
-    private static final String TEST_PACKAGE_NAME = "io.pivotal.android.auth";
-    private static final String TEST_ACTIVITY_NAME = "AuthenticatorTest$LoginActivity";
+    private static final String ACCESS_TOKEN = UUID.randomUUID().toString();
+    private static final String REFRESH_TOKEN = UUID.randomUUID().toString();
+    private static final String TOKEN_LABEL = UUID.randomUUID().toString();
 
     @Override
     protected void setUp() throws Exception {
@@ -32,55 +36,219 @@ public class AuthenticatorTest extends AndroidTestCase {
         System.setProperty("dexmaker.dexcache", mContext.getCacheDir().getPath());
     }
 
-    public void testAddAccountSucceeds() throws Exception {
+    public void testAddAccount() throws Exception {
         final Context context = Mockito.mock(Context.class);
-        final Authenticator authenticator = Mockito.spy(new Authenticator(context));
-
-        Mockito.doReturn(Object.class).when(authenticator).getLoginActivityClass();
-
         final AccountAuthenticatorResponse response = Mockito.mock(AccountAuthenticatorResponse.class);
+        final Authenticator authenticator = Mockito.spy(new Authenticator(context));
+        final Class<LoginActivity> klass = LoginActivity.class;
+
+        Mockito.doReturn(klass).when(authenticator).getLoginActivityClass();
+
         final Bundle bundle = authenticator.addAccount(response, null, null, null, null);
         final Intent intent = bundle.getParcelable(AccountManager.KEY_INTENT);
+        final ComponentName component = intent.getComponent();
 
+        assertEquals(klass.getName(), component.getClassName());
         assertEquals(response, intent.getParcelableExtra(AccountManager.KEY_ACCOUNT_AUTHENTICATOR_RESPONSE));
         assertEquals(Intent.FLAG_ACTIVITY_NO_HISTORY, intent.getFlags() & Intent.FLAG_ACTIVITY_NO_HISTORY);
 
         Mockito.verify(authenticator).getLoginActivityClass();
     }
 
-    public void testAddAccountHasCorrectComponentInfo() throws Exception {
-        final Context context = new FakePackageManagerContext(TEST_PACKAGE_NAME, TEST_ACTIVITY_NAME);
-        final Authenticator authenticator = new Authenticator(context);
-        final Bundle bundle = authenticator.addAccount(null, null, null, null, null);
-        final Intent intent = bundle.getParcelable(AccountManager.KEY_INTENT);
-
-        assertEquals(TEST_PACKAGE_NAME, intent.getComponent().getPackageName());
-        assertEquals(TEST_ACTIVITY_NAME, intent.getComponent().getShortClassName().replace(".", ""));
+    public void testConfirmCredentialsThrowsUnsupportedOperationException() throws Exception {
+        try {
+            final Authenticator authenticator = new Authenticator(null);
+            authenticator.confirmCredentials(null, null, null);
+            fail();
+        } catch (final UnsupportedOperationException e) {
+            assertNotNull(e);
+        }
     }
 
-    public void testAddAccountBundleHasNoHistoryFlag() throws Exception {
-        final Context context = new FakePackageManagerContext(TEST_PACKAGE_NAME, TEST_ACTIVITY_NAME);
-        final Authenticator authenticator = new Authenticator(context);
-        final Bundle bundle = authenticator.addAccount(null, null, null, null, null);
-        final Intent intent = bundle.getParcelable(AccountManager.KEY_INTENT);
-
-        assertEquals(Intent.FLAG_ACTIVITY_NO_HISTORY, intent.getFlags() & Intent.FLAG_ACTIVITY_NO_HISTORY);
+    public void testEditPropertiesThrowsUnsupportedOperationException() throws Exception {
+        try {
+            final Authenticator authenticator = new Authenticator(null);
+            authenticator.editProperties(null, null);
+            fail();
+        } catch (final UnsupportedOperationException e) {
+            assertNotNull(e);
+        }
     }
 
-    public void testAddAccountBundleHasAuthenticatorResponse() throws Exception {
-        final Context context = new FakePackageManagerContext(TEST_PACKAGE_NAME, TEST_ACTIVITY_NAME);
-        final Authenticator authenticator = new Authenticator(context);
-        final Bundle bundle = authenticator.addAccount(null, null, null, null, null);
-        final Intent intent = bundle.getParcelable(AccountManager.KEY_INTENT);
+    public void testGetAuthTokenReturnsAuthTokenBundleWhenTokenNotEmptyOrExpired() throws Exception {
+        final Bundle bundle = Bundle.EMPTY;
+        final Context context = Mockito.mock(Context.class);
+        final Account account = Mockito.mock(Account.class);
+        final TokenProvider provider = Mockito.mock(TokenProvider.class);
+        final Authenticator authenticator = Mockito.spy(new Authenticator(context));
 
-        assertTrue(intent.hasExtra(AccountManager.KEY_ACCOUNT_AUTHENTICATOR_RESPONSE));
+        TokenProviderFactory.init(provider);
+
+        Mockito.when(provider.getAccessToken(account)).thenReturn(ACCESS_TOKEN);
+        Mockito.doReturn(bundle).when(authenticator).newAuthTokenBundle(account, ACCESS_TOKEN);
+
+        assertEquals(bundle, authenticator.getAuthToken(null, account, null, null));
+
+        Mockito.verify(provider).getAccessToken(account);
+        Mockito.verify(authenticator).newAuthTokenBundle(account, ACCESS_TOKEN);
+    }
+
+    public void testGetAuthTokenReturnsAuthTokenBundleWhenTokenEmpty() throws Exception {
+        final Bundle bundle = Bundle.EMPTY;
+        final Context context = Mockito.mock(Context.class);
+        final Account account = Mockito.mock(Account.class);
+        final TokenProvider provider = Mockito.mock(TokenProvider.class);
+        final AccountAuthenticatorResponse response = Mockito.mock(AccountAuthenticatorResponse.class);
+        final Authenticator authenticator = Mockito.spy(new Authenticator(context));
+
+        TokenProviderFactory.init(provider);
+
+        Mockito.when(provider.getAccessToken(account)).thenReturn("");
+        Mockito.when(provider.getRefreshToken(account)).thenReturn(REFRESH_TOKEN);
+        Mockito.doReturn(bundle).when(authenticator).newAuthTokenBundle(response, account, REFRESH_TOKEN);
+
+        assertEquals(bundle, authenticator.getAuthToken(response, account, null, null));
+
+        Mockito.verify(provider).getAccessToken(account);
+        Mockito.verify(provider).getRefreshToken(account);
+        Mockito.verify(authenticator).newAuthTokenBundle(response, account, REFRESH_TOKEN);
+    }
+
+    public void testGetAuthTokenReturnsAuthTokenBundleWhenTokenExpired() throws Exception {
+        final Bundle bundle = Bundle.EMPTY;
+        final Context context = Mockito.mock(Context.class);
+        final Account account = Mockito.mock(Account.class);
+        final TokenProvider provider = Mockito.mock(TokenProvider.class);
+        final AccountAuthenticatorResponse response = Mockito.mock(AccountAuthenticatorResponse.class);
+        final Authenticator authenticator = Mockito.spy(new Authenticator(context));
+
+        TokenProviderFactory.init(provider);
+
+        Mockito.when(provider.getAccessToken(account)).thenReturn(getExpiredToken());
+        Mockito.when(provider.getRefreshToken(account)).thenReturn(REFRESH_TOKEN);
+        Mockito.doReturn(bundle).when(authenticator).newAuthTokenBundle(response, account, REFRESH_TOKEN);
+
+        assertEquals(bundle, authenticator.getAuthToken(response, account, null, null));
+
+        Mockito.verify(provider).getAccessToken(account);
+        Mockito.verify(provider).getRefreshToken(account);
+        Mockito.verify(authenticator).newAuthTokenBundle(response, account, REFRESH_TOKEN);
+    }
+
+    public void testGetAuthTokenReturnsAuthTokenBundleWhenRefreshTokenEmpty() throws Exception {
+        final Bundle bundle = Bundle.EMPTY;
+        final Context context = Mockito.mock(Context.class);
+        final Account account = Mockito.mock(Account.class);
+        final TokenProvider provider = Mockito.mock(TokenProvider.class);
+        final AccountAuthenticatorResponse response = Mockito.mock(AccountAuthenticatorResponse.class);
+        final Authenticator authenticator = Mockito.spy(new Authenticator(context));
+
+        TokenProviderFactory.init(provider);
+
+        Mockito.when(provider.getAccessToken(account)).thenReturn("");
+        Mockito.when(provider.getRefreshToken(account)).thenReturn("");
+        Mockito.doReturn(bundle).when(authenticator).newAccountBundle(response);
+
+        assertEquals(bundle, authenticator.getAuthToken(response, account, null, null));
+
+        Mockito.verify(provider).getAccessToken(account);
+        Mockito.verify(provider).getRefreshToken(account);
+        Mockito.verify(authenticator).newAccountBundle(response);
+    }
+
+    public void testNewAuthTokenBundleExchangesRefreshTokenForAuthToken() throws Exception {
+        final Bundle bundle = Bundle.EMPTY;
+        final Context context = Mockito.mock(Context.class);
+        final Account account = Mockito.mock(Account.class);
+        final AuthProvider provider = Mockito.mock(AuthProvider.class);
+        final RefreshTokenRequest request = Mockito.mock(RefreshTokenRequest.class);
+        final Authenticator authenticator = Mockito.spy(new Authenticator(context));
+        final TokenResponse response = new TokenResponse();
+        response.setAccessToken(ACCESS_TOKEN);
+
+        AuthProviderFactory.init(provider);
+
+        Mockito.when(provider.newRefreshTokenRequest(REFRESH_TOKEN)).thenReturn(request);
+        Mockito.when(request.execute()).thenReturn(response);
+        Mockito.doReturn(bundle).when(authenticator).newAuthTokenBundle(account, ACCESS_TOKEN);
+
+        assertEquals(bundle, authenticator.newAuthTokenBundle(null, account, REFRESH_TOKEN));
+
+        Mockito.verify(provider).newRefreshTokenRequest(REFRESH_TOKEN);
+        Mockito.verify(authenticator).newAuthTokenBundle(account, ACCESS_TOKEN);
+    }
+
+    public void testNewAuthTokenBundleExchangesRefreshTokenAndFailsWith401() throws Exception {
+        final Bundle bundle = Bundle.EMPTY;
+        final Context context = Mockito.mock(Context.class);
+        final Account account = Mockito.mock(Account.class);
+        final AuthProvider provider = Mockito.mock(AuthProvider.class);
+        final RefreshTokenRequest request = Mockito.mock(RefreshTokenRequest.class);
+        final AccountAuthenticatorResponse response = Mockito.mock(AccountAuthenticatorResponse.class);
+        final Authenticator authenticator = Mockito.spy(new Authenticator(context));
+
+        AuthProviderFactory.init(provider);
+
+        final HttpResponseException.Builder builder = new HttpResponseException.Builder(401, null, new HttpHeaders());
+        final HttpResponseException exception = new TestResponseException(builder);
+
+        Mockito.when(provider.newRefreshTokenRequest(REFRESH_TOKEN)).thenReturn(request);
+        Mockito.doThrow(exception).when(request).execute();
+        Mockito.doReturn(bundle).when(authenticator).newAccountBundle(response);
+
+        assertEquals(bundle, authenticator.newAuthTokenBundle(response, account, REFRESH_TOKEN));
+
+        Mockito.verify(provider).newRefreshTokenRequest(REFRESH_TOKEN);
+        Mockito.verify(authenticator).newAccountBundle(response);
+    }
+
+    public void testNewAuthTokenBundleExchangesRefreshTokenAndFailsWith400() throws Exception {
+        final Bundle bundle = Bundle.EMPTY;
+        final Context context = Mockito.mock(Context.class);
+        final Account account = Mockito.mock(Account.class);
+        final AuthProvider provider = Mockito.mock(AuthProvider.class);
+        final RefreshTokenRequest request = Mockito.mock(RefreshTokenRequest.class);
+        final Authenticator authenticator = Mockito.spy(new Authenticator(context));
+
+        AuthProviderFactory.init(provider);
+
+        final HttpResponseException.Builder builder = new HttpResponseException.Builder(400, null, new HttpHeaders());
+        final HttpResponseException exception = new TestResponseException(builder);
+
+        Mockito.when(provider.newRefreshTokenRequest(REFRESH_TOKEN)).thenReturn(request);
+        Mockito.doThrow(exception).when(request).execute();
+        Mockito.doReturn(bundle).when(authenticator).newErrorBundle(Mockito.eq(account), Mockito.anyString());
+
+        assertEquals(bundle, authenticator.newAuthTokenBundle(null, account, REFRESH_TOKEN));
+
+        Mockito.verify(provider).newRefreshTokenRequest(REFRESH_TOKEN);
+        Mockito.verify(authenticator).newErrorBundle(Mockito.eq(account), Mockito.anyString());
+    }
+
+    public void testNewAuthTokenBundleExchangesRefreshTokenAndFailsWithException() throws Exception {
+        final Bundle bundle = Bundle.EMPTY;
+        final Context context = Mockito.mock(Context.class);
+        final Account account = Mockito.mock(Account.class);
+        final AuthProvider provider = Mockito.mock(AuthProvider.class);
+        final RefreshTokenRequest request = Mockito.mock(RefreshTokenRequest.class);
+        final Authenticator authenticator = Mockito.spy(new Authenticator(context));
+
+        AuthProviderFactory.init(provider);
+
+        Mockito.when(provider.newRefreshTokenRequest(REFRESH_TOKEN)).thenReturn(request);
+        Mockito.doThrow(new IOException()).when(request).execute();
+        Mockito.doReturn(bundle).when(authenticator).newErrorBundle(Mockito.eq(account), Mockito.anyString());
+
+        assertEquals(bundle, authenticator.newAuthTokenBundle(null, account, REFRESH_TOKEN));
+
+        Mockito.verify(authenticator).newErrorBundle(Mockito.eq(account), Mockito.anyString());
     }
 
     public void testGetAuthTokenLabelReturnsAuthTokenType() throws Exception {
         final Authenticator authenticator = new Authenticator(null);
-        final String label = authenticator.getAuthTokenLabel("test_label_type");
+        final String label = authenticator.getAuthTokenLabel(TOKEN_LABEL);
 
-        assertEquals("test_label_type", label);
+        assertEquals(TOKEN_LABEL, label);
     }
 
     public void testHasFeaturesReturnsFalseForNullFeatures() throws Exception {
@@ -104,26 +272,6 @@ public class AuthenticatorTest extends AndroidTestCase {
         assertFalse(bundle.getBoolean(AccountManager.KEY_BOOLEAN_RESULT));
     }
 
-    public void testConfirmCredentialsThrowsUnsupportedOperationException() throws Exception {
-        try {
-            final Authenticator authenticator = new Authenticator(null);
-            authenticator.confirmCredentials(null, null, null);
-            fail();
-        } catch (final UnsupportedOperationException e) {
-            assertNotNull(e);
-        }
-    }
-
-    public void testEditPropertiesThrowsUnsupportedOperationException() throws Exception {
-        try {
-            final Authenticator authenticator = new Authenticator(null);
-            authenticator.editProperties(null, null);
-            fail();
-        } catch (final UnsupportedOperationException e) {
-            assertNotNull(e);
-        }
-    }
-
     public void testUpdateCredentialsThrowsUnsupportedOperationException() throws Exception {
         try {
             final Authenticator authenticator = new Authenticator(null);
@@ -135,140 +283,22 @@ public class AuthenticatorTest extends AndroidTestCase {
     }
 
 
-    public void testGetAuthTokenWithEmptyTokens() throws Exception {
-        final Context context = new FakePackageManagerContext(TEST_PACKAGE_NAME, TEST_ACTIVITY_NAME);
-        final Authenticator authenticator = new Authenticator(context) {
-            @Override
-            protected Token getExistingToken(final Account account) {
-                return new AuthToken("", "");
-            }
-        };
+    // ====================================
 
-        final Bundle bundle = authenticator.getAuthToken(null, null, null, null);
-        assertTrue(bundle.containsKey(AccountManager.KEY_INTENT));
+
+    private String getExpiredToken() {
+        final long expirationInSeconds = System.currentTimeMillis() / 1000 - 60;
+        final String component = "{ \"exp\": \"" + expirationInSeconds + "\" }";
+        return "." + Base64.encodeToString(component.getBytes(), Base64.DEFAULT);
     }
 
-    public void testGetAuthTokenWithEmptyAuthTokenAndInvalidRefreshToken() throws Exception {
-        final Context context = new FakePackageManagerContext(TEST_PACKAGE_NAME, TEST_ACTIVITY_NAME);
-        final Account account = new Account("account", "account_type");
-        final Authenticator authenticator = new Authenticator(context) {
-            @Override
-            protected Token getExistingToken(final Account account) {
-                return new AuthToken("", "token");
-            }
-
-            @Override
-            protected Token getNewToken(final String refreshToken) throws IOException {
-                throw new IllegalArgumentException("Invalid token.");
-            }
-        };
-
-        final Bundle bundle = authenticator.getAuthToken(null, account, null, null);
-        assertTrue(bundle.containsKey(AccountManager.KEY_ERROR_CODE));
-        assertTrue(bundle.containsKey(AccountManager.KEY_ERROR_MESSAGE));
+    private static class LoginActivity extends AccountAuthenticatorActivity {
     }
 
-    public void testGetAuthTokenWithEmptyAuthTokenAndValidRefreshToken() throws Exception {
-        final Context context = new FakePackageManagerContext(TEST_PACKAGE_NAME, TEST_ACTIVITY_NAME);
-        final Account account = new Account("account", "account_type");
-        final Authenticator authenticator = new Authenticator(context) {
-            @Override
-            protected Token getExistingToken(final Account account) {
-                return new AuthToken("", "token");
-            }
+    private static class TestResponseException extends HttpResponseException {
 
-            @Override
-            protected Token getNewToken(final String refreshToken) throws IOException {
-                return new AuthToken("token", "token");
-            }
-        };
-
-        final Bundle bundle = authenticator.getAuthToken(null, account, null, null);
-
-        assertEquals(account.name, bundle.getString(AccountManager.KEY_ACCOUNT_NAME));
-        assertEquals(account.type, bundle.getString(AccountManager.KEY_ACCOUNT_TYPE));
-        assertEquals("token", bundle.getString(AccountManager.KEY_AUTHTOKEN));
-    }
-
-    public void testGetAuthTokenWithValidAccessToken() throws Exception {
-        final Context context = new FakePackageManagerContext(TEST_PACKAGE_NAME, TEST_ACTIVITY_NAME);
-        final Account account = new Account("account", "account_type");
-        final Authenticator authenticator = new Authenticator(context) {
-            @Override
-            protected Token getExistingToken(final Account account) {
-                return new AuthToken("new_token", "token");
-            }
-        };
-
-        final Bundle bundle = authenticator.getAuthToken(null, account, null, null);
-
-        assertEquals(account.name, bundle.getString(AccountManager.KEY_ACCOUNT_NAME));
-        assertEquals(account.type, bundle.getString(AccountManager.KEY_ACCOUNT_TYPE));
-        assertEquals("new_token", bundle.getString(AccountManager.KEY_AUTHTOKEN));
-    }
-
-
-    // ====================================================
-
-
-    private static class AuthToken extends Token {
-
-        public AuthToken(final String authToken, final String refreshToken) {
-            super(authToken, refreshToken);
-        }
-
-        @Override
-        public boolean isExpired() {
-            return false;
+        public TestResponseException(final Builder builder) {
+            super(builder);
         }
     }
-
-    private static class FakePackageManagerContext extends MockContext {
-
-        private final String mPackageName;
-        private final PackageManager mPackageManager;
-
-        public FakePackageManagerContext(final String packageName, final String activityName) {
-            mPackageName = packageName;
-            mPackageManager = new FakePackageManager(packageName, activityName);
-        }
-
-        @Override
-        public String getPackageName() {
-            return mPackageName;
-        }
-
-        @Override
-        public PackageManager getPackageManager() {
-            return mPackageManager;
-        }
-    }
-
-    private static class FakePackageManager extends MockPackageManager {
-
-        private final String mPackageName;
-        private final String mActivityName;
-
-        public FakePackageManager(final String packageName, final String activityName) {
-            mPackageName = packageName;
-            mActivityName = activityName;
-        }
-
-        @Override
-        public PackageInfo getPackageInfo(final String packageName, final int flags) throws NameNotFoundException {
-            if (!mPackageName.equals(packageName)) {
-                throw new NameNotFoundException("Required package name: " + mPackageName + " doesn't match: " + packageName);
-            }
-
-            final ActivityInfo[] activities = new ActivityInfo[1];
-            activities[0] = new ActivityInfo();
-            activities[0].name = mPackageName + "." + mActivityName;
-
-            final PackageInfo info = new PackageInfo();
-            info.activities = activities;
-            return info;
-        }
-    }
-
-    private static class LoginActivity extends AccountAuthenticatorActivity {}
 }

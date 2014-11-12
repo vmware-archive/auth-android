@@ -34,7 +34,6 @@ import com.google.api.client.auth.oauth2.TokenResponse;
     public final Loader<TokenResponse> onCreateLoader(final int id, final Bundle args) {
         final String username = args.getString(Args.USERNAME);
         final String password = args.getString(Args.PASSWORD);
-        final AuthProvider provider = new AuthProvider.Default();
-        return new PasswordTokenLoader(getContext(), provider, username, password);
+        return new PasswordTokenLoader(getContext(), username, password);
     }
 }

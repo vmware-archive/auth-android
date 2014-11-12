@@ -25,30 +25,30 @@ public class PasswordTokenLoaderTest extends AndroidTestCase {
     public void testLoadInBackgroundSucceedsWithTokenResponse() {
         final AssertionLatch latch = new AssertionLatch(1);
         final TokenResponse response = new TokenResponse();
-        final MockAuthProvider provider = new MockAuthProvider() {
+        AuthProviderFactory.init(new MockAuthProvider() {
 
             @Override
             public PasswordTokenRequest newPasswordTokenRequest(final String username, final String password) {
                 latch.countDown();
                 return new TestPasswordTokenRequest(response);
             }
-        };
-        final PasswordTokenLoader loader = new PasswordTokenLoader(mContext, provider, null, null);
+        });
+        final PasswordTokenLoader loader = new PasswordTokenLoader(mContext, null, null);
         assertEquals(response, loader.loadInBackground());
         latch.assertComplete();
     }
 
     public void testLoadInBackgroundFailsWithErrorResponse() {
         final AssertionLatch latch = new AssertionLatch(1);
-        final MockAuthProvider provider = new MockAuthProvider() {
+        AuthProviderFactory.init(new MockAuthProvider() {
 
             @Override
             public PasswordTokenRequest newPasswordTokenRequest(final String username, final String password) {
                 latch.countDown();
                 throw new RuntimeException();
             }
-        };
-        final PasswordTokenLoader loader = new PasswordTokenLoader(mContext, provider, null, null);
+        });
+        final PasswordTokenLoader loader = new PasswordTokenLoader(mContext, null, null);
         final ErrorResponse errorResponse = (ErrorResponse) loader.loadInBackground();
         assertNotNull(errorResponse);
         latch.assertComplete();

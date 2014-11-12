@@ -9,8 +9,6 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 
-import com.google.api.client.auth.oauth2.AuthorizationCodeRequestUrl;
-
 @TargetApi(Build.VERSION_CODES.HONEYCOMB)
 public class LoginAuthCodeActivity extends LoginActivity {
 
@@ -38,12 +36,16 @@ public class LoginAuthCodeActivity extends LoginActivity {
     }
 
     public void authorize() {
-        final AuthProvider provider = new AuthProvider.Default();
-        final AuthorizationCodeRequestUrl authorizationUrl = provider.newAuthorizationCodeUrl();
-        final Uri uri = Uri.parse(authorizationUrl.build());
+        final String authorizationUrl = getAuthorizationUrl();
+        final Uri uri = Uri.parse(authorizationUrl);
         final Intent intent = new Intent(Intent.ACTION_VIEW, uri);
         intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
         startActivity(intent);
+    }
+
+    private String getAuthorizationUrl() {
+        final AuthProvider provider = AuthProviderFactory.get();
+        return provider.newAuthorizationCodeUrl().build();
     }
 
     protected boolean intentHasCallbackUrl(final Intent intent) {
