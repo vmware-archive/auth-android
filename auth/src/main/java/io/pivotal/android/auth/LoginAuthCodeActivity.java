@@ -15,7 +15,12 @@ public class LoginAuthCodeActivity extends LoginActivity {
     @Override
      protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        onCreateContentView(savedInstanceState);
+        setContentView(R.layout.activity_login_auth_code);
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
 
         final Intent intent = getIntent();
 
@@ -24,10 +29,6 @@ public class LoginAuthCodeActivity extends LoginActivity {
         } else {
             authorize();
         }
-    }
-
-    protected void onCreateContentView(final Bundle savedInstanceState) {
-        setContentView(R.layout.activity_login_auth_code);
     }
 
     @Override

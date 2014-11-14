@@ -7,6 +7,7 @@ import android.accounts.Account;
 import android.accounts.AccountAuthenticatorActivity;
 import android.accounts.AccountManager;
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.test.ActivityUnitTestCase;
@@ -22,26 +23,29 @@ public class LoginActivityTest extends ActivityUnitTestCase<LoginActivityTest.Te
     private static final String ACCESS_TOKEN = UUID.randomUUID().toString();
     private static final String REFRESH_TOKEN = UUID.randomUUID().toString();
 
-
     public LoginActivityTest() {
         super(TestLoginActivity.class);
     }
 
+    @Override
+    protected void setUp() throws Exception {
+        super.setUp();
+        final Context context = getInstrumentation().getContext();
+        System.setProperty("dexmaker.dexcache", context.getCacheDir().getPath());
+    }
+
     public void testAuthorizationCompleteAddsAccountAndSetsAccessToken() {
+        final Token token = new Token(ACCESS_TOKEN, REFRESH_TOKEN);
         final TokenProvider provider = Mockito.mock(TokenProvider.class);
+        final TestLoginActivity activity = Mockito.spy(startActivity(new Intent(), null, null));
 
         Mockito.doNothing().when(provider).addAccount(Mockito.any(Account.class), Mockito.eq(REFRESH_TOKEN));
         Mockito.doNothing().when(provider).setAccessToken(Mockito.any(Account.class), Mockito.eq(ACCESS_TOKEN));
-
-        TokenProviderFactory.init(provider);
-
-        final Token token = new Token(ACCESS_TOKEN, REFRESH_TOKEN);
-        final TestLoginActivity activity = Mockito.spy(startActivity(new Intent(), null, null));
-
         Mockito.doReturn(USERNAME).when(activity).getUserName();
         Mockito.doNothing().when(activity).setResultIntent(token, USERNAME);
         Mockito.doNothing().when(activity).finish();
 
+        TokenProviderFactory.init(provider);
         activity.onAuthorizationComplete(token);
 
         Mockito.verify(provider).addAccount(Mockito.any(Account.class), Mockito.eq(REFRESH_TOKEN));
@@ -52,16 +56,16 @@ public class LoginActivityTest extends ActivityUnitTestCase<LoginActivityTest.Te
     }
 
     public void testSetResultIntent() {
-        TokenProviderFactory.init(Mockito.mock(TokenProvider.class));
-
         final Bundle bundle = Bundle.EMPTY;
         final Token token = Mockito.mock(Token.class);
         final Intent intent = Mockito.mock(Intent.class);
+        final TokenProvider provider = Mockito.mock(TokenProvider.class);
         final TestLoginActivity activity = Mockito.spy(startActivity(new Intent(), null, null));
 
         Mockito.doReturn(intent).when(activity).getResultIntent(token, USERNAME);
         Mockito.when(intent.getExtras()).thenReturn(bundle);
 
+        TokenProviderFactory.init(provider);
         activity.setResultIntent(token, USERNAME);
 
         assertEquals(bundle, activity.getResultData());
@@ -72,13 +76,13 @@ public class LoginActivityTest extends ActivityUnitTestCase<LoginActivityTest.Te
     }
 
     public void testGetResultIntent() {
-        TokenProviderFactory.init(Mockito.mock(TokenProvider.class));
-
+        final TokenProvider provider = Mockito.mock(TokenProvider.class);
         final Token token = Mockito.mock(Token.class);
+        final TestLoginActivity activity = startActivity(new Intent(), null, null);
 
         Mockito.when(token.getAccessToken()).thenReturn(ACCESS_TOKEN);
 
-        final TestLoginActivity activity = startActivity(new Intent(), null, null);
+        TokenProviderFactory.init(provider);
         final Intent intent = activity.getResultIntent(token, USERNAME);
 
         assertEquals(Pivotal.getAccountType(), intent.getStringExtra(AccountManager.KEY_ACCOUNT_TYPE));

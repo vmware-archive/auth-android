@@ -12,7 +12,7 @@ import android.content.pm.PackageManager;
 import java.util.ArrayList;
 import java.util.List;
 
-/* package */ class PackageHelper {
+/* package */ class PackageUtils {
 
     public static Class<?> getLoginActivityClass(final Context context) {
         try {

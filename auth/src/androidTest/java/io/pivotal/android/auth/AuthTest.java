@@ -5,290 +5,223 @@ package io.pivotal.android.auth;
 
 import android.accounts.Account;
 import android.app.Activity;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.test.AndroidTestCase;
 
-import io.pivotal.android.auth.Auth.Listener;
+import org.mockito.Mockito;
+
+import java.util.UUID;
 
 public class AuthTest extends AndroidTestCase {
 
+    private static final String ACCESS_TOKEN = UUID.randomUUID().toString();
+    private static final String REFRESH_TOKEN = UUID.randomUUID().toString();
+
+    private static final String ACCOUNT_TYPE = UUID.randomUUID().toString();
+    private static final String ACCOUNT_NAME = UUID.randomUUID().toString();
+
+    @Override
+    protected void setUp() throws Exception {
+        super.setUp();
+        System.setProperty("dexmaker.dexcache", mContext.getCacheDir().getPath());
+    }
+
     public void testGetAccessTokenInvokesProvider() throws Exception {
-        final AssertionLatch latch = new AssertionLatch(1);
-        TokenProviderFactory.init(new MockTokenProvider() {
-            @Override
-            public void getAccessToken(final Activity activity, final Listener listener) {
-                latch.countDown();
-            }
-        });
+        final Context context = Mockito.mock(Context.class);
+        final Account account = new Account(ACCOUNT_NAME, ACCOUNT_TYPE);
+        final TokenProvider provider = Mockito.mock(TokenProvider.class);
 
-        Auth.getAccessToken(null, (Listener) null);
-        latch.assertComplete();
+        Mockito.when(provider.getAccounts()).thenReturn(new Account[]{account});
+        Mockito.when(provider.getAccessTokenOrThrow(account)).thenReturn(ACCESS_TOKEN);
+
+        TokenProviderFactory.init(provider);
+        assertEquals(ACCESS_TOKEN, Auth.getAccessToken(context, ACCOUNT_NAME));
+
+        Mockito.verify(provider).getAccounts();
+        Mockito.verify(provider).getAccessTokenOrThrow(account);
     }
 
-    public void testGetAccessTokenByNameInvokesProviderAndReturnsToken() throws Exception {
-        final AssertionLatch latch1 = new AssertionLatch(1);
-        final AssertionLatch latch2 = new AssertionLatch(1);
-        TokenProviderFactory.init(new MockTokenProvider() {
-            @Override
-            public Account[] getAccounts() {
-                latch1.countDown();
-                return new Account[0];
-            }
+    public void testAsyncGetAccessTokenInvokesProvider() throws Exception {
+        final Context context = Mockito.mock(Context.class);
+        final TokenProvider provider = Mockito.mock(TokenProvider.class);
+        final Activity activity = Mockito.mock(Activity.class);
+        final Auth.Listener listener = Mockito.mock(Auth.Listener.class);
 
-            @Override
-            public String getAccessTokenOrThrow(final Account account) throws Exception {
-                latch2.countDown();
-                return "token";
-            }
-        });
+        Mockito.doNothing().when(provider).getAccessToken(activity, listener);
 
-        assertEquals("token", Auth.getAccessToken(null, (String) null));
+        TokenProviderFactory.init(provider);
+        Auth.getAccessToken(activity, listener);
 
-        latch1.assertComplete();
-        latch2.assertComplete();
+        Mockito.verify(provider).getAccessToken(activity, listener);
     }
 
-    public void testGetAccessTokenByNameInvokesProviderAndReturnsNull() throws Exception {
-        final AssertionLatch latch1 = new AssertionLatch(1);
-        final AssertionLatch latch2 = new AssertionLatch(1);
-        TokenProviderFactory.init(new MockTokenProvider() {
-            @Override
-            public Account[] getAccounts() {
-                latch1.countDown();
-                return new Account[0];
-            }
+    public void testAsyncGetAccessTokenInvokesProviderForSingleAccount() throws Exception {
+        final Context context = Mockito.mock(Context.class);
+        final TokenProvider provider = Mockito.mock(TokenProvider.class);
+        final Auth.Listener listener = Mockito.mock(Auth.Listener.class);
+        final Account account = new Account(ACCOUNT_NAME, ACCOUNT_TYPE);
 
-            @Override
-            public String getAccessTokenOrThrow(final Account account) throws Exception {
-                latch2.countDown();
-                return null;
-            }
-        });
+        Mockito.when(provider.getAccounts()).thenReturn(new Account[]{account});
+        Mockito.doNothing().when(provider).getAccessToken(context, account, false, listener);
 
-        assertNull(Auth.getAccessToken(null, (String) null));
+        TokenProviderFactory.init(provider);
+        Auth.getAccessToken(context, false, listener);
 
-        latch1.assertComplete();
-        latch2.assertComplete();
+        Mockito.verify(provider).getAccounts();
+        Mockito.verify(provider).getAccessToken(context, account, false, listener);
     }
 
-    public void testGetAccessTokenByNameInvokesProviderThrowsAndReturnsNull() throws Exception {
-        final AssertionLatch latch1 = new AssertionLatch(1);
-        final AssertionLatch latch2 = new AssertionLatch(1);
-        TokenProviderFactory.init(new MockTokenProvider() {
-            @Override
-            public Account[] getAccounts() {
-                latch1.countDown();
-                return new Account[0];
-            }
+    public void testAsyncGetAccessTokenInvokesProviderForLastUsedAccountName() throws Exception {
+        final Context context = Mockito.mock(Context.class);
+        final TokenProvider provider = Mockito.mock(TokenProvider.class);
+        final Auth.Listener listener = Mockito.mock(Auth.Listener.class);
+        final SharedPreferences preferences = Mockito.mock(SharedPreferences.class);
+        final Account account = new Account(ACCOUNT_NAME, ACCOUNT_TYPE);
+        final Account account2 = new Account(UUID.randomUUID().toString(), ACCOUNT_TYPE);
 
-            @Override
-            public String getAccessTokenOrThrow(final Account account) throws Exception {
-                latch2.countDown();
-                throw new RuntimeException();
-            }
-        });
+        Mockito.when(provider.getAccounts()).thenReturn(new Account[]{account, account2});
+        Mockito.when(context.getSharedPreferences(AuthPreferences.AUTH, Context.MODE_PRIVATE)).thenReturn(preferences);
+        Mockito.when(preferences.getString(AuthPreferences.Keys.LAST_USED_ACCOUNT, "")).thenReturn(ACCOUNT_NAME);
+        Mockito.doNothing().when(provider).getAccessToken(context, account, false, listener);
 
-        assertNull(Auth.getAccessToken(null, (String) null));
+        TokenProviderFactory.init(provider);
+        Auth.getAccessToken(context, false, listener);
 
-        latch1.assertComplete();
-        latch2.assertComplete();
+        Mockito.verify(provider, Mockito.times(2)).getAccounts();
+        Mockito.verify(provider).getAccessToken(context, account, false, listener);
+    }
+
+    public void testAsyncGetAccessTokenInvokesListenerForNoAccounts() throws Exception {
+        final Context context = Mockito.mock(Context.class);
+        final TokenProvider provider = Mockito.mock(TokenProvider.class);
+        final Auth.Listener listener = Mockito.mock(Auth.Listener.class);
+        final SharedPreferences preferences = Mockito.mock(SharedPreferences.class);
+
+        Mockito.when(provider.getAccounts()).thenReturn(new Account[0]);
+        Mockito.when(context.getSharedPreferences(AuthPreferences.AUTH, Context.MODE_PRIVATE)).thenReturn(preferences);
+        Mockito.when(preferences.getString(AuthPreferences.Keys.LAST_USED_ACCOUNT, "")).thenReturn(ACCOUNT_NAME);
+
+        TokenProviderFactory.init(provider);
+        Auth.getAccessToken(context, false, listener);
+
+        Mockito.verify(provider, Mockito.times(2)).getAccounts();
+        Mockito.verify(listener).onFailure(Mockito.any(Error.class));
     }
 
     public void testInvalidateAccessTokenInvokesProvider() throws Exception {
-        final AssertionLatch latch = new AssertionLatch(1);
-        TokenProviderFactory.init(new MockTokenProvider() {
-            @Override
-            public void invalidateAccessToken(final String accessToken) {
-                latch.countDown();
-            }
-        });
+        final Context context = Mockito.mock(Context.class);
+        final TokenProvider provider = Mockito.mock(TokenProvider.class);
 
-        Auth.invalidateAccessToken(null, null);
-        latch.assertComplete();
-    }
+        Mockito.doNothing().when(provider).invalidateAccessToken(ACCESS_TOKEN);
 
-    public void testAddAccountThrowsWithNullAccountName() throws Exception {
-        try {
-            TokenProviderFactory.init(new MockTokenProvider());
-            Auth.addAccount(null, null, new Token("", ""));
-            fail();
-        } catch (final Exception e) {
-            assertNotNull(e);
-        }
-    }
+        TokenProviderFactory.init(provider);
+        Auth.invalidateAccessToken(context, ACCESS_TOKEN);
 
-    public void testAddAccountThrowsWithEmptyAccountName() throws Exception {
-        try {
-            TokenProviderFactory.init(new MockTokenProvider());
-            Auth.addAccount(null, "", new Token("", ""));
-            fail();
-        } catch (final Exception e) {
-            assertNotNull(e);
-        }
+        Mockito.verify(provider).invalidateAccessToken(ACCESS_TOKEN);
     }
 
     public void testAddAccountInvokesProvider() throws Exception {
-        final AssertionLatch latch1 = new AssertionLatch(1);
-        final AssertionLatch latch2 = new AssertionLatch(1);
-        TokenProviderFactory.init(new MockTokenProvider() {
+        final Context context = Mockito.mock(Context.class);
+        final TokenProvider provider = Mockito.mock(TokenProvider.class);
+        final Token token = new Token(ACCESS_TOKEN, REFRESH_TOKEN);
 
-            @Override
-            public void addAccount(final Account account, final String refreshToken) {
-                latch1.countDown();
-            }
+        Mockito.doNothing().when(provider).addAccount(Mockito.any(Account.class), Mockito.eq(token.getRefreshToken()));
+        Mockito.doNothing().when(provider).setAccessToken(Mockito.any(Account.class), Mockito.eq(token.getAccessToken()));
 
-            @Override
-            public void setAccessToken(final Account account, final String accessToken) {
-                latch2.countDown();
-            }
-        });
+        TokenProviderFactory.init(provider);
+        Auth.addAccount(context, ACCOUNT_NAME, token);
 
-        Auth.addAccount(null, "account", new Token("access", "refresh"));
-
-        latch1.assertComplete();
-        latch2.assertComplete();
+        Mockito.verify(provider).addAccount(Mockito.any(Account.class), Mockito.eq(token.getRefreshToken()));
+        Mockito.verify(provider).setAccessToken(Mockito.any(Account.class), Mockito.eq(token.getAccessToken()));
     }
 
     public void testGetAccountsInvokesProvider() throws Exception {
-        final AssertionLatch latch = new AssertionLatch(1);
-        TokenProviderFactory.init(new MockTokenProvider() {
-            @Override
-            public Account[] getAccounts() {
-                latch.countDown();
-                return new Account[0];
-            }
-        });
+        final Context context = Mockito.mock(Context.class);
+        final TokenProvider provider = Mockito.mock(TokenProvider.class);
+        final Account[] accounts = new Account[0];
 
-        Auth.getAccounts(null);
+        Mockito.when(provider.getAccounts()).thenReturn(accounts);
 
-        latch.assertComplete();
+        TokenProviderFactory.init(provider);
+        assertEquals(accounts, Auth.getAccounts(context));
+
+        Mockito.verify(provider).getAccounts();
     }
 
-    public void testGetAccountWithNullNameReturnsNull() throws Exception {
-        final AssertionLatch latch = new AssertionLatch(1);
-        TokenProviderFactory.init(new MockTokenProvider() {
-            @Override
-            public Account[] getAccounts() {
-                latch.countDown();
-                return new Account[0];
-            }
-        });
+    public void testGetAccountWithNullNameReturnsFirstAccount() throws Exception {
+        final Context context = Mockito.mock(Context.class);
+        final TokenProvider provider = Mockito.mock(TokenProvider.class);
+        final Account account = new Account(ACCOUNT_NAME, ACCOUNT_TYPE);
+        final Account account2 = new Account(UUID.randomUUID().toString(), ACCOUNT_TYPE);
+        final Account[] accounts = new Account[] { account, account2 };
 
-        assertNull(Auth.getAccount(null, null));
+        Mockito.when(provider.getAccounts()).thenReturn(accounts);
 
-        latch.assertComplete();
+        TokenProviderFactory.init(provider);
+        assertEquals(account, Auth.getAccount(context, null));
+
+        Mockito.verify(provider).getAccounts();
     }
 
-    public void testGetAccountWithEmptyNameReturnsNull() throws Exception {
-        final AssertionLatch latch = new AssertionLatch(1);
-        TokenProviderFactory.init(new MockTokenProvider() {
-            @Override
-            public Account[] getAccounts() {
-                latch.countDown();
-                return new Account[0];
-            }
-        });
+    public void testGetAccountWithNameReturnsCorrectAccount() throws Exception {
+        final Context context = Mockito.mock(Context.class);
+        final TokenProvider provider = Mockito.mock(TokenProvider.class);
+        final Account account = new Account(UUID.randomUUID().toString(), ACCOUNT_TYPE);
+        final Account account2 = new Account(ACCOUNT_NAME, ACCOUNT_TYPE);
+        final Account[] accounts = new Account[] { account, account2 };
 
-        assertNull(Auth.getAccount(null, ""));
+        Mockito.when(provider.getAccounts()).thenReturn(accounts);
 
-        latch.assertComplete();
+        TokenProviderFactory.init(provider);
+        assertEquals(account2, Auth.getAccount(context, ACCOUNT_NAME));
+
+        Mockito.verify(provider).getAccounts();
     }
 
-    public void testGetAccountWithNonMatchingNameReturnsNull() throws Exception {
-        final AssertionLatch latch = new AssertionLatch(1);
-        TokenProviderFactory.init(new MockTokenProvider() {
-            @Override
-            public Account[] getAccounts() {
-                latch.countDown();
+    public void testGetAccountWithNameReturnsNullIfNotFound() throws Exception {
+        final Context context = Mockito.mock(Context.class);
+        final TokenProvider provider = Mockito.mock(TokenProvider.class);
+        final Account account = new Account(UUID.randomUUID().toString(), ACCOUNT_TYPE);
+        final Account account2 = new Account(UUID.randomUUID().toString(), ACCOUNT_TYPE);
+        final Account[] accounts = new Account[] { account, account2 };
 
-                final Account[] accounts = new Account[2];
-                accounts[0] = new Account("account0", "type");
-                accounts[1] = new Account("account1", "type");
-                return accounts;
-            }
-        });
+        Mockito.when(provider.getAccounts()).thenReturn(accounts);
 
-        assertNull(Auth.getAccount(null, "account"));
+        TokenProviderFactory.init(provider);
+        assertNull(Auth.getAccount(context, ACCOUNT_NAME));
 
-        latch.assertComplete();
-    }
-
-    public void testGetAccountWithMatchingNameReturnsAccount() throws Exception {
-        final AssertionLatch latch = new AssertionLatch(1);
-        TokenProviderFactory.init(new MockTokenProvider() {
-            @Override
-            public Account[] getAccounts() {
-                latch.countDown();
-
-                final Account[] accounts = new Account[2];
-                accounts[0] = new Account("account0", "type");
-                accounts[1] = new Account("account1", "type");
-                return accounts;
-            }
-        });
-
-        assertEquals("account1", Auth.getAccount(null, "account1").name);
-
-        latch.assertComplete();
-    }
-
-    public void testRemoveAccountThrowsWithNullAccountName() throws Exception {
-        try {
-            TokenProviderFactory.init(new MockTokenProvider());
-            Auth.removeAccount(null, null);
-            fail();
-        } catch (final Exception e) {
-            assertNotNull(e);
-        }
-    }
-
-    public void testRemoveAccountThrowsWithEmptyAccountName() throws Exception {
-        try {
-            TokenProviderFactory.init(new MockTokenProvider());
-            Auth.removeAccount(null, "");
-            fail();
-        } catch (final Exception e) {
-            assertNotNull(e);
-        }
+        Mockito.verify(provider).getAccounts();
     }
 
     public void testRemoveAccountInvokesProvider() throws Exception {
-        final AssertionLatch latch = new AssertionLatch(1);
-        TokenProviderFactory.init(new MockTokenProvider() {
-            @Override
-            public void removeAccount(final Account account) {
-                latch.countDown();
-            }
-        });
+        final Context context = Mockito.mock(Context.class);
+        final TokenProvider provider = Mockito.mock(TokenProvider.class);
 
-        Auth.removeAccount(null, "account");
+        Mockito.doNothing().when(provider).removeAccount(Mockito.any(Account.class));
 
-        latch.assertComplete();
+        TokenProviderFactory.init(provider);
+        Auth.removeAccount(context, ACCOUNT_NAME);
+
+        Mockito.verify(provider).removeAccount(Mockito.any(Account.class));
     }
 
     public void testRemoveAllAccountsInvokesProvider() throws Exception {
-        final AssertionLatch latch1 = new AssertionLatch(1);
-        final AssertionLatch latch2 = new AssertionLatch(2);
-        TokenProviderFactory.init(new MockTokenProvider() {
+        final Context context = Mockito.mock(Context.class);
+        final TokenProvider provider = Mockito.mock(TokenProvider.class);
 
-            @Override
-            public Account[] getAccounts() {
-                latch1.countDown();
+        final Account[] accounts = new Account[] {
+            new Account(UUID.randomUUID().toString(), ACCOUNT_TYPE),
+            new Account(UUID.randomUUID().toString(), ACCOUNT_TYPE)
+        };
 
-                final Account[] accounts = new Account[2];
-                accounts[0] = new Account("account0", "type");
-                accounts[1] = new Account("account1", "type");
-                return accounts;
-            }
+        Mockito.when(provider.getAccounts()).thenReturn(accounts);
+        Mockito.doNothing().when(provider).removeAccount(Mockito.any(Account.class));
 
-            @Override
-            public void removeAccount(final Account account) {
-                latch2.countDown();
-            }
-        });
+        TokenProviderFactory.init(provider);
+        Auth.removeAllAccounts(context);
 
-        Auth.removeAllAccounts(null);
-
-        latch1.assertComplete();
-        latch2.assertComplete();
+        Mockito.verify(provider).getAccounts();
+        Mockito.verify(provider, Mockito.times(accounts.length)).removeAccount(Mockito.any(Account.class));
     }
 }

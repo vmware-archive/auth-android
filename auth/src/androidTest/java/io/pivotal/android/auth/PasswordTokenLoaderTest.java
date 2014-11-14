@@ -4,73 +4,63 @@
 package io.pivotal.android.auth;
 
 import android.annotation.TargetApi;
+import android.content.Context;
 import android.os.Build;
 import android.test.AndroidTestCase;
 
 import com.google.api.client.auth.oauth2.PasswordTokenRequest;
 import com.google.api.client.auth.oauth2.TokenResponse;
-import com.google.api.client.http.GenericUrl;
-import com.google.api.client.http.HttpTransport;
-import com.google.api.client.http.javanet.NetHttpTransport;
-import com.google.api.client.json.JsonFactory;
-import com.google.api.client.json.jackson2.JacksonFactory;
 
-import java.io.IOException;
+import org.mockito.Mockito;
 
-import io.pivotal.android.auth.TokenLoader.ErrorResponse;
+import java.util.UUID;
 
 @TargetApi(Build.VERSION_CODES.HONEYCOMB)
 public class PasswordTokenLoaderTest extends AndroidTestCase {
 
-    public void testLoadInBackgroundSucceedsWithTokenResponse() {
-        final AssertionLatch latch = new AssertionLatch(1);
-        final TokenResponse response = new TokenResponse();
-        AuthProviderFactory.init(new MockAuthProvider() {
+    private static final String USERNAME = UUID.randomUUID().toString();
+    private static final String PASSWORD = UUID.randomUUID().toString();
 
-            @Override
-            public PasswordTokenRequest newPasswordTokenRequest(final String username, final String password) {
-                latch.countDown();
-                return new TestPasswordTokenRequest(response);
-            }
-        });
-        final PasswordTokenLoader loader = new PasswordTokenLoader(mContext, null, null);
+    @Override
+    protected void setUp() throws Exception {
+        super.setUp();
+        System.setProperty("dexmaker.dexcache", mContext.getCacheDir().getPath());
+    }
+
+    public void testLoadInBackgroundSucceedsWithTokenResponse() throws Exception {
+        final Context context = Mockito.mock(Context.class);
+        final TokenResponse response = Mockito.mock(TokenResponse.class);
+        final AuthProvider provider = Mockito.mock(AuthProvider.class);
+        final PasswordTokenRequest request = Mockito.mock(PasswordTokenRequest.class);
+        final PasswordTokenLoader loader = new PasswordTokenLoader(context, USERNAME, PASSWORD);
+
+        AuthProviderFactory.init(provider);
+
+        Mockito.when(provider.newPasswordTokenRequest(USERNAME, PASSWORD)).thenReturn(request);
+        Mockito.when(request.execute()).thenReturn(response);
+
         assertEquals(response, loader.loadInBackground());
-        latch.assertComplete();
+
+        Mockito.verify(provider).newPasswordTokenRequest(USERNAME, PASSWORD);
+        Mockito.verify(request).execute();
     }
 
-    public void testLoadInBackgroundFailsWithErrorResponse() {
-        final AssertionLatch latch = new AssertionLatch(1);
-        AuthProviderFactory.init(new MockAuthProvider() {
+    public void testLoadInBackgroundFailsWithErrorResponse() throws Exception {
+        final Context context = Mockito.mock(Context.class);
+        final AuthProvider provider = Mockito.mock(AuthProvider.class);
+        final PasswordTokenRequest request = Mockito.mock(PasswordTokenRequest.class);
+        final PasswordTokenLoader loader = new PasswordTokenLoader(context, USERNAME, PASSWORD);
 
-            @Override
-            public PasswordTokenRequest newPasswordTokenRequest(final String username, final String password) {
-                latch.countDown();
-                throw new RuntimeException();
-            }
-        });
-        final PasswordTokenLoader loader = new PasswordTokenLoader(mContext, null, null);
-        final ErrorResponse errorResponse = (ErrorResponse) loader.loadInBackground();
-        assertNotNull(errorResponse);
-        latch.assertComplete();
-    }
+        AuthProviderFactory.init(provider);
 
+        Mockito.when(provider.newPasswordTokenRequest(USERNAME, PASSWORD)).thenReturn(request);
+        Mockito.doThrow(new RuntimeException()).when(request).execute();
 
-    private static class TestPasswordTokenRequest extends PasswordTokenRequest {
+        final TokenResponse response = loader.loadInBackground();
 
-        private static final HttpTransport TEST_TRANSPORT = new NetHttpTransport();
-        private static final JsonFactory TEST_JSON_FACTORY = new JacksonFactory();
-        private static final GenericUrl TEST_URL = new GenericUrl("http://example.com");
+        assertTrue(response instanceof TokenLoader.ErrorResponse);
 
-        private TokenResponse mTokenResponse;
-
-        public TestPasswordTokenRequest(final TokenResponse response) {
-            super(TEST_TRANSPORT, TEST_JSON_FACTORY, TEST_URL, "", "");
-            mTokenResponse = response;
-        }
-
-        @Override
-        public TokenResponse execute() throws IOException {
-            return mTokenResponse;
-        }
+        Mockito.verify(provider).newPasswordTokenRequest(USERNAME, PASSWORD);
+        Mockito.verify(request).execute();
     }
 }

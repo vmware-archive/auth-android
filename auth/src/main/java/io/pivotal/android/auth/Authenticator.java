@@ -65,7 +65,7 @@ public class Authenticator extends AbstractAccountAuthenticator {
 
 
     protected Class<?> getLoginActivityClass() {
-        return PackageHelper.getLoginActivityClass(mContext);
+        return PackageUtils.getLoginActivityClass(mContext);
     }
 
     protected Bundle newAccountBundle(final AccountAuthenticatorResponse response) {

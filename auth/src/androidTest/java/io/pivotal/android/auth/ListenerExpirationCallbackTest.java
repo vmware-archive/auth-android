@@ -5,139 +5,102 @@ package io.pivotal.android.auth;
 
 import android.accounts.Account;
 import android.accounts.AccountManager;
+import android.accounts.AccountManagerFuture;
 import android.app.Activity;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.test.AndroidTestCase;
 import android.util.Base64;
 
+import org.mockito.Mockito;
+
+import java.io.IOException;
+import java.util.UUID;
+
 public class ListenerExpirationCallbackTest extends AndroidTestCase {
 
-    public void testCallbackWithNullListenerThrowsException() {
-        try {
-            new ListenerExpirationCallback(null, null).run(new MockAccountManagerFuture());
-            fail();
-        } catch (final NullPointerException e) {
-            assertNotNull(e);
-        }
+    private static final String ACCESS_TOKEN = UUID.randomUUID().toString();
+    private static final String ACCOUNT_NAME = UUID.randomUUID().toString();
+    private static final String ACCOUNT_TYPE = UUID.randomUUID().toString();
+
+    @Override
+    protected void setUp() throws Exception {
+        super.setUp();
+        System.setProperty("dexmaker.dexcache", mContext.getCacheDir().getPath());
     }
 
-    public void testAuthorizationFailsWhenExceptionIsThrown() {
-        final AssertionLatch latch = new AssertionLatch(1);
-        final ListenerExpirationCallback callback = new ListenerExpirationCallback(null, new Auth.Listener() {
-            @Override
-            public void onFailure(final Error error) {
-                latch.countDown();
-                assertEquals("error", error.getMessage());
-            }
+    public void testRunInvokesListenerOnCompleteIfTokenNotExpired() throws Exception {
+        final Activity activity = Mockito.mock(Activity.class);
+        final SharedPreferences preferences = Mockito.mock(SharedPreferences.class);
+        final SharedPreferences.Editor editor = Mockito.mock(SharedPreferences.Editor.class);
+        final Auth.Listener listener = Mockito.mock(Auth.Listener.class);
+        final AccountManagerFuture future = Mockito.mock(AccountManagerFuture.class);
+        final ListenerExpirationCallback callback = new ListenerExpirationCallback(activity, listener);
 
-            @Override
-            public void onComplete(final String token, final String name) {
-                fail();
-            }
-        });
-        callback.run(new MockAccountManagerFuture() {
-            @Override
-            public Bundle getResult() {
-                throw new RuntimeException("error");
-            }
-        });
-        latch.assertComplete();
+        Mockito.when(future.getResult()).thenReturn(newBundle(ACCESS_TOKEN, ACCOUNT_NAME));
+        Mockito.when(activity.getSharedPreferences(AuthPreferences.AUTH, Context.MODE_PRIVATE)).thenReturn(preferences);
+        Mockito.when(preferences.edit()).thenReturn(editor);
+        Mockito.when(editor.putString(AuthPreferences.Keys.LAST_USED_ACCOUNT, ACCOUNT_NAME)).thenReturn(editor);
+        Mockito.when(editor.commit()).thenReturn(true);
+
+        callback.run(future);
+
+        Mockito.verify(future).getResult();
+        Mockito.verify(editor).putString(AuthPreferences.Keys.LAST_USED_ACCOUNT, ACCOUNT_NAME);
+        Mockito.verify(listener).onComplete(ACCESS_TOKEN, ACCOUNT_NAME);
     }
 
-    public void testAuthorizationWithExpiredTokenInvalidatesTokenAndRequestsANewOne() {
-        final AssertionLatch latch1 = new AssertionLatch(1);
-        final AssertionLatch latch2 = new AssertionLatch(1);
-        TokenProviderFactory.init(new ExpiredTokenProvider() {
-            @Override
-            public void invalidateAccessToken(final String accessToken) {
-                latch1.countDown();
-            }
+    public void testRunInvokesProviderIfTokenExpired() throws Exception {
+        final Account account = new Account(ACCOUNT_NAME, ACCOUNT_TYPE);
+        final TokenProvider provider = Mockito.mock(TokenProvider.class);
+        final Auth.Listener listener = Mockito.mock(Auth.Listener.class);
+        final AccountManagerFuture future = Mockito.mock(AccountManagerFuture.class);
+        final ListenerExpirationCallback callback = new ListenerExpirationCallback(null, listener);
 
-            @Override
-            public void getAccessToken(final Activity activity, final Account account, final Auth.Listener listener) {
-                latch2.countDown();
-            }
-        });
-        new ListenerExpirationCallback(null, null).run(new MockAccountManagerFuture() {
-            @Override
-            public Bundle getResult() {
-                final long timeInPast = System.currentTimeMillis() / 1000 - 60;
-                final String expiration = "{ \"exp\": \"" + timeInPast + "\" }";
-                final String token = "." + Base64.encodeToString(expiration.getBytes(), Base64.DEFAULT);
+        final String expiredToken = getExpiredToken();
 
-                final Bundle bundle = new Bundle();
-                bundle.putString(AccountManager.KEY_AUTHTOKEN, token);
-                return bundle;
-            }
-        });
+        Mockito.when(future.getResult()).thenReturn(newBundle(expiredToken, ACCOUNT_NAME));
+        Mockito.when(provider.getAccounts()).thenReturn(new Account[] {account});
+        Mockito.doNothing().when(provider).invalidateAccessToken(expiredToken);
+        Mockito.doNothing().when(provider).getAccessToken(account, false, null);
 
-        latch1.assertComplete();
-        latch2.assertComplete();
+        TokenProviderFactory.init(provider);
+        callback.run(future);
+
+        Mockito.verify(future).getResult();
+        Mockito.verify(provider).getAccounts();
+        Mockito.verify(provider).invalidateAccessToken(expiredToken);
+        Mockito.verify(provider).getAccessToken(null, account, listener);
     }
 
-    public void testAuthorizationWithValidTokenSucceeds() {
-        final AssertionLatch latch = new AssertionLatch(1);
+    public void testRunInvokesListenerOnFailureIfExceptionThrown() throws Exception {
+        final Auth.Listener listener = Mockito.mock(Auth.Listener.class);
+        final AccountManagerFuture future = Mockito.mock(AccountManagerFuture.class);
+        final ListenerExpirationCallback callback = new ListenerExpirationCallback(null, listener);
 
-        TokenProviderFactory.init(new ValidTokenProvider());
+        Mockito.doThrow(new IOException()).when(future).getResult();
 
-        final ListenerExpirationCallback callback = new ListenerExpirationCallback(null, new Auth.Listener() {
-            @Override
-            public void onFailure(final Error error) {
-                fail();
-            }
+        callback.run(future);
 
-            @Override
-            public void onComplete(final String token, final String name) {
-                latch.countDown();
-            }
-        });
-        callback.run(new MockAccountManagerFuture() {
-            @Override
-            public Bundle getResult() {
-                return Bundle.EMPTY;
-            }
-        });
-
-        latch.assertComplete();
+        Mockito.verify(future).getResult();
+        Mockito.verify(listener).onFailure(Mockito.any(Error.class));
     }
 
-    private static class ExpiredTokenProvider extends MockTokenProvider {
 
-        @Override
-        public Account[] getAccounts() {
-            return new Account[0];
-        }
+    // ===================================================
 
-        @Override
-        public String getAccessToken(final Account account) {
-            final long timeInPast = System.currentTimeMillis() / 1000 - 60;
-            final String expiration = "{ \"exp\": \"" + timeInPast + "\" }";
-            return "." + Base64.encodeToString(expiration.getBytes(), Base64.DEFAULT);
-        }
 
-        @Override
-        public String getRefreshToken(final Account account) {
-            return "refresh";
-        }
+    private Bundle newBundle(final String token, final String account) {
+        final Bundle bundle = new Bundle();
+        bundle.putString(AccountManager.KEY_AUTHTOKEN, token);
+        bundle.putString(AccountManager.KEY_ACCOUNT_NAME, account);
+        return bundle;
     }
 
-    private static class ValidTokenProvider extends MockTokenProvider {
-
-        @Override
-        public Account[] getAccounts() {
-            return new Account[0];
-        }
-
-        @Override
-        public String getAccessToken(final Account account) {
-            final long timeInFuture = System.currentTimeMillis() / 1000 + 60;
-            final String expiration = "{ \"exp\": \"" + timeInFuture + "\" }";
-            return "." + Base64.encodeToString(expiration.getBytes(), Base64.DEFAULT);
-        }
-
-        @Override
-        public String getRefreshToken(final Account account) {
-            return "refresh";
-        }
+    private String getExpiredToken() {
+        final long timeInPast = System.currentTimeMillis() / 1000 - 60;
+        final String expiration = "{ \"exp\": \"" + timeInPast + "\" }";
+        return "." + Base64.encodeToString(expiration.getBytes(), Base64.DEFAULT);
     }
 }

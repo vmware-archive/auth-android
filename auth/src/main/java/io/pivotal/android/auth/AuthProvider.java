@@ -19,7 +19,7 @@ import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
 
 import java.util.Arrays;
-import java.util.List;
+import java.util.Collection;
 import java.util.UUID;
 
 public interface AuthProvider {
@@ -36,12 +36,11 @@ public interface AuthProvider {
 
         private static final HttpTransport TRANSPORT = new NetHttpTransport();
         private static final JsonFactory JSON_FACTORY = new JacksonFactory();
-
         private static final GenericUrl TOKEN_URL = new GenericUrl(Pivotal.getTokenUrl());
 
         private static final HttpExecuteInterceptor INTERCEPTOR = new ClientParametersAuthentication(Pivotal.getClientId(), Pivotal.getClientSecret());
 
-        private static final List<String> SCOPES = Arrays.asList("offline_access", "openid");
+        private static final Collection<String> SCOPES = Arrays.asList("offline_access", "openid");
 
         @Override
         public PasswordTokenRequest newPasswordTokenRequest(final String username, final String password) {

@@ -17,10 +17,6 @@ public class LoginPasswordActivity extends LoginActivity {
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        onCreateContentView(savedInstanceState);
-    }
-
-    protected void onCreateContentView(final Bundle savedInstanceState) {
         setContentView(R.layout.activity_login_password);
     }
 
@@ -44,7 +40,6 @@ public class LoginPasswordActivity extends LoginActivity {
             final PasswordTokenLoaderCallbacks callback = new PasswordTokenLoaderCallbacks(this, this);
 
             getLoaderManager().restartLoader(1000, bundle, callback);
-
             onStartLoading();
         }
     }
@@ -70,8 +65,6 @@ public class LoginPasswordActivity extends LoginActivity {
 
     @Override
     public void onAuthorizationFailed(final Error error) {
-        Toast.makeText(this, "Login Failed: " + error.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
-
         final Button button = (Button) findViewById(R.id.login_submit);
         if (button != null) {
             button.setText("Submit");

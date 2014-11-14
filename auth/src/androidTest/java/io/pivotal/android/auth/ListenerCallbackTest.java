@@ -4,67 +4,73 @@
 package io.pivotal.android.auth;
 
 import android.accounts.AccountManager;
+import android.accounts.AccountManagerFuture;
 import android.os.Bundle;
 import android.test.AndroidTestCase;
 
+import org.mockito.Mockito;
+
+import java.io.IOException;
+import java.util.UUID;
+
 public class ListenerCallbackTest extends AndroidTestCase {
 
-    public void testCallbackWithNullListenerThrowsException() {
-        try {
-            final ListenerCallback callback = new ListenerCallback(null);
-            callback.run(new MockAccountManagerFuture());
-            fail();
-        } catch (final NullPointerException e) {
-            assertNotNull(e);
-        }
+    private static final String ACCESS_TOKEN = UUID.randomUUID().toString();
+    private static final String ACCOUNT_NAME = UUID.randomUUID().toString();
+
+    @Override
+    protected void setUp() throws Exception {
+        super.setUp();
+        System.setProperty("dexmaker.dexcache", mContext.getCacheDir().getPath());
     }
 
-    public void testAuthorizationFailsWhenExceptionIsThrown() {
-        final AssertionLatch latch = new AssertionLatch(1);
-        final ListenerCallback callback = new ListenerCallback(new Auth.Listener() {
-            @Override
-            public void onFailure(final Error error) {
-                latch.countDown();
-                assertEquals("error", error.getMessage());
-            }
+    public void testRunInvokesListenerOnCompleteIfTokenNotNull() throws Exception {
+        final Auth.Listener listener = Mockito.mock(Auth.Listener.class);
+        final AccountManagerFuture future = Mockito.mock(AccountManagerFuture.class);
+        final ListenerCallback callback = new ListenerCallback(listener);
 
-            @Override
-            public void onComplete(final String token, final String name) {
-                fail();
-            }
-        });
-        callback.run(new MockAccountManagerFuture() {
-            @Override
-            public Bundle getResult() {
-                throw new RuntimeException("error");
-            }
-        });
-        latch.assertComplete();
+        Mockito.when(future.getResult()).thenReturn(newBundle(ACCESS_TOKEN, ACCOUNT_NAME));
+
+        callback.run(future);
+
+        Mockito.verify(future).getResult();
+        Mockito.verify(listener).onComplete(ACCESS_TOKEN, ACCOUNT_NAME);
     }
 
-    public void testAuthorizationSucceedsWithTokenFromResultBundle() {
-        final AssertionLatch latch = new AssertionLatch(1);
-        final ListenerCallback callback = new ListenerCallback(new Auth.Listener() {
-            @Override
-            public void onFailure(final Error error) {
-                fail();
-            }
+    public void testRunInvokesListenerOnFailureIfTokenNull() throws Exception {
+        final Auth.Listener listener = Mockito.mock(Auth.Listener.class);
+        final AccountManagerFuture future = Mockito.mock(AccountManagerFuture.class);
+        final ListenerCallback callback = new ListenerCallback(listener);
 
-            @Override
-            public void onComplete(final String token, final String account) {
-                latch.countDown();
-                assertEquals("token", token);
-            }
-        });
-        callback.run(new MockAccountManagerFuture() {
-            @Override
-            public Bundle getResult() {
-                final Bundle bundle = new Bundle();
-                bundle.putString(AccountManager.KEY_AUTHTOKEN, "token");
-                return bundle;
-            }
-        });
-        latch.assertComplete();
+        Mockito.when(future.getResult()).thenReturn(newBundle(null, ACCOUNT_NAME));
+
+        callback.run(future);
+
+        Mockito.verify(future).getResult();
+        Mockito.verify(listener).onFailure(Mockito.any(Error.class));
     }
 
+    public void testRunInvokesListenerOnFailureIfExceptionThrown() throws Exception {
+        final Auth.Listener listener = Mockito.mock(Auth.Listener.class);
+        final AccountManagerFuture future = Mockito.mock(AccountManagerFuture.class);
+        final ListenerCallback callback = new ListenerCallback(listener);
+
+        Mockito.doThrow(new IOException()).when(future).getResult();
+
+        callback.run(future);
+
+        Mockito.verify(future).getResult();
+        Mockito.verify(listener).onFailure(Mockito.any(Error.class));
+    }
+
+
+    // ===================================================
+
+
+    private Bundle newBundle(final String token, final String account) {
+        final Bundle bundle = new Bundle();
+        bundle.putString(AccountManager.KEY_AUTHTOKEN, token);
+        bundle.putString(AccountManager.KEY_ACCOUNT_NAME, account);
+        return bundle;
+    }
 }

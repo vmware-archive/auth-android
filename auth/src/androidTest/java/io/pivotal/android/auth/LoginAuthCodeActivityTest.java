@@ -12,6 +12,8 @@ import android.os.Build;
 import android.os.Bundle;
 import android.test.ActivityUnitTestCase;
 
+import com.google.api.client.auth.oauth2.AuthorizationCodeRequestUrl;
+
 import org.mockito.Mockito;
 
 import java.util.UUID;
@@ -32,46 +34,45 @@ public class LoginAuthCodeActivityTest extends ActivityUnitTestCase<LoginAuthCod
         System.setProperty("dexmaker.dexcache", context.getCacheDir().getPath());
     }
 
-    public void testOnCreateInvokesOnHandleRedirect() {
+    public void testOnStartInvokesOnHandleRedirect() {
         final Intent intent = new Intent();
-        final Bundle bundle = Bundle.EMPTY;
-
         final LoginAuthCodeActivity activity = Mockito.spy(startActivity(intent, null, null));
 
-        Mockito.doNothing().when(activity).onCreateContentView(bundle);
         Mockito.doReturn(true).when(activity).intentHasCallbackUrl(intent);
         Mockito.doNothing().when(activity).onHandleRedirect(intent);
 
-        activity.onCreate(bundle);
+        activity.onStart();
 
-        Mockito.verify(activity).onCreateContentView(bundle);
         Mockito.verify(activity).intentHasCallbackUrl(intent);
         Mockito.verify(activity).onHandleRedirect(intent);
     }
 
-    public void testOnCreateInvokesAuthorize() {
+    public void testOnStartInvokesAuthorize() {
         final Intent intent = new Intent();
-        final Bundle bundle = Bundle.EMPTY;
-
         final LoginAuthCodeActivity activity = Mockito.spy(startActivity(intent, null, null));
 
-        Mockito.doNothing().when(activity).onCreateContentView(bundle);
         Mockito.doReturn(false).when(activity).intentHasCallbackUrl(intent);
         Mockito.doNothing().when(activity).authorize();
 
-        activity.onCreate(bundle);
+        activity.onStart();
 
-        Mockito.verify(activity).onCreateContentView(bundle);
         Mockito.verify(activity).intentHasCallbackUrl(intent);
         Mockito.verify(activity).authorize();
     }
 
-    public void testCreateContentViewInvokesSetContentView() {
+    public void testOnCreateInvokesSetContentView() {
+        final AuthProvider provider = Mockito.mock(AuthProvider.class);
+        final AuthorizationCodeRequestUrl requestUrl = Mockito.mock(AuthorizationCodeRequestUrl.class);
+
+        Mockito.when(provider.newAuthorizationCodeUrl()).thenReturn(requestUrl);
+
+        AuthProviderFactory.init(provider);
+
         final LoginAuthCodeActivity activity = Mockito.spy(startActivity(new Intent(), null, null));
 
         Mockito.doNothing().when(activity).setContentView(R.layout.activity_login_auth_code);
 
-        activity.onCreateContentView(null);
+        activity.onCreate(null);
 
         Mockito.verify(activity).setContentView(R.layout.activity_login_auth_code);
     }
@@ -85,11 +86,10 @@ public class LoginAuthCodeActivityTest extends ActivityUnitTestCase<LoginAuthCod
     public void testIntentHasCallbackUrlReturnsTrue() {
         final Uri uri = Uri.parse(Pivotal.getRedirectUrl());
         final Intent intent = Mockito.mock(Intent.class);
+        final LoginAuthCodeActivity activity = Mockito.spy(startActivity(new Intent(), null, null));
 
         Mockito.when(intent.hasCategory(Intent.CATEGORY_BROWSABLE)).thenReturn(true);
         Mockito.when(intent.getData()).thenReturn(uri);
-
-        final LoginAuthCodeActivity activity = Mockito.spy(startActivity(new Intent(), null, null));
 
         assertTrue(activity.intentHasCallbackUrl(intent));
 
@@ -99,10 +99,9 @@ public class LoginAuthCodeActivityTest extends ActivityUnitTestCase<LoginAuthCod
 
     public void testIntentHasCallbackUrlWithoutCategoryBrowsable() {
         final Intent intent = Mockito.mock(Intent.class);
+        final LoginAuthCodeActivity activity = Mockito.spy(startActivity(new Intent(), null, null));
 
         Mockito.when(intent.hasCategory(Intent.CATEGORY_BROWSABLE)).thenReturn(false);
-
-        final LoginAuthCodeActivity activity = Mockito.spy(startActivity(new Intent(), null, null));
 
         assertFalse(activity.intentHasCallbackUrl(intent));
 
@@ -111,10 +110,9 @@ public class LoginAuthCodeActivityTest extends ActivityUnitTestCase<LoginAuthCod
 
     public void testIntentHasCallbackUrlWithoutData() {
         final Intent intent = Mockito.mock(Intent.class);
+        final LoginAuthCodeActivity activity = Mockito.spy(startActivity(new Intent(), null, null));
 
         Mockito.when(intent.hasCategory(Intent.CATEGORY_BROWSABLE)).thenReturn(true);
-
-        final LoginAuthCodeActivity activity = Mockito.spy(startActivity(new Intent(), null, null));
 
         assertFalse(activity.intentHasCallbackUrl(intent));
 
@@ -125,11 +123,10 @@ public class LoginAuthCodeActivityTest extends ActivityUnitTestCase<LoginAuthCod
     public void testIntentHasCallbackUrlWithoutRedirectUrl() {
         final Uri uri = Mockito.mock(Uri.class);
         final Intent intent = Mockito.mock(Intent.class);
+        final LoginAuthCodeActivity activity = Mockito.spy(startActivity(new Intent(), null, null));
 
         Mockito.when(intent.hasCategory(Intent.CATEGORY_BROWSABLE)).thenReturn(true);
         Mockito.when(intent.getData()).thenReturn(uri);
-
-        final LoginAuthCodeActivity activity = Mockito.spy(startActivity(new Intent(), null, null));
 
         assertFalse(activity.intentHasCallbackUrl(intent));
 
@@ -147,12 +144,10 @@ public class LoginAuthCodeActivityTest extends ActivityUnitTestCase<LoginAuthCod
         final Uri uri = Mockito.mock(Uri.class);
         final Intent intent = Mockito.mock(Intent.class);
         final LoaderManager manager = Mockito.mock(LoaderManager.class);
+        final LoginAuthCodeActivity activity = Mockito.spy(startActivity(new Intent(), null, null));
 
         Mockito.when(intent.getData()).thenReturn(uri);
         Mockito.when(uri.getQueryParameter("code")).thenReturn(AUTH_CODE);
-
-        final LoginAuthCodeActivity activity = Mockito.spy(startActivity(new Intent(), null, null));
-
         Mockito.doReturn(manager).when(activity).getLoaderManager();
         Mockito.when(manager.restartLoader(Mockito.anyInt(), Mockito.any(Bundle.class), Mockito.any(AuthCodeTokenLoaderCallbacks.class))).thenReturn(null);
 
