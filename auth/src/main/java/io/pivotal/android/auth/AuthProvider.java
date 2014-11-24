@@ -7,10 +7,10 @@ import com.google.api.client.auth.oauth2.AuthorizationCodeFlow;
 import com.google.api.client.auth.oauth2.AuthorizationCodeRequestUrl;
 import com.google.api.client.auth.oauth2.AuthorizationCodeTokenRequest;
 import com.google.api.client.auth.oauth2.BearerToken;
-import com.google.api.client.auth.oauth2.ClientParametersAuthentication;
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.auth.oauth2.PasswordTokenRequest;
 import com.google.api.client.auth.oauth2.RefreshTokenRequest;
+import com.google.api.client.http.BasicAuthentication;
 import com.google.api.client.http.GenericUrl;
 import com.google.api.client.http.HttpExecuteInterceptor;
 import com.google.api.client.http.HttpTransport;
@@ -38,7 +38,7 @@ public interface AuthProvider {
         private static final JsonFactory JSON_FACTORY = new JacksonFactory();
         private static final GenericUrl TOKEN_URL = new GenericUrl(Pivotal.getTokenUrl());
 
-        private static final HttpExecuteInterceptor INTERCEPTOR = new ClientParametersAuthentication(Pivotal.getClientId(), Pivotal.getClientSecret());
+        private static final HttpExecuteInterceptor INTERCEPTOR = new BasicAuthentication(Pivotal.getClientId(), Pivotal.getClientSecret());
 
         private static final Collection<String> SCOPES = Arrays.asList("offline_access", "openid");
 

@@ -19,8 +19,9 @@ public class LoginAuthCodeActivity extends LoginActivity {
     }
 
     @Override
-    protected void onStart() {
-        super.onStart();
+    protected void onResume() {
+        super.onResume();
+        Logger.v("onResume");
 
         final Intent intent = getIntent();
 
@@ -37,6 +38,7 @@ public class LoginAuthCodeActivity extends LoginActivity {
     }
 
     public void authorize() {
+        Logger.v("authorize");
         final String authorizationUrl = getAuthorizationUrl();
         final Uri uri = Uri.parse(authorizationUrl);
         final Intent intent = new Intent(Intent.ACTION_VIEW, uri);
@@ -45,11 +47,13 @@ public class LoginAuthCodeActivity extends LoginActivity {
     }
 
     private String getAuthorizationUrl() {
+        Logger.v("getAuthorizationUrl");
         final AuthProvider provider = AuthProviderFactory.get();
         return provider.newAuthorizationCodeUrl().build();
     }
 
     protected boolean intentHasCallbackUrl(final Intent intent) {
+        Logger.v("intentHasCallbackUrl");
         if (intent != null && intent.hasCategory(Intent.CATEGORY_BROWSABLE) && intent.getData() != null) {
             final String redirectUrl = Pivotal.getRedirectUrl().toLowerCase();
             return intent.getData().toString().toLowerCase().startsWith(redirectUrl);
@@ -59,6 +63,7 @@ public class LoginAuthCodeActivity extends LoginActivity {
     }
 
     protected void onHandleRedirect(final Intent intent) {
+        Logger.v("onHandleRedirect");
         final String code = intent.getData().getQueryParameter("code");
 
         final Bundle bundle = AuthCodeTokenLoaderCallbacks.createBundle(code);

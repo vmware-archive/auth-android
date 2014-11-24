@@ -34,27 +34,27 @@ public class LoginAuthCodeActivityTest extends ActivityUnitTestCase<LoginAuthCod
         System.setProperty("dexmaker.dexcache", context.getCacheDir().getPath());
     }
 
-    public void testOnStartInvokesOnHandleRedirect() {
+    public void testOnResumeInvokesOnHandleRedirect() {
         final Intent intent = new Intent();
         final LoginAuthCodeActivity activity = Mockito.spy(startActivity(intent, null, null));
 
         Mockito.doReturn(true).when(activity).intentHasCallbackUrl(intent);
         Mockito.doNothing().when(activity).onHandleRedirect(intent);
 
-        activity.onStart();
+        activity.onResume();
 
         Mockito.verify(activity).intentHasCallbackUrl(intent);
         Mockito.verify(activity).onHandleRedirect(intent);
     }
 
-    public void testOnStartInvokesAuthorize() {
+    public void testOnResumeInvokesAuthorize() {
         final Intent intent = new Intent();
         final LoginAuthCodeActivity activity = Mockito.spy(startActivity(intent, null, null));
 
         Mockito.doReturn(false).when(activity).intentHasCallbackUrl(intent);
         Mockito.doNothing().when(activity).authorize();
 
-        activity.onStart();
+        activity.onResume();
 
         Mockito.verify(activity).intentHasCallbackUrl(intent);
         Mockito.verify(activity).authorize();
