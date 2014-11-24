@@ -5,6 +5,7 @@ package io.pivotal.android.auth;
 
 import android.util.Base64;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class Token {
@@ -54,8 +55,8 @@ public class Token {
         return timeDifference;
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     private static final class DecodedToken {
-        public String exp, iss, jti, iat;
-        public String[] aud;
+        public String exp;
     }
 }
