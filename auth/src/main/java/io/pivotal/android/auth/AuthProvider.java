@@ -54,7 +54,6 @@ public interface AuthProvider {
         public RefreshTokenRequest newRefreshTokenRequest(final String refreshToken) {
             final RefreshTokenRequest request = new RefreshTokenRequest(TRANSPORT, JSON_FACTORY, TOKEN_URL, refreshToken);
             request.setClientAuthentication(INTERCEPTOR);
-            request.setScopes(SCOPES);
             return request;
         }
 
