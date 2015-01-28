@@ -45,6 +45,8 @@ public interface AuthProvider {
         @Override
         public PasswordTokenRequest newPasswordTokenRequest(final String username, final String password) {
             final PasswordTokenRequest request = new PasswordTokenRequest(TRANSPORT, JSON_FACTORY, TOKEN_URL, username, password);
+            request.set("client_id", Pivotal.getClientId());
+            request.set("client_secret", Pivotal.getClientSecret());
             request.setClientAuthentication(INTERCEPTOR);
             request.setScopes(SCOPES);
             return request;
