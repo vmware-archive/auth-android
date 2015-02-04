@@ -125,7 +125,8 @@ public class Logger {
 
     public static void fd(final String message, final Object... objects) {
         if (sIsDebugEnabled) {
-            final String formattedString = format(message, objects);
+            final String fullString = String.format(message, objects);
+            final String formattedString = format(fullString);
             Log.d(TAG_NAME, formattedString);
             sendMessageToListener(formattedString);
         }
@@ -155,7 +156,7 @@ public class Logger {
         Log.e(TAG_NAME, formattedString);
     }
 
-    private static String format(final String message, final Object... objects) {
+    private static String format(final String message) {
         final StackTraceElement s = StackUtils.getCallingStackTraceElement();
 
         final String thread = isUiThread() ? UI_THREAD : BG_THREAD;
@@ -165,8 +166,7 @@ public class Logger {
         final String method = s.getMethodName();
         final int line = s.getLineNumber();
 
-        final String formatted = String.format(message, objects);
-        return String.format("*%s* (%d) [%s:%s:%d] %s", thread, threadId, klass, method, line, formatted);
+        return String.format("*%s* (%d) [%s:%s:%d] %s", thread, threadId, klass, method, line, message);
     }
 
     private static boolean isUiThread() {
