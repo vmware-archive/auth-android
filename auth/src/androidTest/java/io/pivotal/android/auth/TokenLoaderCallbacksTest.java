@@ -25,7 +25,7 @@ public class TokenLoaderCallbacksTest extends AndroidTestCase {
     }
 
     public void testSuccessfulCallback() {
-        final TokenListener listener = Mockito.mock(TokenListener.class);
+        final TokenLoader.Listener listener = Mockito.mock(TokenLoader.Listener.class);
         final TokenResponse response = Mockito.spy(new TokenResponse());
         final TestTokenLoaderCallbacks callbacks = new TestTokenLoaderCallbacks(null, listener);
 
@@ -38,7 +38,7 @@ public class TokenLoaderCallbacksTest extends AndroidTestCase {
     }
 
     public void testFailedCallback() {
-        final TokenListener listener = Mockito.mock(TokenListener.class);
+        final TokenLoader.Listener listener = Mockito.mock(TokenLoader.Listener.class);
         final TokenResponse response = Mockito.spy(new TokenResponse().set("error", MESSAGE));
         final TestTokenLoaderCallbacks callbacks = new TestTokenLoaderCallbacks(null, listener);
 
@@ -54,7 +54,7 @@ public class TokenLoaderCallbacksTest extends AndroidTestCase {
 
     public static final class TestTokenLoaderCallbacks extends TokenLoaderCallbacks {
 
-        public TestTokenLoaderCallbacks(final Context context, final TokenListener listener) {
+        public TestTokenLoaderCallbacks(final Context context, final TokenLoader.Listener listener) {
             super(context, listener);
         }
 

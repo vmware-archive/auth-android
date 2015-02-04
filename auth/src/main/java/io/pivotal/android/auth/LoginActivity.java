@@ -11,7 +11,7 @@ import android.os.Build;
 import android.widget.Toast;
 
 @TargetApi(Build.VERSION_CODES.HONEYCOMB)
-/* package */ abstract class LoginActivity extends AccountAuthenticatorActivity implements TokenListener {
+/* package */ abstract class LoginActivity extends AccountAuthenticatorActivity implements TokenLoader.Listener {
 
     protected abstract String getUserName();
 
@@ -24,7 +24,7 @@ import android.widget.Toast;
     @Override
     public void onAuthorizationComplete(final Token token) {
         final String username = getUserName();
-        Auth.addAccount(this, username, token);
+        Accounts.addAccount(this, username, token);
         setResultIntent(token, username);
         finish();
     }

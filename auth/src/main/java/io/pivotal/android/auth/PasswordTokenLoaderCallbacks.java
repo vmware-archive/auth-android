@@ -26,7 +26,7 @@ import com.google.api.client.auth.oauth2.TokenResponse;
         return args;
     }
 
-    public PasswordTokenLoaderCallbacks(final Context context, final TokenListener listener) {
+    public PasswordTokenLoaderCallbacks(final Context context, final TokenLoader.Listener listener) {
         super(context, listener);
     }
 

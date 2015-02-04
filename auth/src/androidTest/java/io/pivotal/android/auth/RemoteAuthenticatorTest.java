@@ -12,7 +12,7 @@ import com.google.api.client.auth.oauth2.RefreshTokenRequest;
 
 import java.util.UUID;
 
-public class AuthProviderTest extends AndroidTestCase {
+public class RemoteAuthenticatorTest extends AndroidTestCase {
 
     private static final String USERNAME = UUID.randomUUID().toString();
     private static final String PASSWORD = UUID.randomUUID().toString();
@@ -21,7 +21,7 @@ public class AuthProviderTest extends AndroidTestCase {
 
 
     public void testCreateNewPasswordTokenRequest() throws Exception {
-        final AuthProvider.Default provider = new AuthProvider.Default();
+        final RemoteAuthenticator.Default provider = new RemoteAuthenticator.Default();
         final PasswordTokenRequest request = provider.newPasswordTokenRequest(USERNAME, PASSWORD);
 
         assertEquals(USERNAME, request.getUsername());
@@ -29,14 +29,14 @@ public class AuthProviderTest extends AndroidTestCase {
     }
 
     public void testCreateNewRefreshTokenRequest() throws Exception {
-        final AuthProvider.Default provider = new AuthProvider.Default();
+        final RemoteAuthenticator.Default provider = new RemoteAuthenticator.Default();
         final RefreshTokenRequest request = provider.newRefreshTokenRequest(REFRESH_TOKEN);
 
         assertEquals(REFRESH_TOKEN, request.getRefreshToken());
     }
 
     public void testCreateNewAuthorizationCodeTokenRequest() throws Exception {
-        final AuthProvider provider = new AuthProvider.Default();
+        final RemoteAuthenticator provider = new RemoteAuthenticator.Default();
         final AuthorizationCodeTokenRequest request = provider.newAuthorizationCodeTokenRequest(AUTH_CODE);
 
         assertEquals(AUTH_CODE, request.getCode());
@@ -44,7 +44,7 @@ public class AuthProviderTest extends AndroidTestCase {
     }
 
     public void testCreateNewAuthorizationCodeRequestUrl() throws Exception {
-        final AuthProvider provider = new AuthProvider.Default();
+        final RemoteAuthenticator provider = new RemoteAuthenticator.Default();
         final AuthorizationCodeRequestUrl url = provider.newAuthorizationCodeUrl();
 
         assertEquals(Pivotal.getRedirectUrl(), url.getRedirectUri());

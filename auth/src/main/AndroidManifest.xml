@@ -10,7 +10,7 @@
     <application>
         <activity android:name=".LoginPasswordActivity" />
 
-        <service android:name=".AuthenticatorService"
+        <service android:name=".AccountAuthenticatorService"
             android:permission="android.permission.ACCOUNT_MANAGER" >
 
             <intent-filter>

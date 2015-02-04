@@ -30,37 +30,37 @@ public class PasswordTokenLoaderTest extends AndroidTestCase {
     public void testLoadInBackgroundSucceedsWithTokenResponse() throws Exception {
         final Context context = Mockito.mock(Context.class);
         final TokenResponse response = Mockito.mock(TokenResponse.class);
-        final AuthProvider provider = Mockito.mock(AuthProvider.class);
+        final RemoteAuthenticator authenticator = Mockito.mock(RemoteAuthenticator.class);
         final PasswordTokenRequest request = Mockito.mock(PasswordTokenRequest.class);
         final PasswordTokenLoader loader = new PasswordTokenLoader(context, USERNAME, PASSWORD);
 
-        AuthProviderFactory.init(provider);
+        RemoteAuthenticatorFactory.init(authenticator);
 
-        Mockito.when(provider.newPasswordTokenRequest(USERNAME, PASSWORD)).thenReturn(request);
+        Mockito.when(authenticator.newPasswordTokenRequest(USERNAME, PASSWORD)).thenReturn(request);
         Mockito.when(request.execute()).thenReturn(response);
 
         assertEquals(response, loader.loadInBackground());
 
-        Mockito.verify(provider).newPasswordTokenRequest(USERNAME, PASSWORD);
+        Mockito.verify(authenticator).newPasswordTokenRequest(USERNAME, PASSWORD);
         Mockito.verify(request).execute();
     }
 
     public void testLoadInBackgroundFailsWithErrorResponse() throws Exception {
         final Context context = Mockito.mock(Context.class);
-        final AuthProvider provider = Mockito.mock(AuthProvider.class);
+        final RemoteAuthenticator authenticator = Mockito.mock(RemoteAuthenticator.class);
         final PasswordTokenRequest request = Mockito.mock(PasswordTokenRequest.class);
         final PasswordTokenLoader loader = new PasswordTokenLoader(context, USERNAME, PASSWORD);
 
-        AuthProviderFactory.init(provider);
+        RemoteAuthenticatorFactory.init(authenticator);
 
-        Mockito.when(provider.newPasswordTokenRequest(USERNAME, PASSWORD)).thenReturn(request);
+        Mockito.when(authenticator.newPasswordTokenRequest(USERNAME, PASSWORD)).thenReturn(request);
         Mockito.doThrow(new RuntimeException()).when(request).execute();
 
         final TokenResponse response = loader.loadInBackground();
 
         assertTrue(response instanceof TokenLoader.ErrorResponse);
 
-        Mockito.verify(provider).newPasswordTokenRequest(USERNAME, PASSWORD);
+        Mockito.verify(authenticator).newPasswordTokenRequest(USERNAME, PASSWORD);
         Mockito.verify(request).execute();
     }
 }

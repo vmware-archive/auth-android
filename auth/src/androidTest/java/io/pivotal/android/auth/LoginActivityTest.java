@@ -36,7 +36,7 @@ public class LoginActivityTest extends ActivityUnitTestCase<LoginActivityTest.Te
 
     public void testAuthorizationCompleteAddsAccountAndSetsAccessToken() {
         final Token token = new Token(ACCESS_TOKEN, REFRESH_TOKEN);
-        final TokenProvider provider = Mockito.mock(TokenProvider.class);
+        final AccountsProxy provider = Mockito.mock(AccountsProxy.class);
         final TestLoginActivity activity = Mockito.spy(startActivity(new Intent(), null, null));
 
         Mockito.doNothing().when(provider).addAccount(Mockito.any(Account.class), Mockito.eq(REFRESH_TOKEN));
@@ -45,7 +45,7 @@ public class LoginActivityTest extends ActivityUnitTestCase<LoginActivityTest.Te
         Mockito.doNothing().when(activity).setResultIntent(token, USERNAME);
         Mockito.doNothing().when(activity).finish();
 
-        TokenProviderFactory.init(provider);
+        AccountsProxyFactory.init(provider);
         activity.onAuthorizationComplete(token);
 
         Mockito.verify(provider).addAccount(Mockito.any(Account.class), Mockito.eq(REFRESH_TOKEN));
@@ -59,13 +59,13 @@ public class LoginActivityTest extends ActivityUnitTestCase<LoginActivityTest.Te
         final Bundle bundle = Bundle.EMPTY;
         final Token token = Mockito.mock(Token.class);
         final Intent intent = Mockito.mock(Intent.class);
-        final TokenProvider provider = Mockito.mock(TokenProvider.class);
+        final AccountsProxy provider = Mockito.mock(AccountsProxy.class);
         final TestLoginActivity activity = Mockito.spy(startActivity(new Intent(), null, null));
 
         Mockito.doReturn(intent).when(activity).getResultIntent(token, USERNAME);
         Mockito.when(intent.getExtras()).thenReturn(bundle);
 
-        TokenProviderFactory.init(provider);
+        AccountsProxyFactory.init(provider);
         activity.setResultIntent(token, USERNAME);
 
         assertEquals(bundle, activity.getResultData());
@@ -76,13 +76,13 @@ public class LoginActivityTest extends ActivityUnitTestCase<LoginActivityTest.Te
     }
 
     public void testGetResultIntent() {
-        final TokenProvider provider = Mockito.mock(TokenProvider.class);
+        final AccountsProxy provider = Mockito.mock(AccountsProxy.class);
         final Token token = Mockito.mock(Token.class);
         final TestLoginActivity activity = startActivity(new Intent(), null, null);
 
         Mockito.when(token.getAccessToken()).thenReturn(ACCESS_TOKEN);
 
-        TokenProviderFactory.init(provider);
+        AccountsProxyFactory.init(provider);
         final Intent intent = activity.getResultIntent(token, USERNAME);
 
         assertEquals(Pivotal.getAccountType(), intent.getStringExtra(AccountManager.KEY_ACCOUNT_TYPE));

@@ -24,7 +24,7 @@ import com.google.api.client.auth.oauth2.TokenResponse;
         return args;
     }
 
-    public AuthCodeTokenLoaderCallbacks(final Context context, final TokenListener listener) {
+    public AuthCodeTokenLoaderCallbacks(final Context context, final TokenLoader.Listener listener) {
         super(context, listener);
     }
 

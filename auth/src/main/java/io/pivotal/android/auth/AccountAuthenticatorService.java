@@ -7,11 +7,11 @@ import android.app.Service;
 import android.content.Intent;
 import android.os.IBinder;
 
-public class AuthenticatorService extends Service {
+public class AccountAuthenticatorService extends Service {
 	
 	@Override
 	public IBinder onBind(final Intent intent) {
-        final Authenticator authenticator = new Authenticator(this);
-		return authenticator.getIBinder();
+        final AccountAuthenticator accountAuthenticator = new AccountAuthenticator(this);
+		return accountAuthenticator.getIBinder();
 	}
 }

@@ -16,11 +16,11 @@ import android.text.TextUtils;
 import com.google.api.client.auth.oauth2.RefreshTokenRequest;
 import com.google.api.client.http.HttpResponseException;
 
-public class Authenticator extends AbstractAccountAuthenticator {
+public class AccountAuthenticator extends AbstractAccountAuthenticator {
 
 	private final Context mContext;
 
-	public Authenticator(final Context context) {
+	public AccountAuthenticator(final Context context) {
 		super(context);
 		mContext = context;
 	}
@@ -99,7 +99,8 @@ public class Authenticator extends AbstractAccountAuthenticator {
         return bundle;
     }
 
-    protected Bundle newErrorBundle(final Account account, final String message) {
+    protected Bundle newErrorBundle(final Account account, final Throwable throwable) {
+        final String message = throwable != null ? throwable.toString() : "Unknown";
         Logger.v("newErrorBundle: " + message);
         final Bundle bundle = new Bundle();
         bundle.putString(AccountManager.KEY_ACCOUNT_NAME, account.name);
@@ -111,16 +112,16 @@ public class Authenticator extends AbstractAccountAuthenticator {
 
     protected Bundle newAuthTokenBundle(final AccountAuthenticatorResponse response, final Account account) {
 
-        final TokenProvider provider = TokenProviderFactory.get(mContext);
-        final String accessToken = provider.getAccessToken(account);
+        final AccountsProxy proxy = AccountsProxyFactory.get(mContext);
+        final String accessToken = proxy.getAccessToken(account);
 
         Logger.v("newAuthTokenBundle accessToken: " + accessToken);
 
-        if (!TextUtils.isEmpty(accessToken) && !Token.isExpired(accessToken)) {
+        if (!TextUtils.isEmpty(accessToken) && !TokenUtil.isExpired(accessToken)) {
             return newAuthTokenBundle(account, accessToken);
 
         } else {
-            final String refreshToken = provider.getRefreshToken(account);
+            final String refreshToken = proxy.getRefreshToken(account);
 
             Logger.v("newAuthTokenBundle accessToken " + (TextUtils.isEmpty(accessToken) ? "empty." : "expired."));
             Logger.v("newAuthTokenBundle refreshToken: " + refreshToken);
@@ -135,8 +136,8 @@ public class Authenticator extends AbstractAccountAuthenticator {
 
     protected Bundle newAuthTokenBundle(final AccountAuthenticatorResponse response, final Account account, final String refreshToken) {
         try {
-            final AuthProvider provider = AuthProviderFactory.get();
-            final RefreshTokenRequest request = provider.newRefreshTokenRequest(refreshToken);
+            final RemoteAuthenticator authenticator = RemoteAuthenticatorFactory.get();
+            final RefreshTokenRequest request = authenticator.newRefreshTokenRequest(refreshToken);
             final String accessToken = request.execute().getAccessToken();
 
             Logger.v("newAuthTokenBundle new accessToken: " + accessToken);
@@ -149,13 +150,13 @@ public class Authenticator extends AbstractAccountAuthenticator {
             if (e.getStatusCode() == 401) {
                 return newAccountBundle(response);
             } else {
-                return newErrorBundle(account, e.getLocalizedMessage());
+                return newErrorBundle(account, e.getCause());
             }
 
         } catch (final Exception e) {
             Logger.ex(e);
 
-            return newErrorBundle(account, e.getLocalizedMessage());
+            return newErrorBundle(account, e.getCause());
         }
     }
 }

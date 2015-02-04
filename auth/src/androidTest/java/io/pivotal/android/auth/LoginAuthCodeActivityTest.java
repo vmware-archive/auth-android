@@ -61,12 +61,12 @@ public class LoginAuthCodeActivityTest extends ActivityUnitTestCase<LoginAuthCod
     }
 
     public void testOnCreateInvokesSetContentView() {
-        final AuthProvider provider = Mockito.mock(AuthProvider.class);
+        final RemoteAuthenticator authenticator = Mockito.mock(RemoteAuthenticator.class);
         final AuthorizationCodeRequestUrl requestUrl = Mockito.mock(AuthorizationCodeRequestUrl.class);
 
-        Mockito.when(provider.newAuthorizationCodeUrl()).thenReturn(requestUrl);
+        Mockito.when(authenticator.newAuthorizationCodeUrl()).thenReturn(requestUrl);
 
-        AuthProviderFactory.init(provider);
+        RemoteAuthenticatorFactory.init(authenticator);
 
         final LoginAuthCodeActivity activity = Mockito.spy(startActivity(new Intent(), null, null));
 

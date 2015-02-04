@@ -29,4 +29,10 @@ import com.google.api.client.auth.oauth2.TokenResponse;
             put("error", message != null ? message : "Unknown error.");
         }
     }
+
+    /* package */ static interface Listener {
+        public void onAuthorizationComplete(final Token token);
+
+        public void onAuthorizationFailed(final Error error);
+    }
 }

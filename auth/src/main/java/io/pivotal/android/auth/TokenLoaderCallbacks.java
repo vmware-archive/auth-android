@@ -17,9 +17,9 @@ import com.google.api.client.auth.oauth2.TokenResponse;
     private static final String ERROR = "error";
 
     private final Context mContext;
-    private final TokenListener mListener;
+    private final TokenLoader.Listener mListener;
 
-    public TokenLoaderCallbacks(final Context context, final TokenListener listener) {
+    public TokenLoaderCallbacks(final Context context, final TokenLoader.Listener listener) {
         mContext = context;
         mListener = listener;
     }

@@ -48,8 +48,8 @@ public class LoginAuthCodeActivity extends LoginActivity {
 
     private String getAuthorizationUrl() {
         Logger.v("getAuthorizationUrl");
-        final AuthProvider provider = AuthProviderFactory.get();
-        return provider.newAuthorizationCodeUrl().build();
+        final RemoteAuthenticator authenticator = RemoteAuthenticatorFactory.get();
+        return authenticator.newAuthorizationCodeUrl().build();
     }
 
     protected boolean intentHasCallbackUrl(final Intent intent) {

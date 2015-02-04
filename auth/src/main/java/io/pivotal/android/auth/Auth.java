@@ -6,92 +6,75 @@ package io.pivotal.android.auth;
 import android.accounts.Account;
 import android.app.Activity;
 import android.content.Context;
+import android.text.TextUtils;
 
 public class Auth {
 
+    public static Response getAccessToken(final Context context) {
+        final AuthClient auth = AuthClientFactory.get(context);
+        return auth.requestAccessToken(context);
+    }
+
+    public static void getAccessToken(final Context context, final Listener listener) {
+        final AuthClient auth = AuthClientFactory.get(context);
+        auth.requestAccessToken(context, listener);
+    }
+
+    public static Response getAccessToken(final Context context, final Account account) {
+        final AuthClient auth = AuthClientFactory.get(context);
+        return auth.requestAccessToken(account);
+    }
+
+    public static void getAccessToken(final Context context, final Account account, final Listener listener) {
+        final AuthClient auth = AuthClientFactory.get(context);
+        auth.requestAccessToken(account, listener);
+    }
+
+    public static Response getAccessTokenWithUserPrompt(final Activity activity) {
+        final AuthClient auth = AuthClientFactory.get(activity);
+        return auth.requestAccessToken(activity);
+    }
+
+    public static void getAccessTokenWithUserPrompt(final Activity activity, final Listener listener) {
+        final AuthClient auth = AuthClientFactory.get(activity);
+        auth.requestAccessToken(activity, listener);
+    }
+
+    public static void invalidateAccessToken(final Context context) {
+        final AccountsProxy proxy = AccountsProxyFactory.get(context);
+        final Account account = Accounts.getLastUsedAccount(context);
+        final String accessToken = proxy.getAccessToken(account);
+        proxy.invalidateAccessToken(accessToken);
+    }
+
     public static interface Listener {
-        public void onComplete(String token, String account);
-
-        public void onFailure(Error error);
+        public void onResponse(Response response);
     }
 
-    public static String getAccessToken(final Context context, final String accountName) {
-        try {
-            Logger.i("getAccessToken: " + accountName);
-            final Account account = getAccount(context, accountName);
-            return TokenProviderFactory.get(context).getAccessTokenOrThrow(account);
-        } catch (final Exception e) {
-            Logger.ex(e);
-            return null;
+    public static class Response {
+        public String accessToken;
+        public String accountName;
+        public AuthError error;
+
+        public Response(final AuthError error) {
+            this.error = error;
         }
-    }
 
-    public static void getAccessToken(final Activity activity, final Listener listener) {
-        Logger.i("getAccessToken");
-        final TokenProvider provider = TokenProviderFactory.get(activity);
-        provider.getAccessToken(activity, listener);
-    }
-
-    public static void getAccessToken(final Context context, final boolean notifyUser, final Listener listener) {
-        Logger.i("getLastUsedAccessToken");
-        final TokenProvider provider = TokenProviderFactory.get(context);
-        final Account[] accounts = getAccounts(context);
-
-        if (accounts.length == 1) {
-            provider.getAccessToken(context, accounts[0], notifyUser, listener);
-        } else {
-
-            final String accountName = AuthPreferences.getLastUsedAccountName(context);
-            final Account account = getAccount(context, accountName);
-            if (account != null) {
-                provider.getAccessToken(context, account, notifyUser, listener);
-            } else {
-                listener.onFailure(new Error("Could not determine last used account."));
-            }
+        public Response(final String accessToken, final String accountName) {
+            this.accessToken = accessToken;
+            this.accountName = accountName;
         }
-    }
 
-    public static void invalidateAccessToken(final Context context, final String token) {
-        Logger.i("invalidateAccessToken");
-        TokenProviderFactory.get(context).invalidateAccessToken(token);
-    }
-
-    public static void addAccount(final Context context, final String name, final Token token) {
-        Logger.i("addAccount: " + name + ", token: " + token.getAccessToken());
-        final TokenProvider provider = TokenProviderFactory.get(context);
-        final Account account = new Account(name, Pivotal.getAccountType());
-        provider.addAccount(account, token.getRefreshToken());
-        provider.setAccessToken(account, token.getAccessToken());
-    }
-
-    public static Account[] getAccounts(final Context context) {
-        Logger.i("getAccounts");
-        return TokenProviderFactory.get(context).getAccounts();
-    }
-
-    public static Account getAccount(final Context context, final String name) {
-        Logger.i("getAccount: " + name);
-        final Account[] accounts = getAccounts(context);
-        for (int i = 0; i < accounts.length; i++) {
-            if (name == null || name.equals(accounts[i].name)) {
-                return accounts[i];
-            }
+        public boolean isTokenExpired() {
+            return TextUtils.isEmpty(this.accessToken) || TokenUtil.isExpired(this.accessToken);
         }
-        return null;
-    }
 
-    public static void removeAccount(final Context context, final String name) {
-        Logger.i("removeAccount: " + name);
-        final Account account = new Account(name, Pivotal.getAccountType());
-        TokenProviderFactory.get(context).removeAccount(account);
-    }
+        public boolean isSuccess() {
+            return this.error == null;
+        }
 
-    public static void removeAllAccounts(final Context context) {
-        Logger.i("removeAllAccounts");
-        final TokenProvider provider = TokenProviderFactory.get(context);
-        final Account[] accounts = getAccounts(context);
-        for (int i = 0; i < accounts.length; i++) {
-            provider.removeAccount(accounts[i]);
+        public boolean isFailure() {
+            return this.error != null;
         }
     }
 }

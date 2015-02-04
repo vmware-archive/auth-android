@@ -29,37 +29,37 @@ public class AuthCodeTokenLoaderTest extends AndroidTestCase {
     public void testLoadInBackgroundSucceedsWithTokenResponse() throws Exception {
         final Context context = Mockito.mock(Context.class);
         final TokenResponse response = Mockito.mock(TokenResponse.class);
-        final AuthProvider provider = Mockito.mock(AuthProvider.class);
+        final RemoteAuthenticator authenticator = Mockito.mock(RemoteAuthenticator.class);
         final AuthorizationCodeTokenRequest request = Mockito.mock(AuthorizationCodeTokenRequest.class);
         final AuthCodeTokenLoader loader = new AuthCodeTokenLoader(context, AUTH_CODE);
 
-        AuthProviderFactory.init(provider);
+        RemoteAuthenticatorFactory.init(authenticator);
 
-        Mockito.when(provider.newAuthorizationCodeTokenRequest(AUTH_CODE)).thenReturn(request);
+        Mockito.when(authenticator.newAuthorizationCodeTokenRequest(AUTH_CODE)).thenReturn(request);
         Mockito.when(request.execute()).thenReturn(response);
 
         assertEquals(response, loader.loadInBackground());
 
-        Mockito.verify(provider).newAuthorizationCodeTokenRequest(AUTH_CODE);
+        Mockito.verify(authenticator).newAuthorizationCodeTokenRequest(AUTH_CODE);
         Mockito.verify(request).execute();
     }
 
     public void testLoadInBackgroundFailsWithErrorResponse() throws Exception {
         final Context context = Mockito.mock(Context.class);
-        final AuthProvider provider = Mockito.mock(AuthProvider.class);
+        final RemoteAuthenticator authenticator = Mockito.mock(RemoteAuthenticator.class);
         final AuthorizationCodeTokenRequest request = Mockito.mock(AuthorizationCodeTokenRequest.class);
         final AuthCodeTokenLoader loader = new AuthCodeTokenLoader(context, AUTH_CODE);
 
-        AuthProviderFactory.init(provider);
+        RemoteAuthenticatorFactory.init(authenticator);
 
-        Mockito.when(provider.newAuthorizationCodeTokenRequest(AUTH_CODE)).thenReturn(request);
+        Mockito.when(authenticator.newAuthorizationCodeTokenRequest(AUTH_CODE)).thenReturn(request);
         Mockito.doThrow(new RuntimeException()).when(request).execute();
 
         final TokenResponse response = loader.loadInBackground();
 
         assertTrue(response instanceof TokenLoader.ErrorResponse);
 
-        Mockito.verify(provider).newAuthorizationCodeTokenRequest(AUTH_CODE);
+        Mockito.verify(authenticator).newAuthorizationCodeTokenRequest(AUTH_CODE);
         Mockito.verify(request).execute();
     }
 }

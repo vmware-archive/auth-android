@@ -22,7 +22,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.UUID;
 
-public interface AuthProvider {
+public interface RemoteAuthenticator {
 
     public PasswordTokenRequest newPasswordTokenRequest(String username, String password);
 
@@ -32,7 +32,7 @@ public interface AuthProvider {
 
     public AuthorizationCodeRequestUrl newAuthorizationCodeUrl();
 
-    public static class Default implements AuthProvider {
+    public static class Default implements RemoteAuthenticator {
 
         private static final HttpTransport TRANSPORT = new NetHttpTransport();
         private static final JsonFactory JSON_FACTORY = new JacksonFactory();

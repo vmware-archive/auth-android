@@ -6,10 +6,10 @@ package io.pivotal.android.auth;
 import android.content.Intent;
 import android.test.ServiceTestCase;
 
-public class AuthenticatorServiceTest extends ServiceTestCase<AuthenticatorService> {
+public class AccountAuthenticatorServiceTest extends ServiceTestCase<AccountAuthenticatorService> {
 
-    public AuthenticatorServiceTest() {
-        super(AuthenticatorService.class);
+    public AccountAuthenticatorServiceTest() {
+        super(AccountAuthenticatorService.class);
     }
 
     public void testBindService() {
