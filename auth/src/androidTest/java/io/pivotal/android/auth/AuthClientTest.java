@@ -40,12 +40,12 @@ public class AuthClientTest extends AndroidTestCase {
         final AuthClient.Default client = Mockito.spy(new AuthClient.Default(proxy));
 
         Mockito.when(proxy.getAuthTokenByFeatures(Mockito.any(Activity.class), Mockito.any(AccountManagerCallbackBundle.class))).thenReturn(future);
-        Mockito.doReturn(response).when(client).handleFuture(Mockito.any(Activity.class), Mockito.any(AccountManagerFutureBundle.class));
+        Mockito.doReturn(response).when(client).validateTokenInFuture(Mockito.any(Activity.class), Mockito.any(AccountManagerFutureBundle.class));
 
         assertEquals(response, client.requestAccessToken(activity));
 
         Mockito.verify(proxy).getAuthTokenByFeatures(activity, null);
-        Mockito.verify(client).handleFuture(activity, future);
+        Mockito.verify(client).validateTokenInFuture(activity, future);
     }
 
     public void testRequestAccessTokenWithActivityAndListener() {
@@ -56,7 +56,7 @@ public class AuthClientTest extends AndroidTestCase {
         final AccountManagerFuture<Bundle> future = Mockito.mock(AccountManagerFutureBundle.class);
         final AuthClient.Default client = Mockito.spy(new AuthClient.Default(proxy));
 
-        Mockito.doReturn(response).when(client).handleFuture(Mockito.any(Context.class), Mockito.any(AccountManagerFutureBundle.class));
+        Mockito.doReturn(response).when(client).validateTokenInFuture(Mockito.any(Context.class), Mockito.any(AccountManagerFutureBundle.class));
         Mockito.when(proxy.getAuthTokenByFeatures(Mockito.any(Activity.class), Mockito.any(AccountManagerCallbackBundle.class))).thenAnswer(new Answer<Object>() {
             @Override
             public Object answer(final InvocationOnMock invocationOnMock) throws Throwable {
@@ -69,7 +69,7 @@ public class AuthClientTest extends AndroidTestCase {
         client.requestAccessToken(activity, listener);
 
         Mockito.verify(proxy).getAuthTokenByFeatures(Mockito.eq(activity), Mockito.any(AccountManagerCallbackBundle.class));
-        Mockito.verify(client).handleFuture(activity, future);
+        Mockito.verify(client).validateTokenInFuture(activity, future);
         Mockito.verify(listener).onResponse(response);
     }
 
@@ -83,13 +83,13 @@ public class AuthClientTest extends AndroidTestCase {
 
         Mockito.when(proxy.getAuthToken(Mockito.any(Account.class), Mockito.any(AccountManagerCallbackBundle.class))).thenReturn(future);
         Mockito.doReturn(account).when(client).getLastUsedAccount(context);
-        Mockito.doReturn(response).when(client).handleFuture(Mockito.any(Activity.class), Mockito.any(AccountManagerFutureBundle.class));
+        Mockito.doReturn(response).when(client).validateTokenInFuture(Mockito.any(Activity.class), Mockito.any(AccountManagerFutureBundle.class));
 
         assertEquals(response, client.requestAccessToken(context));
 
         Mockito.verify(client).getLastUsedAccount(context);
         Mockito.verify(proxy).getAuthToken(account, null);
-        Mockito.verify(client).handleFuture(context, future);
+        Mockito.verify(client).validateTokenInFuture(context, future);
     }
 
     public void testRequestAccessTokenWithContextNoLastUsedAccount() {
@@ -117,7 +117,7 @@ public class AuthClientTest extends AndroidTestCase {
         final AuthClient.Default client = Mockito.spy(new AuthClient.Default(proxy));
 
         Mockito.doReturn(account).when(client).getLastUsedAccount(context);
-        Mockito.doReturn(response).when(client).handleFuture(Mockito.any(Context.class), Mockito.any(AccountManagerFutureBundle.class));
+        Mockito.doReturn(response).when(client).validateTokenInFuture(Mockito.any(Context.class), Mockito.any(AccountManagerFutureBundle.class));
         Mockito.when(proxy.getAuthToken(Mockito.eq(account), Mockito.any(AccountManagerCallbackBundle.class))).thenAnswer(new Answer<Object>() {
             @Override
             public Object answer(final InvocationOnMock invocationOnMock) throws Throwable {
@@ -131,7 +131,7 @@ public class AuthClientTest extends AndroidTestCase {
 
         Mockito.verify(client).getLastUsedAccount(context);
         Mockito.verify(proxy).getAuthToken(Mockito.eq(account), Mockito.any(AccountManagerCallbackBundle.class));
-        Mockito.verify(client).handleFuture(context, future);
+        Mockito.verify(client).validateTokenInFuture(context, future);
         Mockito.verify(listener).onResponse(response);
     }
 
@@ -160,12 +160,12 @@ public class AuthClientTest extends AndroidTestCase {
         final AuthClient.Default client = Mockito.spy(new AuthClient.Default(proxy));
 
         Mockito.when(proxy.getAuthToken(Mockito.any(Account.class), Mockito.any(AccountManagerCallbackBundle.class))).thenReturn(future);
-        Mockito.doReturn(response).when(client).validateAccountBundle(Mockito.any(AccountManagerFutureBundle.class));
+        Mockito.doReturn(response).when(client).retrieveResponseFromFuture(Mockito.any(AccountManagerFutureBundle.class));
 
         assertEquals(response, client.requestAccessToken(account));
 
         Mockito.verify(proxy).getAuthToken(account, null);
-        Mockito.verify(client).validateAccountBundle(future);
+        Mockito.verify(client).retrieveResponseFromFuture(future);
     }
 
     public void testRequestAccessTokenWithAccountAndListener() {
@@ -176,7 +176,7 @@ public class AuthClientTest extends AndroidTestCase {
         final AccountManagerFuture<Bundle> future = Mockito.mock(AccountManagerFutureBundle.class);
         final AuthClient.Default client = Mockito.spy(new AuthClient.Default(proxy));
 
-        Mockito.doReturn(response).when(client).validateAccountBundle(Mockito.any(AccountManagerFutureBundle.class));
+        Mockito.doReturn(response).when(client).retrieveResponseFromFuture(Mockito.any(AccountManagerFutureBundle.class));
         Mockito.when(proxy.getAuthToken(Mockito.eq(account), Mockito.any(AccountManagerCallbackBundle.class))).thenAnswer(new Answer<Object>() {
             @Override
             public Object answer(final InvocationOnMock invocationOnMock) throws Throwable {
@@ -189,7 +189,7 @@ public class AuthClientTest extends AndroidTestCase {
         client.requestAccessToken(account, listener);
 
         Mockito.verify(proxy).getAuthToken(Mockito.eq(account), Mockito.any(AccountManagerCallbackBundle.class));
-        Mockito.verify(client).validateAccountBundle(future);
+        Mockito.verify(client).retrieveResponseFromFuture(future);
         Mockito.verify(listener).onResponse(response);
     }
 
@@ -203,14 +203,14 @@ public class AuthClientTest extends AndroidTestCase {
 
         Mockito.when(response.isSuccess()).thenReturn(true);
         Mockito.when(response.isTokenExpired()).thenReturn(true);
-        Mockito.doReturn(response).when(client).validateAccountBundle(Mockito.any(AccountManagerFutureBundle.class));
+        Mockito.doReturn(response).when(client).retrieveResponseFromFuture(Mockito.any(AccountManagerFutureBundle.class));
         Mockito.doNothing().when(client).setLastUsedAccountName(Mockito.any(Context.class), Mockito.anyString());
         Mockito.doReturn(account).when(client).getAccount(Mockito.any(Context.class), Mockito.anyString());
         Mockito.doReturn(response).when(client).requestAccessToken(Mockito.any(Account.class));
 
-        assertEquals(response, client.handleFuture(context, future));
+        assertEquals(response, client.validateTokenInFuture(context, future));
 
-        Mockito.verify(client).validateAccountBundle(future);
+        Mockito.verify(client).retrieveResponseFromFuture(future);
         Mockito.verify(client).setLastUsedAccountName(context, ACCOUNT_NAME);
         Mockito.verify(proxy).invalidateAccessToken(ACCESS_TOKEN);
         Mockito.verify(client).getAccount(context, ACCOUNT_NAME);
@@ -226,12 +226,12 @@ public class AuthClientTest extends AndroidTestCase {
 
         Mockito.when(response.isSuccess()).thenReturn(true);
         Mockito.when(response.isTokenExpired()).thenReturn(false);
-        Mockito.doReturn(response).when(client).validateAccountBundle(Mockito.any(AccountManagerFutureBundle.class));
+        Mockito.doReturn(response).when(client).retrieveResponseFromFuture(Mockito.any(AccountManagerFutureBundle.class));
         Mockito.doNothing().when(client).setLastUsedAccountName(Mockito.any(Context.class), Mockito.anyString());
 
-        assertEquals(response, client.handleFuture(context, future));
+        assertEquals(response, client.validateTokenInFuture(context, future));
 
-        Mockito.verify(client).validateAccountBundle(future);
+        Mockito.verify(client).retrieveResponseFromFuture(future);
         Mockito.verify(client).setLastUsedAccountName(context, ACCOUNT_NAME);
     }
 
@@ -243,11 +243,11 @@ public class AuthClientTest extends AndroidTestCase {
         final AuthClient.Default client = Mockito.spy(new AuthClient.Default(proxy));
 
         Mockito.when(response.isSuccess()).thenReturn(false);
-        Mockito.doReturn(response).when(client).validateAccountBundle(Mockito.any(AccountManagerFutureBundle.class));
+        Mockito.doReturn(response).when(client).retrieveResponseFromFuture(Mockito.any(AccountManagerFutureBundle.class));
 
-        assertEquals(response, client.handleFuture(context, future));
+        assertEquals(response, client.validateTokenInFuture(context, future));
 
-        Mockito.verify(client).validateAccountBundle(future);
+        Mockito.verify(client).retrieveResponseFromFuture(future);
     }
 
     public void testValidateAccountBundleWithAccessToken() throws Exception {
@@ -260,7 +260,7 @@ public class AuthClientTest extends AndroidTestCase {
 
         Mockito.when(future.getResult()).thenReturn(result);
 
-        final Auth.Response response = client.validateAccountBundle(future);
+        final Auth.Response response = client.retrieveResponseFromFuture(future);
 
         assertEquals(ACCESS_TOKEN, response.accessToken);
         assertEquals(ACCOUNT_NAME, response.accountName);
@@ -278,7 +278,7 @@ public class AuthClientTest extends AndroidTestCase {
         Mockito.when(future.getResult()).thenReturn(result);
         Mockito.doReturn(response).when(client).getFailureAuthResponse(Mockito.any(Exception.class));
 
-        assertEquals(response, client.validateAccountBundle(future));
+        assertEquals(response, client.retrieveResponseFromFuture(future));
 
         Mockito.verify(future).getResult();
         Mockito.verify(client).getFailureAuthResponse(Mockito.any(Exception.class));
@@ -294,7 +294,7 @@ public class AuthClientTest extends AndroidTestCase {
         Mockito.doThrow(exception).when(future).getResult();
         Mockito.doReturn(response).when(client).getFailureAuthResponse(Mockito.any(RuntimeException.class));
 
-        assertEquals(response, client.validateAccountBundle(future));
+        assertEquals(response, client.retrieveResponseFromFuture(future));
 
         Mockito.verify(future).getResult();
         Mockito.verify(client).getFailureAuthResponse(exception);

@@ -31,6 +31,8 @@ import android.os.Bundle;
 
     public AccountManagerFuture<Bundle> getAuthTokenByFeatures(Activity activity, AccountManagerCallback<Bundle> callbacks);
 
+    public AccountManagerFuture<Bundle> getAuthToken(Activity activity, Account account, AccountManagerCallback<Bundle> callbacks);
+
     public AccountManagerFuture<Bundle> getAuthToken(Account account, AccountManagerCallback<Bundle> callback);
 
 
@@ -80,6 +82,11 @@ import android.os.Bundle;
         @Override
         public AccountManagerFuture<Bundle> getAuthTokenByFeatures(final Activity activity, final AccountManagerCallback<Bundle> callback) {
             return mManager.getAuthTokenByFeatures(Pivotal.getAccountType(), Pivotal.getTokenType(), null, activity, null, null, callback, null);
+        }
+
+        @Override
+        public AccountManagerFuture<Bundle> getAuthToken(final Activity activity, final Account account, final AccountManagerCallback<Bundle> callback) {
+            return mManager.getAuthToken(account, Pivotal.getTokenType(), null, activity, callback, null);
         }
 
         @Override

@@ -4,47 +4,54 @@
 package io.pivotal.android.auth;
 
 import android.accounts.Account;
-import android.app.Activity;
 import android.content.Context;
 import android.text.TextUtils;
 
 public class Auth {
 
+    private static final String NO_ACCOUNT_FOUND = "No Account Found.";
+
     public static Response getAccessToken(final Context context) {
-        final AuthClient auth = AuthClientFactory.get(context);
-        return auth.requestAccessToken(context);
+        return AuthClientFactory.get(context).requestAccessToken(context);
     }
 
     public static void getAccessToken(final Context context, final Listener listener) {
-        final AuthClient auth = AuthClientFactory.get(context);
-        auth.requestAccessToken(context, listener);
+        AuthClientFactory.get(context).requestAccessToken(context, listener);
     }
 
     public static Response getAccessToken(final Context context, final String accountName) {
-        final AuthClient auth = AuthClientFactory.get(context);
         final Account account = Accounts.getAccount(context, accountName);
-        return auth.requestAccessToken(account);
+        if (account != null) {
+            return AuthClientFactory.get(context).requestAccessToken(context, account);
+        } else {
+            return getNoAccountErrorResponse();
+        }
     }
 
     public static void getAccessToken(final Context context, final String accountName, final Listener listener) {
-        final AuthClient auth = AuthClientFactory.get(context);
         final Account account = Accounts.getAccount(context, accountName);
-        auth.requestAccessToken(account, listener);
+        if (account != null) {
+            AuthClientFactory.get(context).requestAccessToken(context, account, listener);
+        } else {
+            listener.onResponse(getNoAccountErrorResponse());
+        }
     }
 
-    public static Response getAccessTokenWithUserPrompt(final Activity activity) {
-        final AuthClient auth = AuthClientFactory.get(activity);
-        return auth.requestAccessToken(activity);
-    }
-
-    public static void getAccessTokenWithUserPrompt(final Activity activity, final Listener listener) {
-        final AuthClient auth = AuthClientFactory.get(activity);
-        auth.requestAccessToken(activity, listener);
+    private static Response getNoAccountErrorResponse() {
+        final Exception exception = new RuntimeException(NO_ACCOUNT_FOUND);
+        return new Response(new AuthError(exception));
     }
 
     public static void invalidateAccessToken(final Context context) {
         final AccountsProxy proxy = AccountsProxyFactory.get(context);
         final Account account = Accounts.getLastUsedAccount(context);
+        final String accessToken = proxy.getAccessToken(account);
+        proxy.invalidateAccessToken(accessToken);
+    }
+
+    public static void invalidateAccessToken(final Context context, final String accountName) {
+        final AccountsProxy proxy = AccountsProxyFactory.get(context);
+        final Account account = Accounts.getAccount(context, accountName);
         final String accessToken = proxy.getAccessToken(account);
         proxy.invalidateAccessToken(accessToken);
     }

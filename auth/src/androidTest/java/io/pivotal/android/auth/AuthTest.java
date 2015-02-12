@@ -4,7 +4,6 @@
 package io.pivotal.android.auth;
 
 import android.accounts.Account;
-import android.app.Activity;
 import android.content.Context;
 import android.test.AndroidTestCase;
 
@@ -88,32 +87,6 @@ public class AuthTest extends AndroidTestCase {
         Mockito.verify(client).requestAccessToken(account, listener);
     }
 
-    public void testGetAccessTokenWithUserPrompt() {
-        final Activity activity = Mockito.mock(Activity.class);
-        final Auth.Response response = Mockito.mock(Auth.Response.class);
-        final AuthClient client = Mockito.mock(AuthClient.class);
-
-        AuthClientFactory.init(client);
-
-        Mockito.when(client.requestAccessToken(Mockito.any(Activity.class))).thenReturn(response);
-
-        assertEquals(response, Auth.getAccessTokenWithUserPrompt(activity));
-
-        Mockito.verify(client).requestAccessToken(activity);
-    }
-
-    public void testGetAccessTokenWithUserPromptAsync() {
-        final Activity activity = Mockito.mock(Activity.class);
-        final Auth.Listener listener = Mockito.mock(Auth.Listener.class);
-        final AuthClient client = Mockito.mock(AuthClient.class);
-
-        AuthClientFactory.init(client);
-
-        Auth.getAccessTokenWithUserPrompt(activity, listener);
-
-        Mockito.verify(client).requestAccessToken(activity, listener);
-    }
-
     public void testInvalidateAccessToken() {
         final Account account = Mockito.mock(Account.class);
         final Account[] accounts = new Account[] { account };
@@ -125,6 +98,22 @@ public class AuthTest extends AndroidTestCase {
         Mockito.when(proxy.getAccessToken(Mockito.any(Account.class))).thenReturn(ACCESS_TOKEN);
 
         Auth.invalidateAccessToken(null);
+
+        Mockito.verify(proxy).getAccessToken(account);
+        Mockito.verify(proxy).invalidateAccessToken(ACCESS_TOKEN);
+    }
+
+    public void testInvalidateAccessTokenWithAccountName() {
+        final Account account = new Account(ACCOUNT_NAME, ACCOUNT_TYPE);
+        final Account[] accounts = new Account[] { account };
+        final AccountsProxy proxy = Mockito.mock(AccountsProxy.class);
+
+        AccountsProxyFactory.init(proxy);
+
+        Mockito.when(proxy.getAccounts()).thenReturn(accounts);
+        Mockito.when(proxy.getAccessToken(Mockito.any(Account.class))).thenReturn(ACCESS_TOKEN);
+
+        Auth.invalidateAccessToken(null, ACCOUNT_NAME);
 
         Mockito.verify(proxy).getAccessToken(account);
         Mockito.verify(proxy).invalidateAccessToken(ACCESS_TOKEN);
