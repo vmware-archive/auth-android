@@ -24,9 +24,9 @@ public class Accounts {
     public static Account getAccount(final Context context, final String name) {
         Logger.i("getAccount: " + name);
         final Account[] accounts = getAccounts(context);
-        for (int i = 0; i < accounts.length; i++) {
-            if (name == null || name.equals(accounts[i].name)) {
-                return accounts[i];
+        for (final Account account : accounts) {
+            if (name == null || name.equals(account.name)) {
+                return account;
             }
         }
         return null;
@@ -43,8 +43,8 @@ public class Accounts {
         Logger.i("removeAllAccounts");
         final AccountsProxy proxy = AccountsProxyFactory.get(context);
         final Account[] accounts = getAccounts(context);
-        for (int i = 0; i < accounts.length; i++) {
-            proxy.removeAccount(accounts[i]);
+        for (final Account account : accounts) {
+            proxy.removeAccount(account);
         }
     }
 

@@ -20,13 +20,15 @@ public class Auth {
         auth.requestAccessToken(context, listener);
     }
 
-    public static Response getAccessToken(final Context context, final Account account) {
+    public static Response getAccessToken(final Context context, final String accountName) {
         final AuthClient auth = AuthClientFactory.get(context);
+        final Account account = Accounts.getAccount(context, accountName);
         return auth.requestAccessToken(account);
     }
 
-    public static void getAccessToken(final Context context, final Account account, final Listener listener) {
+    public static void getAccessToken(final Context context, final String accountName, final Listener listener) {
         final AuthClient auth = AuthClientFactory.get(context);
+        final Account account = Accounts.getAccount(context, accountName);
         auth.requestAccessToken(account, listener);
     }
 
