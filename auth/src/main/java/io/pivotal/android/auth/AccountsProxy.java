@@ -5,7 +5,6 @@ package io.pivotal.android.auth;
 
 import android.accounts.Account;
 import android.accounts.AccountManager;
-import android.accounts.AccountManagerCallback;
 import android.accounts.AccountManagerFuture;
 import android.annotation.TargetApi;
 import android.app.Activity;
@@ -29,11 +28,11 @@ import android.os.Bundle;
 
     public Account[] getAccounts();
 
-    public AccountManagerFuture<Bundle> getAuthTokenByFeatures(Activity activity, AccountManagerCallback<Bundle> callbacks);
+    public AccountManagerFuture<Bundle> getAuthTokenByFeatures(Activity activity);
 
-    public AccountManagerFuture<Bundle> getAuthToken(Activity activity, Account account, AccountManagerCallback<Bundle> callbacks);
+    public AccountManagerFuture<Bundle> getAuthToken(Activity activity, Account account);
 
-    public AccountManagerFuture<Bundle> getAuthToken(Account account, AccountManagerCallback<Bundle> callback);
+    public AccountManagerFuture<Bundle> getAuthToken(Account account);
 
 
     /* package */ class Default implements AccountsProxy {
@@ -80,19 +79,19 @@ import android.os.Bundle;
         }
 
         @Override
-        public AccountManagerFuture<Bundle> getAuthTokenByFeatures(final Activity activity, final AccountManagerCallback<Bundle> callback) {
-            return mManager.getAuthTokenByFeatures(Pivotal.getAccountType(), Pivotal.getTokenType(), null, activity, null, null, callback, null);
+        public AccountManagerFuture<Bundle> getAuthTokenByFeatures(final Activity activity) {
+            return mManager.getAuthTokenByFeatures(Pivotal.getAccountType(), Pivotal.getTokenType(), null, activity, null, null, null, null);
         }
 
         @Override
-        public AccountManagerFuture<Bundle> getAuthToken(final Activity activity, final Account account, final AccountManagerCallback<Bundle> callback) {
-            return mManager.getAuthToken(account, Pivotal.getTokenType(), null, activity, callback, null);
+        public AccountManagerFuture<Bundle> getAuthToken(final Activity activity, final Account account) {
+            return mManager.getAuthToken(account, Pivotal.getTokenType(), null, activity, null, null);
         }
 
         @Override
         @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
-        public AccountManagerFuture<Bundle> getAuthToken(final Account account, final AccountManagerCallback<Bundle> callback) {
-            return mManager.getAuthToken(account, Pivotal.getTokenType(), null, false, callback, null);
+        public AccountManagerFuture<Bundle> getAuthToken(final Account account) {
+            return mManager.getAuthToken(account, Pivotal.getTokenType(), null, false, null, null);
         }
     }
 }

@@ -5,11 +5,11 @@ package io.pivotal.android.auth;
 
 import android.accounts.Account;
 import android.accounts.AccountManager;
-import android.accounts.AccountManagerCallback;
 import android.accounts.AccountManagerFuture;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 
@@ -42,109 +42,68 @@ import android.os.Bundle;
         @Override
         public Auth.Response requestAccessToken(final Context context) {
             if (context instanceof Activity) {
-                return requestAccessTokenFromActivity((Activity) context);
+
+                final AccountManagerFuture<Bundle> future = mProxy.getAuthTokenByFeatures((Activity) context);
+                return validateTokenInFuture(context, future);
+
             } else {
-                return requestAccessTokenFromContext(context);
+
+                final Account account = getLastUsedAccount(context);
+                if (account == null) {
+                    return getFailureAuthResponse(new Exception(NO_TOKEN_FOUND));
+                }
+
+                final AccountManagerFuture<Bundle> future = mProxy.getAuthToken(account);
+                return validateTokenInFuture(context, future);
             }
         }
 
         @Override
         public void requestAccessToken(final Context context, final Auth.Listener listener) {
-            if (context instanceof Activity) {
-                requestAccessTokenFromActivity((Activity) context, listener);
-            } else {
-                requestAccessTokenFromContext(context, listener);
-            }
+            new AsyncTask<Void, Void, Auth.Response>() {
+
+                @Override
+                protected Auth.Response doInBackground(final Void... params) {
+                    return requestAccessToken(context);
+                }
+
+                @Override
+                protected void onPostExecute(final Auth.Response response) {
+                    listener.onResponse(response);
+                }
+
+            }.execute();
         }
 
         @Override
         public Auth.Response requestAccessToken(final Context context, final Account account) {
             if (context instanceof Activity) {
-                return retrieveAccessTokenFromActivity((Activity) context, account);
+                final AccountManagerFuture<Bundle> future = mProxy.getAuthToken((Activity) context, account);
+                return validateTokenInFuture(context, future);
+
             } else {
-                return retrieveAccessTokenFromContext(context, account);
+
+                final AccountManagerFuture<Bundle> future = mProxy.getAuthToken(account);
+                return validateTokenInFuture(context, future);
             }
         }
 
         @Override
         public void requestAccessToken(final Context context, final Account account, final Auth.Listener listener) {
-            if (context instanceof Activity) {
-                retrieveAccessTokenFromActivity((Activity) context, account, listener);
-            } else {
-                retrieveAccessTokenFromContext(context, account, listener);
-            }
-        }
+            new AsyncTask<Void, Void, Auth.Response>() {
 
-        private Auth.Response requestAccessTokenFromActivity(final Activity activity) {
-            final AccountManagerFuture<Bundle> future = mProxy.getAuthTokenByFeatures(activity, null);
-            return validateTokenInFuture(activity, future);
-        }
-
-        private Auth.Response retrieveAccessTokenFromActivity(final Activity activity, final Account account) {
-            final AccountManagerFuture<Bundle> future = mProxy.getAuthToken(activity, account, null);
-            return validateTokenInFuture(activity, future);
-        }
-
-        private Auth.Response requestAccessTokenFromContext(final Context context) {
-            final Account account = getLastUsedAccount(context);
-            if (account == null) {
-                return getFailureAuthResponse(new Exception(NO_TOKEN_FOUND));
-            }
-
-            final AccountManagerFuture<Bundle> future = mProxy.getAuthToken(account, null);
-            return validateTokenInFuture(context, future);
-        }
-
-        private Auth.Response retrieveAccessTokenFromContext(final Context context, final Account account) {
-            final AccountManagerFuture<Bundle> future = mProxy.getAuthToken(account, null);
-            return validateTokenInFuture(context, future);
-        }
-
-
-
-
-        private void requestAccessTokenFromActivity(final Activity activity, final Auth.Listener listener) {
-            mProxy.getAuthTokenByFeatures(activity, new AccountManagerCallback<Bundle>() {
                 @Override
-                public void run(final AccountManagerFuture<Bundle> future) {
-                    validateTokenInFuture(activity, future, listener);
+                protected Auth.Response doInBackground(final Void... params) {
+                    return requestAccessToken(context, account);
                 }
-            });
-        }
 
-        private void retrieveAccessTokenFromActivity(final Activity activity, final Account account, final Auth.Listener listener) {
-            mProxy.getAuthToken(activity, account, new AccountManagerCallback<Bundle>() {
                 @Override
-                public void run(final AccountManagerFuture<Bundle> future) {
-                    validateTokenInFuture(activity, future, listener);
+                protected void onPostExecute(final Auth.Response response) {
+                    listener.onResponse(response);
                 }
-            });
+
+            }.execute();
         }
-
-        private void requestAccessTokenFromContext(final Context context, final Auth.Listener listener) {
-            final Account account = getLastUsedAccount(context);
-            if (account == null) {
-                listener.onResponse(getFailureAuthResponse(new Exception(NO_TOKEN_FOUND)));
-                return;
-            }
-
-            mProxy.getAuthToken(account, new AccountManagerCallback<Bundle>() {
-                @Override
-                public void run(final AccountManagerFuture<Bundle> future) {
-                    validateTokenInFuture(context, future, listener);
-                }
-            });
-        }
-
-        private void retrieveAccessTokenFromContext(final Context context, final Account account, final Auth.Listener listener) {
-            mProxy.getAuthToken(account, new AccountManagerCallback<Bundle>() {
-                @Override
-                public void run(final AccountManagerFuture<Bundle> future) {
-                    validateTokenInFuture(context, future, listener);
-                }
-            });
-        }
-
 
         protected Auth.Response validateTokenInFuture(final Context context, final AccountManagerFuture<Bundle> future) {
             final Auth.Response response = retrieveResponseFromFuture(future);
@@ -154,31 +113,19 @@ import android.os.Bundle;
             }
 
             if (response.isSuccess() && response.isTokenExpired()) {
-                Logger.i("requestAccessToken expired.");
+                Logger.i("requested access token expired.");
+
                 mProxy.invalidateAccessToken(response.accessToken);
 
+                Logger.i("requested access token invalidated.");
+
                 final Account account = getAccount(context, response.accountName);
+
+                Logger.i("requested access token retry.");
+
                 return requestAccessToken(context, account);
             } else {
                 return response;
-            }
-        }
-
-        protected void validateTokenInFuture(final Context context, final AccountManagerFuture<Bundle> future, final Auth.Listener listener) {
-            final Auth.Response response = retrieveResponseFromFuture(future);
-
-            if (response.isSuccess()) {
-                setLastUsedAccountName(context, response.accountName);
-            }
-
-            if (response.isSuccess() && response.isTokenExpired()) {
-                Logger.i("requestAccessToken expired.");
-                mProxy.invalidateAccessToken(response.accessToken);
-
-                final Account account = getAccount(context, response.accountName);
-                requestAccessToken(context, account, listener);
-            } else {
-                listener.onResponse(response);
             }
         }
 
@@ -189,8 +136,9 @@ import android.os.Bundle;
                 final String accessToken = bundle.getString(AccountManager.KEY_AUTHTOKEN);
                 final String accountName = bundle.getString(AccountManager.KEY_ACCOUNT_NAME);
 
-                Logger.i("requestAccessToken accountName: " + accountName);
-                Logger.i("requestAccessToken accessToken: " + accessToken);
+                Logger.i("requested access token for account: " + accountName);
+
+                Logger.i("requested access token: " + accessToken);
 
                 if (accessToken == null) {
                     return getFailureAuthResponse(new Exception(NO_TOKEN_FOUND));
@@ -217,7 +165,7 @@ import android.os.Bundle;
         }
 
         protected Auth.Response getFailureAuthResponse(final Exception e) {
-            Logger.i("requestAccessToken error: " + e.getCause());
+            Logger.i("requested access token error: " + e.getCause());
 
             return new Auth.Response(new AuthError(e));
         }
