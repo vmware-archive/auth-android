@@ -62,11 +62,27 @@ public class AuthTest extends AndroidTestCase {
         AccountsProxyFactory.init(proxy);
 
         Mockito.when(proxy.getAccounts()).thenReturn(accounts);
-        Mockito.when(client.requestAccessToken(Mockito.any(Account.class))).thenReturn(response);
+        Mockito.when(client.requestAccessToken(Mockito.any(Context.class), Mockito.any(Account.class), Mockito.anyBoolean())).thenReturn(response);
 
         assertEquals(response, Auth.getAccessToken(context, ACCOUNT_NAME));
 
-        Mockito.verify(client).requestAccessToken(account);
+        Mockito.verify(client).requestAccessToken(context, account, true);
+    }
+
+    public void testGetAccessTokenWithAccountNameNotFound() {
+        final Context context = Mockito.mock(Context.class);
+        final AccountsProxy proxy = Mockito.mock(AccountsProxy.class);
+        final AuthClient client = Mockito.mock(AuthClient.class);
+        final Account[] accounts = new Account[] {};
+
+        AuthClientFactory.init(client);
+        AccountsProxyFactory.init(proxy);
+
+        Mockito.when(proxy.getAccounts()).thenReturn(accounts);
+
+        final Auth.Response response = Auth.getAccessToken(context, ACCOUNT_NAME);
+
+        assertNotNull(response.error);
     }
 
     public void testGetAccessTokenWithAccountNameAsync() {
@@ -84,7 +100,24 @@ public class AuthTest extends AndroidTestCase {
 
         Auth.getAccessToken(context, ACCOUNT_NAME, listener);
 
-        Mockito.verify(client).requestAccessToken(account, listener);
+        Mockito.verify(client).requestAccessToken(context, account, true, listener);
+    }
+
+    public void testGetAccessTokenWithAccountNameNotFoundAsync() {
+        final Context context = Mockito.mock(Context.class);
+        final Auth.Listener listener = Mockito.mock(Auth.Listener.class);
+        final AccountsProxy proxy = Mockito.mock(AccountsProxy.class);
+        final AuthClient client = Mockito.mock(AuthClient.class);
+        final Account[] accounts = new Account[] {};
+
+        AuthClientFactory.init(client);
+        AccountsProxyFactory.init(proxy);
+
+        Mockito.when(proxy.getAccounts()).thenReturn(accounts);
+
+        Auth.getAccessToken(context, ACCOUNT_NAME, listener);
+
+        Mockito.verify(listener).onResponse(Mockito.any(Auth.Response.class));
     }
 
     public void testInvalidateAccessToken() {

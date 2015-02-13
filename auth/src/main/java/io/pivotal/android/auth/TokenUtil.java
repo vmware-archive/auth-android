@@ -31,8 +31,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
     private static long getTimeDifference(final String expiration) {
         final long expirationTime = Long.parseLong(expiration);
         final long currentTime = System.currentTimeMillis() / 1000;
-        final long timeDifference = expirationTime - currentTime;
-        return timeDifference;
+        return expirationTime - currentTime;
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)

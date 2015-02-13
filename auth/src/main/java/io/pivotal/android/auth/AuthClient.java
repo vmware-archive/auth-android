@@ -19,9 +19,9 @@ import android.os.Bundle;
 
     public void requestAccessToken(Context context, Auth.Listener listener);
 
-    public Auth.Response requestAccessToken(Context context, Account account);
+    public Auth.Response requestAccessToken(Context context, Account account, boolean validate);
 
-    public void requestAccessToken(Context context, Account account, Auth.Listener listener);
+    public void requestAccessToken(Context context, Account account, boolean validate, Auth.Listener listener);
 
 
     @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
@@ -76,25 +76,29 @@ import android.os.Bundle;
         }
 
         @Override
-        public Auth.Response requestAccessToken(final Context context, final Account account) {
+        public Auth.Response requestAccessToken(final Context context, final Account account, final boolean validate) {
+            final AccountManagerFuture<Bundle> future;
+
             if (context instanceof Activity) {
-                final AccountManagerFuture<Bundle> future = mProxy.getAuthToken((Activity) context, account);
-                return validateTokenInFuture(context, future);
-
+                future = mProxy.getAuthToken((Activity) context, account);
             } else {
+                future = mProxy.getAuthToken(account);
+            }
 
-                final AccountManagerFuture<Bundle> future = mProxy.getAuthToken(account);
+            if (validate) {
                 return validateTokenInFuture(context, future);
+            } else {
+                return retrieveResponseFromFuture(future);
             }
         }
 
         @Override
-        public void requestAccessToken(final Context context, final Account account, final Auth.Listener listener) {
+        public void requestAccessToken(final Context context, final Account account, final boolean validate, final Auth.Listener listener) {
             new AsyncTask<Void, Void, Auth.Response>() {
 
                 @Override
                 protected Auth.Response doInBackground(final Void... params) {
-                    return requestAccessToken(context, account);
+                    return requestAccessToken(context, account, validate);
                 }
 
                 @Override
@@ -123,7 +127,7 @@ import android.os.Bundle;
 
                 Logger.i("requested access token retry.");
 
-                return requestAccessToken(context, account);
+                return requestAccessToken(context, account, false);
             } else {
                 return response;
             }

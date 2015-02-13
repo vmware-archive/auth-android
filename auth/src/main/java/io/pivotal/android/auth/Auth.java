@@ -22,7 +22,7 @@ public class Auth {
     public static Response getAccessToken(final Context context, final String accountName) {
         final Account account = Accounts.getAccount(context, accountName);
         if (account != null) {
-            return AuthClientFactory.get(context).requestAccessToken(context, account);
+            return AuthClientFactory.get(context).requestAccessToken(context, account, true);
         } else {
             return getNoAccountErrorResponse();
         }
@@ -31,7 +31,7 @@ public class Auth {
     public static void getAccessToken(final Context context, final String accountName, final Listener listener) {
         final Account account = Accounts.getAccount(context, accountName);
         if (account != null) {
-            AuthClientFactory.get(context).requestAccessToken(context, account, listener);
+            AuthClientFactory.get(context).requestAccessToken(context, account, true, listener);
         } else {
             listener.onResponse(getNoAccountErrorResponse());
         }
