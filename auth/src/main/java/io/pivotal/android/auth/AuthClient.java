@@ -15,11 +15,11 @@ import android.os.Bundle;
 
 /* package */ interface AuthClient {
 
-    public Auth.Response requestAccessToken(Context context);
+    public Response requestAccessToken(Context context);
 
     public void requestAccessToken(Context context, Auth.Listener listener);
 
-    public Auth.Response requestAccessToken(Context context, Account account, boolean validate);
+    public Response requestAccessToken(Context context, Account account, boolean validate);
 
     public void requestAccessToken(Context context, Account account, boolean validate, Auth.Listener listener);
 
@@ -40,7 +40,7 @@ import android.os.Bundle;
         }
 
         @Override
-        public Auth.Response requestAccessToken(final Context context) {
+        public Response requestAccessToken(final Context context) {
             if (context instanceof Activity) {
 
                 final AccountManagerFuture<Bundle> future = mProxy.getAuthTokenByFeatures((Activity) context);
@@ -60,23 +60,25 @@ import android.os.Bundle;
 
         @Override
         public void requestAccessToken(final Context context, final Auth.Listener listener) {
-            new AsyncTask<Void, Void, Auth.Response>() {
+            new AsyncTask<Void, Void, Response>() {
 
                 @Override
-                protected Auth.Response doInBackground(final Void... params) {
+                protected Response doInBackground(final Void... params) {
                     return requestAccessToken(context);
                 }
 
                 @Override
-                protected void onPostExecute(final Auth.Response response) {
-                    listener.onResponse(response);
+                protected void onPostExecute(final Response response) {
+                    if (listener != null) {
+                        listener.onResponse(response);
+                    }
                 }
 
             }.execute();
         }
 
         @Override
-        public Auth.Response requestAccessToken(final Context context, final Account account, final boolean validate) {
+        public Response requestAccessToken(final Context context, final Account account, final boolean validate) {
             final AccountManagerFuture<Bundle> future;
 
             if (context instanceof Activity) {
@@ -94,23 +96,25 @@ import android.os.Bundle;
 
         @Override
         public void requestAccessToken(final Context context, final Account account, final boolean validate, final Auth.Listener listener) {
-            new AsyncTask<Void, Void, Auth.Response>() {
+            new AsyncTask<Void, Void, Response>() {
 
                 @Override
-                protected Auth.Response doInBackground(final Void... params) {
+                protected Response doInBackground(final Void... params) {
                     return requestAccessToken(context, account, validate);
                 }
 
                 @Override
-                protected void onPostExecute(final Auth.Response response) {
-                    listener.onResponse(response);
+                protected void onPostExecute(final Response response) {
+                    if (listener != null) {
+                        listener.onResponse(response);
+                    }
                 }
 
             }.execute();
         }
 
-        protected Auth.Response validateTokenInFuture(final Context context, final AccountManagerFuture<Bundle> future) {
-            final Auth.Response response = retrieveResponseFromFuture(future);
+        protected Response validateTokenInFuture(final Context context, final AccountManagerFuture<Bundle> future) {
+            final Response response = retrieveResponseFromFuture(future);
 
             if (response.isSuccess()) {
                 setLastUsedAccountName(context, response.accountName);
@@ -133,7 +137,7 @@ import android.os.Bundle;
             }
         }
 
-        protected Auth.Response retrieveResponseFromFuture(final AccountManagerFuture<Bundle> future) {
+        protected Response retrieveResponseFromFuture(final AccountManagerFuture<Bundle> future) {
             try {
 
                 final Bundle bundle = future.getResult();
@@ -148,7 +152,7 @@ import android.os.Bundle;
                     return getFailureAuthResponse(new Exception(NO_TOKEN_FOUND));
 
                 } else {
-                    return new Auth.Response(accessToken, accountName);
+                    return new Response(accessToken, accountName);
                 }
 
             } catch (final Exception e) {
@@ -168,10 +172,10 @@ import android.os.Bundle;
             AuthPreferences.setLastUsedAccountName(context, name);
         }
 
-        protected Auth.Response getFailureAuthResponse(final Exception e) {
+        protected Response getFailureAuthResponse(final Exception e) {
             Logger.i("requested access token error: " + e.getCause());
 
-            return new Auth.Response(new AuthError(e));
+            return new Response(new AuthError(e));
         }
 
     }

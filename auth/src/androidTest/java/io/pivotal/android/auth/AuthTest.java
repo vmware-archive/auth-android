@@ -26,7 +26,7 @@ public class AuthTest extends AndroidTestCase {
 
     public void testGetAccessToken() {
         final Context context = Mockito.mock(Context.class);
-        final Auth.Response response = Mockito.mock(Auth.Response.class);
+        final Response response = Mockito.mock(Response.class);
         final AuthClient client = Mockito.mock(AuthClient.class);
 
         AuthClientFactory.init(client);
@@ -52,7 +52,7 @@ public class AuthTest extends AndroidTestCase {
 
     public void testGetAccessTokenWithAccountName() {
         final Context context = Mockito.mock(Context.class);
-        final Auth.Response response = Mockito.mock(Auth.Response.class);
+        final Response response = Mockito.mock(Response.class);
         final AccountsProxy proxy = Mockito.mock(AccountsProxy.class);
         final AuthClient client = Mockito.mock(AuthClient.class);
         final Account account = new Account(ACCOUNT_NAME, ACCOUNT_TYPE);
@@ -80,7 +80,7 @@ public class AuthTest extends AndroidTestCase {
 
         Mockito.when(proxy.getAccounts()).thenReturn(accounts);
 
-        final Auth.Response response = Auth.getAccessToken(context, ACCOUNT_NAME);
+        final Response response = Auth.getAccessToken(context, ACCOUNT_NAME);
 
         assertNotNull(response.error);
     }
@@ -117,7 +117,7 @@ public class AuthTest extends AndroidTestCase {
 
         Auth.getAccessToken(context, ACCOUNT_NAME, listener);
 
-        Mockito.verify(listener).onResponse(Mockito.any(Auth.Response.class));
+        Mockito.verify(listener).onResponse(Mockito.any(Response.class));
     }
 
     public void testInvalidateAccessToken() {
@@ -150,21 +150,6 @@ public class AuthTest extends AndroidTestCase {
 
         Mockito.verify(proxy).getAccessToken(account);
         Mockito.verify(proxy).invalidateAccessToken(ACCESS_TOKEN);
-    }
-
-    public void testResponseSuccess() {
-        final Auth.Response response = new Auth.Response(ACCESS_TOKEN, ACCOUNT_NAME);
-
-        assertTrue(response.isSuccess());
-        assertFalse(response.isFailure());
-    }
-
-    public void testResponseFailure() {
-        final AuthError error = new AuthError(new Exception());
-        final Auth.Response response = new Auth.Response(error);
-
-        assertTrue(response.isFailure());
-        assertFalse(response.isSuccess());
     }
 
 }
