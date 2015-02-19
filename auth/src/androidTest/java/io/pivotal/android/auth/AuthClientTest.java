@@ -5,7 +5,6 @@ package io.pivotal.android.auth;
 
 import android.accounts.Account;
 import android.accounts.AccountManager;
-import android.accounts.AccountManagerCallback;
 import android.accounts.AccountManagerFuture;
 import android.app.Activity;
 import android.content.Context;
@@ -19,7 +18,6 @@ import java.util.UUID;
 public class AuthClientTest extends AndroidTestCase {
 
     protected abstract class AccountManagerFutureBundle implements AccountManagerFuture<Bundle> {}
-    protected abstract class AccountManagerCallbackBundle implements AccountManagerCallback<Bundle> {}
 
     private static final String ACCESS_TOKEN = UUID.randomUUID().toString();
     private static final String ACCOUNT_NAME = UUID.randomUUID().toString();
@@ -30,12 +28,14 @@ public class AuthClientTest extends AndroidTestCase {
         System.setProperty("dexmaker.dexcache", mContext.getCacheDir().getPath());
     }
 
-    public void testRequestAccessTokenWithActivity() {
+    public void testRequestAccessTokenWithActivityAndUserPromptEnabled() {
         final Activity activity = Mockito.mock(Activity.class);
         final AccountsProxy proxy = Mockito.mock(AccountsProxy.class);
         final Response response = Mockito.mock(Response.class);
         final AccountManagerFuture<Bundle> future = Mockito.mock(AccountManagerFutureBundle.class);
         final AuthClient.Default client = Mockito.spy(new AuthClient.Default(proxy));
+
+        client.setShouldShowUserPrompt(true);
 
         Mockito.when(proxy.getAuthTokenByFeatures(Mockito.any(Activity.class))).thenReturn(future);
         Mockito.doReturn(response).when(client).validateTokenInFuture(Mockito.any(Activity.class), Mockito.any(AccountManagerFutureBundle.class));
@@ -44,6 +44,27 @@ public class AuthClientTest extends AndroidTestCase {
 
         Mockito.verify(proxy).getAuthTokenByFeatures(activity);
         Mockito.verify(client).validateTokenInFuture(activity, future);
+    }
+
+    public void testRequestAccessTokenWithActivityAndUserPromptDisabled() {
+        final Context context = Mockito.mock(Context.class);
+        final Account account = Mockito.mock(Account.class);
+        final AccountsProxy proxy = Mockito.mock(AccountsProxy.class);
+        final Response response = Mockito.mock(Response.class);
+        final AccountManagerFuture<Bundle> future = Mockito.mock(AccountManagerFutureBundle.class);
+        final AuthClient.Default client = Mockito.spy(new AuthClient.Default(proxy));
+
+        client.setShouldShowUserPrompt(false);
+
+        Mockito.when(proxy.getAuthToken(Mockito.any(Account.class))).thenReturn(future);
+        Mockito.doReturn(account).when(client).getLastUsedAccount(context);
+        Mockito.doReturn(response).when(client).validateTokenInFuture(Mockito.any(Activity.class), Mockito.any(AccountManagerFutureBundle.class));
+
+        assertEquals(response, client.requestAccessToken(context));
+
+        Mockito.verify(client).getLastUsedAccount(context);
+        Mockito.verify(proxy).getAuthToken(account);
+        Mockito.verify(client).validateTokenInFuture(context, future);
     }
 
     public void testRequestAccessTokenWithContext() {

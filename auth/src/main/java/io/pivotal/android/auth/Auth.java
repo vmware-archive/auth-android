@@ -55,6 +55,10 @@ public class Auth {
         proxy.invalidateAccessToken(accessToken);
     }
 
+    public static void setShouldShowUserPrompt(final Context context, final boolean enabled) {
+        AuthClientFactory.get(context).setShouldShowUserPrompt(enabled);
+    }
+
     public static interface Listener {
         public void onResponse(Response response);
     }

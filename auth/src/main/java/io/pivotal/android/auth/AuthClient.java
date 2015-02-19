@@ -23,6 +23,8 @@ import android.os.Bundle;
 
     public void requestAccessToken(Context context, Account account, boolean validate, Auth.Listener listener);
 
+    public void setShouldShowUserPrompt(boolean enabled);
+
 
     @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
     /* package */ class Default implements AuthClient {
@@ -30,6 +32,7 @@ import android.os.Bundle;
         private static final String NO_TOKEN_FOUND = "No access token found.";
 
         private final AccountsProxy mProxy;
+        private boolean mDisableUserPrompt;
 
         public Default(final Context context) {
             mProxy = AccountsProxyFactory.get(context);
@@ -41,7 +44,7 @@ import android.os.Bundle;
 
         @Override
         public Response requestAccessToken(final Context context) {
-            if (context instanceof Activity) {
+            if (context instanceof Activity && !mDisableUserPrompt) {
 
                 final AccountManagerFuture<Bundle> future = mProxy.getAuthTokenByFeatures((Activity) context);
                 return validateTokenInFuture(context, future);
@@ -81,7 +84,7 @@ import android.os.Bundle;
         public Response requestAccessToken(final Context context, final Account account, final boolean validate) {
             final AccountManagerFuture<Bundle> future;
 
-            if (context instanceof Activity) {
+            if (context instanceof Activity && !mDisableUserPrompt) {
                 future = mProxy.getAuthToken((Activity) context, account);
             } else {
                 future = mProxy.getAuthToken(account);
@@ -158,6 +161,10 @@ import android.os.Bundle;
             } catch (final Exception e) {
                 return getFailureAuthResponse(e);
             }
+        }
+
+        public void setShouldShowUserPrompt(final boolean enabled) {
+            mDisableUserPrompt = !enabled;
         }
 
         protected Account getLastUsedAccount(final Context context) {
