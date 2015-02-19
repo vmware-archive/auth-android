@@ -10,7 +10,7 @@ public class Accounts {
 
     public static void addAccount(final Context context, final String name, final Token token) {
         Logger.i("addAccount: " + name + ", token: " + token.getAccessToken());
-        final AccountsProxy proxy = AccountsProxyFactory.get(context);
+        final AccountsProxy proxy = AccountsProxyHolder.get(context);
         final Account account = new Account(name, Pivotal.getAccountType());
         proxy.addAccount(account, token.getRefreshToken());
         proxy.setAccessToken(account, token.getAccessToken());
@@ -18,7 +18,7 @@ public class Accounts {
 
     public static Account[] getAccounts(final Context context) {
         Logger.i("getAccounts");
-        return AccountsProxyFactory.get(context).getAccounts();
+        return AccountsProxyHolder.get(context).getAccounts();
     }
 
     public static Account getAccount(final Context context, final String name) {
@@ -34,14 +34,14 @@ public class Accounts {
 
     public static void removeAccount(final Context context, final String name) {
         Logger.i("removeAccount: " + name);
-        final AccountsProxy proxy = AccountsProxyFactory.get(context);
+        final AccountsProxy proxy = AccountsProxyHolder.get(context);
         final Account account = new Account(name, Pivotal.getAccountType());
         proxy.removeAccount(account);
     }
 
     public static void removeAllAccounts(final Context context) {
         Logger.i("removeAllAccounts");
-        final AccountsProxy proxy = AccountsProxyFactory.get(context);
+        final AccountsProxy proxy = AccountsProxyHolder.get(context);
         final Account[] accounts = getAccounts(context);
         for (final Account account : accounts) {
             proxy.removeAccount(account);

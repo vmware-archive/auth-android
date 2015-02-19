@@ -1,7 +1,8 @@
 package io.pivotal.android.auth;
 
-/* package */ class RemoteAuthenticatorFactory {
+/* package */ class RemoteAuthenticatorHolder {
 
+    private static final Object LOCK = new Object();
     private static RemoteAuthenticator sAuthenticator;
 
     public static void init(final RemoteAuthenticator authenticator) {
@@ -10,9 +11,10 @@ package io.pivotal.android.auth;
 
     public static RemoteAuthenticator get() {
         if (sAuthenticator == null) {
-            return new RemoteAuthenticator.Default();
-        } else {
-            return sAuthenticator;
+            synchronized (LOCK) {
+                sAuthenticator = new RemoteAuthenticator.Default();
+            }
         }
+        return sAuthenticator;
     }
 }

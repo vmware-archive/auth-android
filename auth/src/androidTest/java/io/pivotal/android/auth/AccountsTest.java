@@ -33,7 +33,7 @@ public class AccountsTest extends AndroidTestCase {
         Mockito.doNothing().when(provider).addAccount(Mockito.any(Account.class), Mockito.eq(token.getRefreshToken()));
         Mockito.doNothing().when(provider).setAccessToken(Mockito.any(Account.class), Mockito.eq(token.getAccessToken()));
 
-        AccountsProxyFactory.init(provider);
+        AccountsProxyHolder.init(provider);
         Accounts.addAccount(context, ACCOUNT_NAME, token);
 
         Mockito.verify(provider).addAccount(Mockito.any(Account.class), Mockito.eq(token.getRefreshToken()));
@@ -47,7 +47,7 @@ public class AccountsTest extends AndroidTestCase {
 
         Mockito.when(provider.getAccounts()).thenReturn(accounts);
 
-        AccountsProxyFactory.init(provider);
+        AccountsProxyHolder.init(provider);
         assertEquals(accounts, Accounts.getAccounts(context));
 
         Mockito.verify(provider).getAccounts();
@@ -62,7 +62,7 @@ public class AccountsTest extends AndroidTestCase {
 
         Mockito.when(provider.getAccounts()).thenReturn(accounts);
 
-        AccountsProxyFactory.init(provider);
+        AccountsProxyHolder.init(provider);
         assertEquals(account, Accounts.getAccount(context, null));
 
         Mockito.verify(provider).getAccounts();
@@ -77,7 +77,7 @@ public class AccountsTest extends AndroidTestCase {
 
         Mockito.when(provider.getAccounts()).thenReturn(accounts);
 
-        AccountsProxyFactory.init(provider);
+        AccountsProxyHolder.init(provider);
         assertEquals(account2, Accounts.getAccount(context, ACCOUNT_NAME));
 
         Mockito.verify(provider).getAccounts();
@@ -92,7 +92,7 @@ public class AccountsTest extends AndroidTestCase {
 
         Mockito.when(provider.getAccounts()).thenReturn(accounts);
 
-        AccountsProxyFactory.init(provider);
+        AccountsProxyHolder.init(provider);
         assertNull(Accounts.getAccount(context, ACCOUNT_NAME));
 
         Mockito.verify(provider).getAccounts();
@@ -104,7 +104,7 @@ public class AccountsTest extends AndroidTestCase {
 
         Mockito.doNothing().when(provider).removeAccount(Mockito.any(Account.class));
 
-        AccountsProxyFactory.init(provider);
+        AccountsProxyHolder.init(provider);
         Accounts.removeAccount(context, ACCOUNT_NAME);
 
         Mockito.verify(provider).removeAccount(Mockito.any(Account.class));
@@ -122,7 +122,7 @@ public class AccountsTest extends AndroidTestCase {
         Mockito.when(provider.getAccounts()).thenReturn(accounts);
         Mockito.doNothing().when(provider).removeAccount(Mockito.any(Account.class));
 
-        AccountsProxyFactory.init(provider);
+        AccountsProxyHolder.init(provider);
         Accounts.removeAllAccounts(context);
 
         Mockito.verify(provider).getAccounts();
@@ -135,7 +135,7 @@ public class AccountsTest extends AndroidTestCase {
         final Account[] accounts = new Account[] { account };
         final AccountsProxy provider = Mockito.mock(AccountsProxy.class);
 
-        AccountsProxyFactory.init(provider);
+        AccountsProxyHolder.init(provider);
 
         Mockito.when(provider.getAccounts()).thenReturn(accounts);
 

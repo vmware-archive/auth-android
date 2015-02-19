@@ -9,6 +9,7 @@ import android.test.AndroidTestCase;
 
 import org.mockito.Mockito;
 
+import java.util.Random;
 import java.util.UUID;
 
 public class AuthTest extends AndroidTestCase {
@@ -29,7 +30,7 @@ public class AuthTest extends AndroidTestCase {
         final Response response = Mockito.mock(Response.class);
         final AuthClient client = Mockito.mock(AuthClient.class);
 
-        AuthClientFactory.init(client);
+        AuthClientHolder.init(client);
 
         Mockito.when(client.requestAccessToken(Mockito.any(Context.class))).thenReturn(response);
 
@@ -43,7 +44,7 @@ public class AuthTest extends AndroidTestCase {
         final Auth.Listener listener = Mockito.mock(Auth.Listener.class);
         final AuthClient client = Mockito.mock(AuthClient.class);
 
-        AuthClientFactory.init(client);
+        AuthClientHolder.init(client);
 
         Auth.getAccessToken(context, listener);
 
@@ -58,8 +59,8 @@ public class AuthTest extends AndroidTestCase {
         final Account account = new Account(ACCOUNT_NAME, ACCOUNT_TYPE);
         final Account[] accounts = new Account[] { account };
 
-        AuthClientFactory.init(client);
-        AccountsProxyFactory.init(proxy);
+        AuthClientHolder.init(client);
+        AccountsProxyHolder.init(proxy);
 
         Mockito.when(proxy.getAccounts()).thenReturn(accounts);
         Mockito.when(client.requestAccessToken(Mockito.any(Context.class), Mockito.any(Account.class), Mockito.anyBoolean())).thenReturn(response);
@@ -75,8 +76,8 @@ public class AuthTest extends AndroidTestCase {
         final AuthClient client = Mockito.mock(AuthClient.class);
         final Account[] accounts = new Account[] {};
 
-        AuthClientFactory.init(client);
-        AccountsProxyFactory.init(proxy);
+        AuthClientHolder.init(client);
+        AccountsProxyHolder.init(proxy);
 
         Mockito.when(proxy.getAccounts()).thenReturn(accounts);
 
@@ -93,8 +94,8 @@ public class AuthTest extends AndroidTestCase {
         final Account account = new Account(ACCOUNT_NAME, ACCOUNT_TYPE);
         final Account[] accounts = new Account[] { account };
 
-        AuthClientFactory.init(client);
-        AccountsProxyFactory.init(proxy);
+        AuthClientHolder.init(client);
+        AccountsProxyHolder.init(proxy);
 
         Mockito.when(proxy.getAccounts()).thenReturn(accounts);
 
@@ -110,8 +111,8 @@ public class AuthTest extends AndroidTestCase {
         final AuthClient client = Mockito.mock(AuthClient.class);
         final Account[] accounts = new Account[] {};
 
-        AuthClientFactory.init(client);
-        AccountsProxyFactory.init(proxy);
+        AuthClientHolder.init(client);
+        AccountsProxyHolder.init(proxy);
 
         Mockito.when(proxy.getAccounts()).thenReturn(accounts);
 
@@ -125,7 +126,7 @@ public class AuthTest extends AndroidTestCase {
         final Account[] accounts = new Account[] { account };
         final AccountsProxy proxy = Mockito.mock(AccountsProxy.class);
 
-        AccountsProxyFactory.init(proxy);
+        AccountsProxyHolder.init(proxy);
 
         Mockito.when(proxy.getAccounts()).thenReturn(accounts);
         Mockito.when(proxy.getAccessToken(Mockito.any(Account.class))).thenReturn(ACCESS_TOKEN);
@@ -141,7 +142,7 @@ public class AuthTest extends AndroidTestCase {
         final Account[] accounts = new Account[] { account };
         final AccountsProxy proxy = Mockito.mock(AccountsProxy.class);
 
-        AccountsProxyFactory.init(proxy);
+        AccountsProxyHolder.init(proxy);
 
         Mockito.when(proxy.getAccounts()).thenReturn(accounts);
         Mockito.when(proxy.getAccessToken(Mockito.any(Account.class))).thenReturn(ACCESS_TOKEN);
@@ -152,4 +153,14 @@ public class AuthTest extends AndroidTestCase {
         Mockito.verify(proxy).invalidateAccessToken(ACCESS_TOKEN);
     }
 
+    public void testShouldShowUserPrompt() {
+        final boolean enabled = new Random().nextBoolean();
+        final AuthClient client = Mockito.mock(AuthClient.class);
+
+        AuthClientHolder.init(client);
+
+        Auth.setShouldShowUserPrompt(null, enabled);
+
+        Mockito.verify(client).setShouldShowUserPrompt(enabled);
+    }
 }

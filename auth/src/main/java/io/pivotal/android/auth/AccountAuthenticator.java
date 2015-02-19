@@ -112,7 +112,7 @@ public class AccountAuthenticator extends AbstractAccountAuthenticator {
 
     protected Bundle newAuthTokenBundle(final AccountAuthenticatorResponse response, final Account account) {
 
-        final AccountsProxy proxy = AccountsProxyFactory.get(mContext);
+        final AccountsProxy proxy = AccountsProxyHolder.get(mContext);
         final String accessToken = proxy.getAccessToken(account);
 
         Logger.v("newAuthTokenBundle accessToken: " + accessToken);
@@ -136,7 +136,7 @@ public class AccountAuthenticator extends AbstractAccountAuthenticator {
 
     protected Bundle newAuthTokenBundle(final AccountAuthenticatorResponse response, final Account account, final String refreshToken) {
         try {
-            final RemoteAuthenticator authenticator = RemoteAuthenticatorFactory.get();
+            final RemoteAuthenticator authenticator = RemoteAuthenticatorHolder.get();
             final RefreshTokenRequest request = authenticator.newRefreshTokenRequest(refreshToken);
             final String accessToken = request.execute().getAccessToken();
 

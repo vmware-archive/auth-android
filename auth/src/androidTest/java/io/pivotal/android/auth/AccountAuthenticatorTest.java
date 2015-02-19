@@ -82,7 +82,7 @@ public class AccountAuthenticatorTest extends AndroidTestCase {
         final AccountsProxy proxy = Mockito.mock(AccountsProxy.class);
         final AccountAuthenticator accountAuthenticator = Mockito.spy(new AccountAuthenticator(context));
 
-        AccountsProxyFactory.init(proxy);
+        AccountsProxyHolder.init(proxy);
 
         Mockito.when(proxy.getAccessToken(account)).thenReturn(ACCESS_TOKEN);
         Mockito.doReturn(bundle).when(accountAuthenticator).newAuthTokenBundle(account, ACCESS_TOKEN);
@@ -101,7 +101,7 @@ public class AccountAuthenticatorTest extends AndroidTestCase {
         final AccountAuthenticatorResponse response = Mockito.mock(AccountAuthenticatorResponse.class);
         final AccountAuthenticator accountAuthenticator = Mockito.spy(new AccountAuthenticator(context));
 
-        AccountsProxyFactory.init(proxy);
+        AccountsProxyHolder.init(proxy);
 
         Mockito.when(proxy.getAccessToken(account)).thenReturn("");
         Mockito.when(proxy.getRefreshToken(account)).thenReturn(REFRESH_TOKEN);
@@ -122,7 +122,7 @@ public class AccountAuthenticatorTest extends AndroidTestCase {
         final AccountAuthenticatorResponse response = Mockito.mock(AccountAuthenticatorResponse.class);
         final AccountAuthenticator accountAuthenticator = Mockito.spy(new AccountAuthenticator(context));
 
-        AccountsProxyFactory.init(proxy);
+        AccountsProxyHolder.init(proxy);
 
         Mockito.when(proxy.getAccessToken(account)).thenReturn(getExpiredToken());
         Mockito.when(proxy.getRefreshToken(account)).thenReturn(REFRESH_TOKEN);
@@ -143,7 +143,7 @@ public class AccountAuthenticatorTest extends AndroidTestCase {
         final AccountAuthenticatorResponse response = Mockito.mock(AccountAuthenticatorResponse.class);
         final AccountAuthenticator accountAuthenticator = Mockito.spy(new AccountAuthenticator(context));
 
-        AccountsProxyFactory.init(proxy);
+        AccountsProxyHolder.init(proxy);
 
         Mockito.when(proxy.getAccessToken(account)).thenReturn("");
         Mockito.when(proxy.getRefreshToken(account)).thenReturn("");
@@ -166,7 +166,7 @@ public class AccountAuthenticatorTest extends AndroidTestCase {
         final TokenResponse response = new TokenResponse();
         response.setAccessToken(ACCESS_TOKEN);
 
-        RemoteAuthenticatorFactory.init(authenticator);
+        RemoteAuthenticatorHolder.init(authenticator);
 
         Mockito.when(authenticator.newRefreshTokenRequest(REFRESH_TOKEN)).thenReturn(request);
         Mockito.when(request.execute()).thenReturn(response);
@@ -187,7 +187,7 @@ public class AccountAuthenticatorTest extends AndroidTestCase {
         final AccountAuthenticatorResponse response = Mockito.mock(AccountAuthenticatorResponse.class);
         final AccountAuthenticator accountAuthenticator = Mockito.spy(new AccountAuthenticator(context));
 
-        RemoteAuthenticatorFactory.init(authenticator);
+        RemoteAuthenticatorHolder.init(authenticator);
 
         final HttpResponseException.Builder builder = new HttpResponseException.Builder(401, null, new HttpHeaders());
         final HttpResponseException exception = new TestResponseException(builder);
@@ -210,7 +210,7 @@ public class AccountAuthenticatorTest extends AndroidTestCase {
         final RefreshTokenRequest request = Mockito.mock(RefreshTokenRequest.class);
         final AccountAuthenticator accountAuthenticator = Mockito.spy(new AccountAuthenticator(context));
 
-        RemoteAuthenticatorFactory.init(authenticator);
+        RemoteAuthenticatorHolder.init(authenticator);
 
         final HttpResponseException.Builder builder = new HttpResponseException.Builder(400, null, new HttpHeaders());
         final HttpResponseException exception = new TestResponseException(builder);
@@ -233,7 +233,7 @@ public class AccountAuthenticatorTest extends AndroidTestCase {
         final RefreshTokenRequest request = Mockito.mock(RefreshTokenRequest.class);
         final AccountAuthenticator accountAuthenticator = Mockito.spy(new AccountAuthenticator(context));
 
-        RemoteAuthenticatorFactory.init(authenticator);
+        RemoteAuthenticatorHolder.init(authenticator);
 
         Mockito.when(authenticator.newRefreshTokenRequest(REFRESH_TOKEN)).thenReturn(request);
         Mockito.doThrow(new IOException()).when(request).execute();

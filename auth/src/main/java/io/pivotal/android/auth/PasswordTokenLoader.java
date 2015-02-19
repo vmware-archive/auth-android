@@ -24,7 +24,7 @@ import com.google.api.client.auth.oauth2.TokenResponse;
     @Override
     public TokenResponse loadInBackground() {
         try {
-            final RemoteAuthenticator authenticator = RemoteAuthenticatorFactory.get();
+            final RemoteAuthenticator authenticator = RemoteAuthenticatorHolder.get();
             return authenticator.newPasswordTokenRequest(mUsername, mPassword).execute();
         } catch (final Exception e) {
             Logger.ex(e);

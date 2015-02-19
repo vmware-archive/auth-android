@@ -7,7 +7,7 @@ import android.test.AndroidTestCase;
 
 import org.mockito.Mockito;
 
-public class AuthClientFactoryTest extends AndroidTestCase {
+public class AuthClientHolderTest extends AndroidTestCase {
 
     @Override
     protected void setUp() throws Exception {
@@ -17,14 +17,14 @@ public class AuthClientFactoryTest extends AndroidTestCase {
 
     public void testWithInitialization() {
         final AuthClient custom = Mockito.mock(AuthClient.class);
-        AuthClientFactory.init(custom);
-        final AuthClient client = AuthClientFactory.get(mContext);
+        AuthClientHolder.init(custom);
+        final AuthClient client = AuthClientHolder.get(mContext);
         assertEquals(custom, client);
     }
 
     public void testWithoutInitialization() {
-        AuthClientFactory.init(null);
-        final AuthClient instance = AuthClientFactory.get(mContext);
+        AuthClientHolder.init(null);
+        final AuthClient instance = AuthClientHolder.get(mContext);
         final AuthClient.Default client = (AuthClient.Default) instance;
         assertNotNull(client);
     }

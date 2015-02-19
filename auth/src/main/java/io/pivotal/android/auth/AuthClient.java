@@ -35,7 +35,7 @@ import android.os.Bundle;
         private boolean mDisableUserPrompt;
 
         public Default(final Context context) {
-            mProxy = AccountsProxyFactory.get(context);
+            mProxy = AccountsProxyHolder.get(context);
         }
 
         public Default(final AccountsProxy proxy) {

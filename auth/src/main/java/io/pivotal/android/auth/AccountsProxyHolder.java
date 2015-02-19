@@ -2,8 +2,9 @@ package io.pivotal.android.auth;
 
 import android.content.Context;
 
-/* package */ class AccountsProxyFactory {
+/* package */ class AccountsProxyHolder {
 
+    private static final Object LOCK = new Object();
     private static AccountsProxy sProxy;
 
     public static void init(final AccountsProxy proxy) {
@@ -12,9 +13,10 @@ import android.content.Context;
 
     public static AccountsProxy get(final Context context) {
         if (sProxy == null) {
-            return new AccountsProxy.Default(context);
-        } else {
-            return sProxy;
+            synchronized (LOCK) {
+                sProxy = new AccountsProxy.Default(context);
+            }
         }
+        return sProxy;
     }
 }

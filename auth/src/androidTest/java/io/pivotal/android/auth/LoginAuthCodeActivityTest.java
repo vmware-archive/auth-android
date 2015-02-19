@@ -66,7 +66,7 @@ public class LoginAuthCodeActivityTest extends ActivityUnitTestCase<LoginAuthCod
 
         Mockito.when(authenticator.newAuthorizationCodeUrl()).thenReturn(requestUrl);
 
-        RemoteAuthenticatorFactory.init(authenticator);
+        RemoteAuthenticatorHolder.init(authenticator);
 
         final LoginAuthCodeActivity activity = Mockito.spy(startActivity(new Intent(), null, null));
 

@@ -33,7 +33,7 @@ public class AuthCodeTokenLoaderTest extends AndroidTestCase {
         final AuthorizationCodeTokenRequest request = Mockito.mock(AuthorizationCodeTokenRequest.class);
         final AuthCodeTokenLoader loader = new AuthCodeTokenLoader(context, AUTH_CODE);
 
-        RemoteAuthenticatorFactory.init(authenticator);
+        RemoteAuthenticatorHolder.init(authenticator);
 
         Mockito.when(authenticator.newAuthorizationCodeTokenRequest(AUTH_CODE)).thenReturn(request);
         Mockito.when(request.execute()).thenReturn(response);
@@ -50,7 +50,7 @@ public class AuthCodeTokenLoaderTest extends AndroidTestCase {
         final AuthorizationCodeTokenRequest request = Mockito.mock(AuthorizationCodeTokenRequest.class);
         final AuthCodeTokenLoader loader = new AuthCodeTokenLoader(context, AUTH_CODE);
 
-        RemoteAuthenticatorFactory.init(authenticator);
+        RemoteAuthenticatorHolder.init(authenticator);
 
         Mockito.when(authenticator.newAuthorizationCodeTokenRequest(AUTH_CODE)).thenReturn(request);
         Mockito.doThrow(new RuntimeException()).when(request).execute();

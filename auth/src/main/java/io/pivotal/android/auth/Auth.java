@@ -11,17 +11,17 @@ public class Auth {
     private static final String NO_ACCOUNT_FOUND = "No Account Found.";
 
     public static Response getAccessToken(final Context context) {
-        return AuthClientFactory.get(context).requestAccessToken(context);
+        return AuthClientHolder.get(context).requestAccessToken(context);
     }
 
     public static void getAccessToken(final Context context, final Listener listener) {
-        AuthClientFactory.get(context).requestAccessToken(context, listener);
+        AuthClientHolder.get(context).requestAccessToken(context, listener);
     }
 
     public static Response getAccessToken(final Context context, final String accountName) {
         final Account account = Accounts.getAccount(context, accountName);
         if (account != null) {
-            return AuthClientFactory.get(context).requestAccessToken(context, account, true);
+            return AuthClientHolder.get(context).requestAccessToken(context, account, true);
         } else {
             return getNoAccountErrorResponse();
         }
@@ -30,7 +30,7 @@ public class Auth {
     public static void getAccessToken(final Context context, final String accountName, final Listener listener) {
         final Account account = Accounts.getAccount(context, accountName);
         if (account != null) {
-            AuthClientFactory.get(context).requestAccessToken(context, account, true, listener);
+            AuthClientHolder.get(context).requestAccessToken(context, account, true, listener);
         } else if (listener != null) {
             listener.onResponse(getNoAccountErrorResponse());
         }
@@ -42,21 +42,21 @@ public class Auth {
     }
 
     public static void invalidateAccessToken(final Context context) {
-        final AccountsProxy proxy = AccountsProxyFactory.get(context);
+        final AccountsProxy proxy = AccountsProxyHolder.get(context);
         final Account account = Accounts.getLastUsedAccount(context);
         final String accessToken = proxy.getAccessToken(account);
         proxy.invalidateAccessToken(accessToken);
     }
 
     public static void invalidateAccessToken(final Context context, final String accountName) {
-        final AccountsProxy proxy = AccountsProxyFactory.get(context);
+        final AccountsProxy proxy = AccountsProxyHolder.get(context);
         final Account account = Accounts.getAccount(context, accountName);
         final String accessToken = proxy.getAccessToken(account);
         proxy.invalidateAccessToken(accessToken);
     }
 
     public static void setShouldShowUserPrompt(final Context context, final boolean enabled) {
-        AuthClientFactory.get(context).setShouldShowUserPrompt(enabled);
+        AuthClientHolder.get(context).setShouldShowUserPrompt(enabled);
     }
 
     public static interface Listener {

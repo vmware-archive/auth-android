@@ -34,7 +34,7 @@ public class PasswordTokenLoaderTest extends AndroidTestCase {
         final PasswordTokenRequest request = Mockito.mock(PasswordTokenRequest.class);
         final PasswordTokenLoader loader = new PasswordTokenLoader(context, USERNAME, PASSWORD);
 
-        RemoteAuthenticatorFactory.init(authenticator);
+        RemoteAuthenticatorHolder.init(authenticator);
 
         Mockito.when(authenticator.newPasswordTokenRequest(USERNAME, PASSWORD)).thenReturn(request);
         Mockito.when(request.execute()).thenReturn(response);
@@ -51,7 +51,7 @@ public class PasswordTokenLoaderTest extends AndroidTestCase {
         final PasswordTokenRequest request = Mockito.mock(PasswordTokenRequest.class);
         final PasswordTokenLoader loader = new PasswordTokenLoader(context, USERNAME, PASSWORD);
 
-        RemoteAuthenticatorFactory.init(authenticator);
+        RemoteAuthenticatorHolder.init(authenticator);
 
         Mockito.when(authenticator.newPasswordTokenRequest(USERNAME, PASSWORD)).thenReturn(request);
         Mockito.doThrow(new RuntimeException()).when(request).execute();

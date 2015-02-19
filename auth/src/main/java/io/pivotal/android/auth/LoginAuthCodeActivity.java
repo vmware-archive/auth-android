@@ -48,7 +48,7 @@ public class LoginAuthCodeActivity extends LoginActivity {
 
     private String getAuthorizationUrl() {
         Logger.v("getAuthorizationUrl");
-        final RemoteAuthenticator authenticator = RemoteAuthenticatorFactory.get();
+        final RemoteAuthenticator authenticator = RemoteAuthenticatorHolder.get();
         return authenticator.newAuthorizationCodeUrl().build();
     }
 

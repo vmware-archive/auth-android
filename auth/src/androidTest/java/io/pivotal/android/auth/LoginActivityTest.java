@@ -45,7 +45,7 @@ public class LoginActivityTest extends ActivityUnitTestCase<LoginActivityTest.Te
         Mockito.doNothing().when(activity).setResultIntent(token, USERNAME);
         Mockito.doNothing().when(activity).finish();
 
-        AccountsProxyFactory.init(provider);
+        AccountsProxyHolder.init(provider);
         activity.onAuthorizationComplete(token);
 
         Mockito.verify(provider).addAccount(Mockito.any(Account.class), Mockito.eq(REFRESH_TOKEN));
@@ -65,7 +65,7 @@ public class LoginActivityTest extends ActivityUnitTestCase<LoginActivityTest.Te
         Mockito.doReturn(intent).when(activity).getResultIntent(token, USERNAME);
         Mockito.when(intent.getExtras()).thenReturn(bundle);
 
-        AccountsProxyFactory.init(provider);
+        AccountsProxyHolder.init(provider);
         activity.setResultIntent(token, USERNAME);
 
         assertEquals(bundle, activity.getResultData());
@@ -82,7 +82,7 @@ public class LoginActivityTest extends ActivityUnitTestCase<LoginActivityTest.Te
 
         Mockito.when(token.getAccessToken()).thenReturn(ACCESS_TOKEN);
 
-        AccountsProxyFactory.init(provider);
+        AccountsProxyHolder.init(provider);
         final Intent intent = activity.getResultIntent(token, USERNAME);
 
         assertEquals(Pivotal.getAccountType(), intent.getStringExtra(AccountManager.KEY_ACCOUNT_TYPE));
