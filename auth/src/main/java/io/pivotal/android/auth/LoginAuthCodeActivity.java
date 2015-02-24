@@ -3,72 +3,33 @@
  */
 package io.pivotal.android.auth;
 
-import android.annotation.TargetApi;
-import android.content.Intent;
-import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
+import android.view.View;
+import android.webkit.WebView;
 
-@TargetApi(Build.VERSION_CODES.HONEYCOMB)
 public class LoginAuthCodeActivity extends LoginActivity {
 
     @Override
-     protected void onCreate(final Bundle savedInstanceState) {
+    protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login_auth_code);
-    }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        Logger.v("onResume");
+        final WebView webView = (WebView) findViewById(R.id.login_web_view);
 
-        final Intent intent = getIntent();
-
-        if (intentHasCallbackUrl(intent)) {
-            onHandleRedirect(intent);
-        } else {
-            authorize();
-        }
+        fetchTokenWithAuthCodeGrantType(webView);
     }
 
     @Override
     protected String getUserName() {
-       return "Account";
+        return "Account";
     }
 
-    public void authorize() {
-        Logger.v("authorize");
-        final String authorizationUrl = getAuthorizationUrl();
-        final Uri uri = Uri.parse(authorizationUrl);
-        final Intent intent = new Intent(Intent.ACTION_VIEW, uri);
-        intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
-        startActivity(intent);
-    }
-
-    private String getAuthorizationUrl() {
-        Logger.v("getAuthorizationUrl");
-        final RemoteAuthenticator authenticator = RemoteAuthenticatorHolder.get();
-        return authenticator.newAuthorizationCodeUrl().build();
-    }
-
-    protected boolean intentHasCallbackUrl(final Intent intent) {
-        Logger.v("intentHasCallbackUrl");
-        if (intent != null && intent.hasCategory(Intent.CATEGORY_BROWSABLE) && intent.getData() != null) {
-            final String redirectUrl = Pivotal.getRedirectUrl().toLowerCase();
-            return intent.getData().toString().toLowerCase().startsWith(redirectUrl);
-        } else {
-            return false;
+    @Override
+    protected boolean handleRedirectUrl(final WebView view, final String url) {
+        final boolean handled = super.handleRedirectUrl(view, url);
+        if (handled) {
+            view.setVisibility(View.GONE);
         }
-    }
-
-    protected void onHandleRedirect(final Intent intent) {
-        Logger.v("onHandleRedirect");
-        final String code = intent.getData().getQueryParameter("code");
-
-        final Bundle bundle = AuthCodeTokenLoaderCallbacks.createBundle(code);
-        final AuthCodeTokenLoaderCallbacks callback = new AuthCodeTokenLoaderCallbacks(this, this);
-
-        getLoaderManager().restartLoader(2000, bundle, callback);
+        return handled;
     }
 }

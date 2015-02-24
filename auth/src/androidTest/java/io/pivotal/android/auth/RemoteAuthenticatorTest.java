@@ -19,6 +19,11 @@ public class RemoteAuthenticatorTest extends AndroidTestCase {
     private static final String REFRESH_TOKEN = UUID.randomUUID().toString();
     private static final String AUTH_CODE = UUID.randomUUID().toString();
 
+    @Override
+    protected void setUp() throws Exception {
+        super.setUp();
+        System.setProperty("dexmaker.dexcache", mContext.getCacheDir().getPath());
+    }
 
     public void testCreateNewPasswordTokenRequest() throws Exception {
         final RemoteAuthenticator.Default provider = new RemoteAuthenticator.Default();

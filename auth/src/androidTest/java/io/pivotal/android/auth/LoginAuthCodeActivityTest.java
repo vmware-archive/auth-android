@@ -4,158 +4,45 @@
 package io.pivotal.android.auth;
 
 import android.annotation.TargetApi;
-import android.app.LoaderManager;
-import android.content.Context;
-import android.content.Intent;
-import android.net.Uri;
 import android.os.Build;
-import android.os.Bundle;
-import android.test.ActivityUnitTestCase;
-
-import com.google.api.client.auth.oauth2.AuthorizationCodeRequestUrl;
+import android.test.AndroidTestCase;
+import android.view.View;
+import android.webkit.WebView;
 
 import org.mockito.Mockito;
 
 import java.util.UUID;
 
 @TargetApi(Build.VERSION_CODES.HONEYCOMB)
-public class LoginAuthCodeActivityTest extends ActivityUnitTestCase<LoginAuthCodeActivity> {
+public class LoginAuthCodeActivityTest extends AndroidTestCase {
 
     private static final String AUTH_CODE = UUID.randomUUID().toString();
-
-    public LoginAuthCodeActivityTest() {
-        super(LoginAuthCodeActivity.class);
-    }
 
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        final Context context = getInstrumentation().getContext();
-        System.setProperty("dexmaker.dexcache", context.getCacheDir().getPath());
+
+        System.setProperty("dexmaker.dexcache", mContext.getCacheDir().getPath());
     }
 
-    public void testOnResumeInvokesOnHandleRedirect() {
-        final Intent intent = new Intent();
-        final LoginAuthCodeActivity activity = Mockito.spy(startActivity(intent, null, null));
-
-        Mockito.doReturn(true).when(activity).intentHasCallbackUrl(intent);
-        Mockito.doNothing().when(activity).onHandleRedirect(intent);
-
-        activity.onResume();
-
-        Mockito.verify(activity).intentHasCallbackUrl(intent);
-        Mockito.verify(activity).onHandleRedirect(intent);
-    }
-
-    public void testOnResumeInvokesAuthorize() {
-        final Intent intent = new Intent();
-        final LoginAuthCodeActivity activity = Mockito.spy(startActivity(intent, null, null));
-
-        Mockito.doReturn(false).when(activity).intentHasCallbackUrl(intent);
-        Mockito.doNothing().when(activity).authorize();
-
-        activity.onResume();
-
-        Mockito.verify(activity).intentHasCallbackUrl(intent);
-        Mockito.verify(activity).authorize();
-    }
-
-    public void testOnCreateInvokesSetContentView() {
-        final RemoteAuthenticator authenticator = Mockito.mock(RemoteAuthenticator.class);
-        final AuthorizationCodeRequestUrl requestUrl = Mockito.mock(AuthorizationCodeRequestUrl.class);
-
-        Mockito.when(authenticator.newAuthorizationCodeUrl()).thenReturn(requestUrl);
-
-        RemoteAuthenticatorHolder.init(authenticator);
-
-        final LoginAuthCodeActivity activity = Mockito.spy(startActivity(new Intent(), null, null));
-
-        Mockito.doNothing().when(activity).setContentView(R.layout.activity_login_auth_code);
-
-        activity.onCreate(null);
-
-        Mockito.verify(activity).setContentView(R.layout.activity_login_auth_code);
-    }
-
-    public void testGetUserNameDefaultValue() {
-        final LoginAuthCodeActivity activity = Mockito.spy(startActivity(new Intent(), null, null));
+    public void testGetUserNameReturnsDefaultValue() {
+        final LoginAuthCodeActivity activity = Mockito.spy(new LoginAuthCodeActivity());
 
         assertEquals("Account", activity.getUserName());
     }
 
-    public void testIntentHasCallbackUrlReturnsTrue() {
-        final Uri uri = Uri.parse(Pivotal.getRedirectUrl());
-        final Intent intent = Mockito.mock(Intent.class);
-        final LoginAuthCodeActivity activity = Mockito.spy(startActivity(new Intent(), null, null));
+    public void testHandleRedirectUrlWithCorrectUrl() {
+        final WebView webView = Mockito.mock(WebView.class);
+        final LoginActivity activity = Mockito.spy(new LoginAuthCodeActivity());
 
-        Mockito.when(intent.hasCategory(Intent.CATEGORY_BROWSABLE)).thenReturn(true);
-        Mockito.when(intent.getData()).thenReturn(uri);
+        Mockito.doNothing().when(activity).fetchTokenWithAuthCodeGrantType(Mockito.anyString());
 
-        assertTrue(activity.intentHasCallbackUrl(intent));
+        final String redirectUrl = Pivotal.getRedirectUrl();
+        final String redirectUrlWithCode = String.format("%s?code=%s", redirectUrl, AUTH_CODE);
 
-        Mockito.verify(intent).hasCategory(Intent.CATEGORY_BROWSABLE);
-        Mockito.verify(intent, Mockito.times(2)).getData();
-    }
+        assertTrue(activity.handleRedirectUrl(webView, redirectUrlWithCode));
 
-    public void testIntentHasCallbackUrlWithoutCategoryBrowsable() {
-        final Intent intent = Mockito.mock(Intent.class);
-        final LoginAuthCodeActivity activity = Mockito.spy(startActivity(new Intent(), null, null));
-
-        Mockito.when(intent.hasCategory(Intent.CATEGORY_BROWSABLE)).thenReturn(false);
-
-        assertFalse(activity.intentHasCallbackUrl(intent));
-
-        Mockito.verify(intent).hasCategory(Intent.CATEGORY_BROWSABLE);
-    }
-
-    public void testIntentHasCallbackUrlWithoutData() {
-        final Intent intent = Mockito.mock(Intent.class);
-        final LoginAuthCodeActivity activity = Mockito.spy(startActivity(new Intent(), null, null));
-
-        Mockito.when(intent.hasCategory(Intent.CATEGORY_BROWSABLE)).thenReturn(true);
-
-        assertFalse(activity.intentHasCallbackUrl(intent));
-
-        Mockito.verify(intent).hasCategory(Intent.CATEGORY_BROWSABLE);
-        Mockito.verify(intent).getData();
-    }
-
-    public void testIntentHasCallbackUrlWithoutRedirectUrl() {
-        final Uri uri = Mockito.mock(Uri.class);
-        final Intent intent = Mockito.mock(Intent.class);
-        final LoginAuthCodeActivity activity = Mockito.spy(startActivity(new Intent(), null, null));
-
-        Mockito.when(intent.hasCategory(Intent.CATEGORY_BROWSABLE)).thenReturn(true);
-        Mockito.when(intent.getData()).thenReturn(uri);
-
-        assertFalse(activity.intentHasCallbackUrl(intent));
-
-        Mockito.verify(intent).hasCategory(Intent.CATEGORY_BROWSABLE);
-        Mockito.verify(intent, Mockito.times(2)).getData();
-    }
-
-    public void testIntentHasCallbackUrlWithoutIntent() {
-        final LoginAuthCodeActivity activity = Mockito.spy(startActivity(new Intent(), null, null));
-
-        assertFalse(activity.intentHasCallbackUrl(null));
-    }
-
-    public void testOnHandleRedirectInvokesRestartLoader() {
-        final Uri uri = Mockito.mock(Uri.class);
-        final Intent intent = Mockito.mock(Intent.class);
-        final LoaderManager manager = Mockito.mock(LoaderManager.class);
-        final LoginAuthCodeActivity activity = Mockito.spy(startActivity(new Intent(), null, null));
-
-        Mockito.when(intent.getData()).thenReturn(uri);
-        Mockito.when(uri.getQueryParameter("code")).thenReturn(AUTH_CODE);
-        Mockito.doReturn(manager).when(activity).getLoaderManager();
-        Mockito.when(manager.restartLoader(Mockito.anyInt(), Mockito.any(Bundle.class), Mockito.any(AuthCodeTokenLoaderCallbacks.class))).thenReturn(null);
-
-        activity.onHandleRedirect(intent);
-
-        Mockito.verify(intent).getData();
-        Mockito.verify(uri).getQueryParameter("code");
-        Mockito.verify(activity).getLoaderManager();
-        Mockito.verify(manager).restartLoader(Mockito.anyInt(), Mockito.any(Bundle.class), Mockito.any(AuthCodeTokenLoaderCallbacks.class));
+        Mockito.verify(activity).fetchTokenWithAuthCodeGrantType(AUTH_CODE);
+        Mockito.verify(webView).setVisibility(View.GONE);
     }
 }

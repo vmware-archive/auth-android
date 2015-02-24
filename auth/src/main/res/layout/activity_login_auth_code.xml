@@ -1,30 +1,30 @@
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    tools:context=".LoginActivity"
+    android:id="@+id/login_grant_type_auth_code"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="#eee"
-    tools:context=".LoginActivity">
+    android:layout_height="match_parent">
 
-    <LinearLayout
-        android:layout_width="match_parent"
+    <TextView
+        android:id="@+id/login_notice"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="80dp">
+        android:text="@string/waiting_for_authorization"
+        android:textSize="18sp"
+        android:textColor="#777"
+        android:layout_gravity="center"
+        android:padding="20dp" />
 
-        <TextView
-            android:id="@+id/login_prompt"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/waiting_for_authorization"
-            android:textSize="18sp"
-            android:textColor="#777"
-            android:gravity="center"
-            android:padding="20dp" />
+    <ProgressBar
+        android:id="@+id/login_progress"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginTop="50dp" />
 
-        <ProgressBar
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"/>
+    <WebView
+        android:id="@+id/login_web_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
 
-    </LinearLayout>
-</ScrollView>
+</FrameLayout>

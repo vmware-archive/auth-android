@@ -3,15 +3,12 @@
  */
 package io.pivotal.android.auth;
 
-import android.annotation.TargetApi;
-import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-@TargetApi(Build.VERSION_CODES.HONEYCOMB)
 public class LoginPasswordActivity extends LoginActivity {
 
     @Override
@@ -20,7 +17,6 @@ public class LoginPasswordActivity extends LoginActivity {
         setContentView(R.layout.activity_login_password);
     }
 
-    @Override
     protected String getUserName() {
         final EditText editText = (EditText) findViewById(R.id.login_user_name);
         return editText.getText().toString();
@@ -36,15 +32,14 @@ public class LoginPasswordActivity extends LoginActivity {
         final String password = getPassword();
 
         if (onValidateCredentials(userName, password)) {
-            final Bundle bundle = PasswordTokenLoaderCallbacks.createBundle(userName, password);
-            final PasswordTokenLoaderCallbacks callback = new PasswordTokenLoaderCallbacks(this, this);
-
-            getLoaderManager().restartLoader(1000, bundle, callback);
             onStartLoading();
+
+            fetchTokenWithPasswordGrantType(userName, password);
         }
     }
 
-    public boolean onValidateCredentials(final String userName, final String password) {
+    protected boolean onValidateCredentials(final String userName, final String password) {
+        Logger.v("onValidateCredentials");
         final boolean userNameValid = userName != null && userName.length() > 0;
         final boolean passwordValid = password != null && password.length() > 0;
 
@@ -55,7 +50,8 @@ public class LoginPasswordActivity extends LoginActivity {
         return userNameValid && passwordValid;
     }
 
-    public void onStartLoading() {
+    protected void onStartLoading() {
+        Logger.v("onStartLoading");
         final Button button = (Button) findViewById(R.id.login_submit);
         if (button != null) {
             button.setText("Loading...");

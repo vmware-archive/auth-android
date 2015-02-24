@@ -15,6 +15,13 @@ public class AccountsProxyHolderTest extends AndroidTestCase {
         System.setProperty("dexmaker.dexcache", mContext.getCacheDir().getPath());
     }
 
+    @Override
+    protected void tearDown() throws Exception {
+        super.tearDown();
+
+        AccountsProxyHolder.init(null);
+    }
+
     public void testWithInitialization() {
         final AccountsProxy custom = Mockito.mock(AccountsProxy.class);
         AccountsProxyHolder.init(custom);

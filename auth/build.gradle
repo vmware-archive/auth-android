@@ -5,6 +5,8 @@ dependencies {
     compile ('com.google.oauth-client:google-oauth-client:1.19.0') {
         exclude (group: 'com.google.android', module: 'android')
         exclude (group: 'org.apache.httpcomponents', module: 'httpclient')
+        exclude (group: 'junit', module: 'junit')
+        exclude (group: 'xpp3', module: 'xpp3')
     }
 
     androidTestCompile 'org.mockito:mockito-core:1.9.5'

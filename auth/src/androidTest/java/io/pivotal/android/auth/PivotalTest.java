@@ -10,6 +10,15 @@ import java.util.Properties;
 public class PivotalTest extends AndroidTestCase {
 
     @Override
+    protected void setUp() throws Exception {
+        super.setUp();
+
+        System.setProperty("dexmaker.dexcache", mContext.getCacheDir().getPath());
+
+        Pivotal.setProperties(null);
+    }
+
+    @Override
     protected void tearDown() throws Exception {
         super.tearDown();
 

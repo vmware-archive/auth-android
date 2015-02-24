@@ -26,6 +26,13 @@ public class AuthCodeTokenLoaderTest extends AndroidTestCase {
         System.setProperty("dexmaker.dexcache", mContext.getCacheDir().getPath());
     }
 
+    @Override
+    protected void tearDown() throws Exception {
+        super.tearDown();
+
+        RemoteAuthenticatorHolder.init(null);
+    }
+
     public void testLoadInBackgroundSucceedsWithTokenResponse() throws Exception {
         final Context context = Mockito.mock(Context.class);
         final TokenResponse response = Mockito.mock(TokenResponse.class);

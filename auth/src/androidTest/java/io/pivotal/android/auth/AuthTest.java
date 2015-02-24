@@ -24,6 +24,13 @@ public class AuthTest extends AndroidTestCase {
         System.setProperty("dexmaker.dexcache", mContext.getCacheDir().getPath());
     }
 
+    @Override
+    protected void tearDown() throws Exception {
+        super.tearDown();
+
+        AuthClientHolder.init(null);
+        AccountsProxyHolder.init(null);
+    }
 
     public void testGetAccessToken() {
         final Context context = Mockito.mock(Context.class);

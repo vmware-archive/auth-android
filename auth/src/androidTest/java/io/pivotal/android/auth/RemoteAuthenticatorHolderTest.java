@@ -15,6 +15,13 @@ public class RemoteAuthenticatorHolderTest extends AndroidTestCase {
         System.setProperty("dexmaker.dexcache", mContext.getCacheDir().getPath());
     }
 
+    @Override
+    protected void tearDown() throws Exception {
+        super.tearDown();
+
+        RemoteAuthenticatorHolder.init(null);
+    }
+
     public void testWithInitialization() {
         final RemoteAuthenticator custom = Mockito.mock(RemoteAuthenticator.class);
         RemoteAuthenticatorHolder.init(custom);

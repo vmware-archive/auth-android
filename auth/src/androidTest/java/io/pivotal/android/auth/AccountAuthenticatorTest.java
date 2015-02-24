@@ -36,6 +36,14 @@ public class AccountAuthenticatorTest extends AndroidTestCase {
         System.setProperty("dexmaker.dexcache", mContext.getCacheDir().getPath());
     }
 
+    @Override
+    protected void tearDown() throws Exception {
+        super.tearDown();
+
+        AccountsProxyHolder.init(null);
+        RemoteAuthenticatorHolder.init(null);
+    }
+
     public void testAddAccount() throws Exception {
         final Context context = Mockito.mock(Context.class);
         final AccountAuthenticatorResponse response = Mockito.mock(AccountAuthenticatorResponse.class);
