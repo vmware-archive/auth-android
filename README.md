@@ -8,13 +8,13 @@ For more information please visit the [docs site](http://docs.pivotal.io/mobile/
 
 ## Building the SDK
 
-To build the project from the command line, run the following command:
+To build the project from the command line, execute the following command:
 
 ```bash
 ./scripts/build-package.sh
 ```
 
-If you have a device connected to your computer then you can also run the test suite with the following command:
+To run the test suite from the command line, execute the following command:
 
 ```bash
 ./scripts/run-tests.sh
