@@ -72,20 +72,14 @@ subprojects {
     apply plugin: 'android-library'
 
     android {
-        compileSdkVersion 19
-        buildToolsVersion "19.1.0"
+        compileSdkVersion 21
+        buildToolsVersion "21.1.2"
 
         defaultConfig {
             versionCode versionCode
             versionName versionName
-            minSdkVersion 10
-            targetSdkVersion 19
-        }
-    }
-
-    configurations {
-        archives {
-            extendsFrom configurations.default
+            minSdkVersion 14
+            targetSdkVersion 21
         }
     }
 
