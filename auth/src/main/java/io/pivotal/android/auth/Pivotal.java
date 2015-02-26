@@ -51,6 +51,7 @@ import java.util.Properties;
     }
 
     private static Properties loadProperties(final String path) throws IOException {
+        Logger.e("Loading properties: " + path);
         final Properties properties = new Properties();
         properties.load(getInputStream(path));
         return properties;
@@ -58,6 +59,7 @@ import java.util.Properties;
 
     private static InputStream getInputStream(final String path) {
         final Thread currentThread = Thread.currentThread();
+        Logger.e("Current Thread: " + currentThread.getName());
         final ClassLoader loader = currentThread.getContextClassLoader();
         return loader.getResourceAsStream(path);
     }

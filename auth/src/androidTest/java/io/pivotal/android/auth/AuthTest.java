@@ -138,7 +138,7 @@ public class AuthTest extends AndroidTestCase {
         Mockito.when(proxy.getAccounts()).thenReturn(accounts);
         Mockito.when(proxy.getAccessToken(Mockito.any(Account.class))).thenReturn(ACCESS_TOKEN);
 
-        Auth.invalidateAccessToken(null);
+        Auth.invalidateAccessToken(mContext);
 
         Mockito.verify(proxy).getAccessToken(account);
         Mockito.verify(proxy).invalidateAccessToken(ACCESS_TOKEN);
@@ -154,7 +154,7 @@ public class AuthTest extends AndroidTestCase {
         Mockito.when(proxy.getAccounts()).thenReturn(accounts);
         Mockito.when(proxy.getAccessToken(Mockito.any(Account.class))).thenReturn(ACCESS_TOKEN);
 
-        Auth.invalidateAccessToken(null, ACCOUNT_NAME);
+        Auth.invalidateAccessToken(mContext, ACCOUNT_NAME);
 
         Mockito.verify(proxy).getAccessToken(account);
         Mockito.verify(proxy).invalidateAccessToken(ACCESS_TOKEN);

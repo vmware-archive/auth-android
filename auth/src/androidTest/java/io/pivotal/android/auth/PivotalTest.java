@@ -6,6 +6,7 @@ package io.pivotal.android.auth;
 import android.test.AndroidTestCase;
 
 import java.util.Properties;
+import java.util.UUID;
 
 public class PivotalTest extends AndroidTestCase {
 
@@ -53,30 +54,72 @@ public class PivotalTest extends AndroidTestCase {
     }
 
     public void testGetClientId() {
-        assertEquals("test_client_id", Pivotal.getClientId());
+        final String value = UUID.randomUUID().toString();
+
+        final Properties properties = new Properties();
+        properties.setProperty("pivotal.auth.clientId", value);
+        Pivotal.setProperties(properties);
+
+        assertEquals(value, Pivotal.getClientId());
     }
 
     public void testGetClientSecret() {
-        assertEquals("test_client_secret", Pivotal.getClientSecret());
+        final String value = UUID.randomUUID().toString();
+
+        final Properties properties = new Properties();
+        properties.setProperty("pivotal.auth.clientSecret", value);
+        Pivotal.setProperties(properties);
+
+        assertEquals(value, Pivotal.getClientSecret());
     }
 
     public void testGetAuthorizeUrl() {
-        assertEquals("http://example.com/authorize", Pivotal.getAuthorizeUrl());
+        final String value = UUID.randomUUID().toString();
+
+        final Properties properties = new Properties();
+        properties.setProperty("pivotal.auth.authorizeUrl", value);
+        Pivotal.setProperties(properties);
+
+        assertEquals(value, Pivotal.getAuthorizeUrl());
     }
 
     public void testGetTokenUrl() {
-        assertEquals("http://example.com/token", Pivotal.getTokenUrl());
+        final String value = UUID.randomUUID().toString();
+
+        final Properties properties = new Properties();
+        properties.setProperty("pivotal.auth.tokenUrl", value);
+        Pivotal.setProperties(properties);
+
+        assertEquals(value, Pivotal.getTokenUrl());
     }
 
     public void testGetRedirectUrl() {
-        assertEquals("http://example.com/redirect", Pivotal.getRedirectUrl());
+        final String value = UUID.randomUUID().toString();
+
+        final Properties properties = new Properties();
+        properties.setProperty("pivotal.auth.redirectUrl", value);
+        Pivotal.setProperties(properties);
+
+        assertEquals(value, Pivotal.getRedirectUrl());
     }
 
     public void testAccountType() {
-        assertEquals("test_account_type", Pivotal.getAccountType());
+        final String value = UUID.randomUUID().toString();
+
+        final Properties properties = new Properties();
+        properties.setProperty("pivotal.auth.accountType", value);
+        Pivotal.setProperties(properties);
+
+        assertEquals(value, Pivotal.getAccountType());
     }
 
     public void testTokenType() {
-        assertEquals("test_token_type", Pivotal.getTokenType());
+        final String value = UUID.randomUUID().toString();
+
+        final Properties properties = new Properties();
+        properties.setProperty("pivotal.auth.tokenType", value);
+        Pivotal.setProperties(properties);
+
+        assertEquals(value, Pivotal.getTokenType());
     }
 }

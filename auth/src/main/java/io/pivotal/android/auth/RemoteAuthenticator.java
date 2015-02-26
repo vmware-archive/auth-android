@@ -55,6 +55,8 @@ public interface RemoteAuthenticator {
         @Override
         public RefreshTokenRequest newRefreshTokenRequest(final String refreshToken) {
             final RefreshTokenRequest request = new RefreshTokenRequest(TRANSPORT, JSON_FACTORY, TOKEN_URL, refreshToken);
+            request.set("client_id", Pivotal.getClientId());
+            request.set("client_secret", Pivotal.getClientSecret());
             request.setClientAuthentication(INTERCEPTOR);
             return request;
         }
@@ -62,7 +64,10 @@ public interface RemoteAuthenticator {
         @Override
         public AuthorizationCodeTokenRequest newAuthorizationCodeTokenRequest(final String authorizationCode) {
             final DefaultAuthorizationCodeFlow flow = new DefaultAuthorizationCodeFlow();
-            return flow.newTokenRequest(authorizationCode);
+            final AuthorizationCodeTokenRequest request = flow.newTokenRequest(authorizationCode);
+            request.set("client_id", Pivotal.getClientId());
+            request.set("client_secret", Pivotal.getClientSecret());
+            return request;
         }
 
         @Override
