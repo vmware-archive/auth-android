@@ -79,7 +79,6 @@ public class AccountAuthenticator extends AbstractAccountAuthenticator {
         Logger.v("newLoginIntent");
         final Intent intent = new Intent(mContext, getLoginActivityClass());
         intent.putExtra(AccountManager.KEY_ACCOUNT_AUTHENTICATOR_RESPONSE, response);
-        intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
         return intent;
     }
 

@@ -58,7 +58,6 @@ public class AccountAuthenticatorTest extends AndroidTestCase {
 
         assertEquals(klass.getName(), component.getClassName());
         assertEquals(response, intent.getParcelableExtra(AccountManager.KEY_ACCOUNT_AUTHENTICATOR_RESPONSE));
-        assertEquals(Intent.FLAG_ACTIVITY_NO_HISTORY, intent.getFlags() & Intent.FLAG_ACTIVITY_NO_HISTORY);
 
         Mockito.verify(accountAuthenticator).getLoginActivityClass();
     }
