@@ -14,14 +14,14 @@ import android.content.SharedPreferences;
         public static final String LAST_USED_ACCOUNT = "last_used_account";
     }
 
-    public static void setLastUsedAccountName(final Context context, final String name) {
+    public static void setAccountName(final Context context, final String name) {
         if (context != null) {
             final SharedPreferences preferences = context.getSharedPreferences(AUTH, Context.MODE_PRIVATE);
             preferences.edit().putString(Keys.LAST_USED_ACCOUNT, name).apply();
         }
     }
 
-    public static String getLastUsedAccountName(final Context context) {
+    public static String getAccountName(final Context context) {
         if (context != null) {
             final SharedPreferences preferences = context.getSharedPreferences(AUTH, Context.MODE_PRIVATE);
             return preferences.getString(Keys.LAST_USED_ACCOUNT, "");

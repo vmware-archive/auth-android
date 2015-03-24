@@ -79,9 +79,13 @@ public abstract class LoginActivity extends AccountAuthenticatorActivity impleme
     @Override
     public void onAuthorizationComplete(final Token token) {
         final String username = getUserName();
-        Accounts.addAccount(this, username, token);
-        setResultIntent(token, username);
-        finish();
+        if (Accounts.addAccount(this, username, token)) {
+            setResultIntent(token, username);
+            finish();
+        } else {
+            final Error error = new Error("Account already exists with a different name.");
+            onAuthorizationFailed(error);
+        }
     }
 
     protected void setResultIntent(final Token token, final String username) {

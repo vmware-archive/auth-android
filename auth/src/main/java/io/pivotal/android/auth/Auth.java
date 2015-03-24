@@ -5,10 +5,9 @@ package io.pivotal.android.auth;
 
 import android.accounts.Account;
 import android.content.Context;
+import android.webkit.CookieManager;
 
 public class Auth {
-
-    private static final String NO_ACCOUNT_FOUND = "No Account Found.";
 
     public static Response getAccessToken(final Context context) {
         return AuthClientHolder.get(context).requestAccessToken(context);
@@ -18,45 +17,28 @@ public class Auth {
         AuthClientHolder.get(context).requestAccessToken(context, listener);
     }
 
-    public static Response getAccessToken(final Context context, final String accountName) {
-        final Account account = Accounts.getAccount(context, accountName);
-        if (account != null) {
-            return AuthClientHolder.get(context).requestAccessToken(context, account, true);
-        } else {
-            return getNoAccountErrorResponse();
-        }
-    }
-
-    public static void getAccessToken(final Context context, final String accountName, final Listener listener) {
-        final Account account = Accounts.getAccount(context, accountName);
-        if (account != null) {
-            AuthClientHolder.get(context).requestAccessToken(context, account, true, listener);
-        } else if (listener != null) {
-            listener.onResponse(getNoAccountErrorResponse());
-        }
-    }
-
-    private static Response getNoAccountErrorResponse() {
-        final Exception exception = new RuntimeException(NO_ACCOUNT_FOUND);
-        return new Response(new AuthError(exception));
-    }
-
     public static void invalidateAccessToken(final Context context) {
         final AccountsProxy proxy = AccountsProxyHolder.get(context);
-        final Account account = Accounts.getLastUsedAccount(context);
+        final Account account = Accounts.getAccount(context);
         final String accessToken = proxy.getAccessToken(account);
         proxy.invalidateAccessToken(accessToken);
     }
 
-    public static void invalidateAccessToken(final Context context, final String accountName) {
-        final AccountsProxy proxy = AccountsProxyHolder.get(context);
-        final Account account = Accounts.getAccount(context, accountName);
-        final String accessToken = proxy.getAccessToken(account);
-        proxy.invalidateAccessToken(accessToken);
+    public static void logout(final Context context) {
+        Accounts.removeAccount(context);
+        CookieManager.getInstance().removeAllCookie();
     }
 
     public static void setShouldShowUserPrompt(final Context context, final boolean enabled) {
         AuthClientHolder.get(context).setShouldShowUserPrompt(enabled);
+    }
+
+    public static void registerLoginListener(final Context context, final LoginListener listener) {
+        AccountsChangedReceiver.registerLoginListener(context, listener);
+    }
+
+    public static void registerLogoutListener(final Context context, final LogoutListener listener) {
+        AccountsChangedReceiver.registerLogoutListener(context, listener);
     }
 
     public static interface Listener {

@@ -28,14 +28,14 @@ public class AuthPreferencesTest extends AndroidTestCase {
         Mockito.when(context.getSharedPreferences(AuthPreferences.AUTH, Context.MODE_PRIVATE)).thenReturn(preferences);
         Mockito.when(preferences.getString(AuthPreferences.Keys.LAST_USED_ACCOUNT, "")).thenReturn(VALUE);
 
-        assertEquals(VALUE, AuthPreferences.getLastUsedAccountName(context));
+        assertEquals(VALUE, AuthPreferences.getAccountName(context));
 
         Mockito.verify(context).getSharedPreferences(AuthPreferences.AUTH, Context.MODE_PRIVATE);
         Mockito.verify(preferences).getString(AuthPreferences.Keys.LAST_USED_ACCOUNT, "");
     }
 
     public void testGetReturnsEmptyStringWithNullContext() {
-        assertEquals("", AuthPreferences.getLastUsedAccountName(null));
+        assertEquals("", AuthPreferences.getAccountName(null));
     }
 
     public void testSetInvokesSharedPreferences() {
@@ -48,7 +48,7 @@ public class AuthPreferencesTest extends AndroidTestCase {
         Mockito.when(editor.putString(AuthPreferences.Keys.LAST_USED_ACCOUNT, VALUE)).thenReturn(editor);
         Mockito.when(editor.commit()).thenReturn(true);
 
-        AuthPreferences.setLastUsedAccountName(context, VALUE);
+        AuthPreferences.setAccountName(context, VALUE);
 
         Mockito.verify(context).getSharedPreferences(AuthPreferences.AUTH, Context.MODE_PRIVATE);
         Mockito.verify(preferences).edit();
@@ -57,6 +57,6 @@ public class AuthPreferencesTest extends AndroidTestCase {
     }
 
     public void testSetDoesNothingWithNullContext() {
-        AuthPreferences.setLastUsedAccountName(null, null);
+        AuthPreferences.setAccountName(null, null);
     }
 }

@@ -51,7 +51,7 @@ import android.os.Bundle;
 
             } else {
 
-                final Account account = getLastUsedAccount(context);
+                final Account account = getAccount(context);
                 if (account == null) {
                     return getFailureAuthResponse(new Exception(NO_TOKEN_FOUND));
                 }
@@ -120,7 +120,7 @@ import android.os.Bundle;
             final Response response = retrieveResponseFromFuture(future);
 
             if (response.isSuccess()) {
-                setLastUsedAccountName(context, response.accountName);
+                setAccountName(context, response.accountName);
             }
 
             if (response.isSuccess() && response.isTokenExpired()) {
@@ -130,7 +130,7 @@ import android.os.Bundle;
 
                 Logger.i("requested access token invalidated.");
 
-                final Account account = getAccount(context, response.accountName);
+                final Account account = getAccount(context);
 
                 Logger.i("requested access token retry.");
 
@@ -167,16 +167,12 @@ import android.os.Bundle;
             mDisableUserPrompt = !enabled;
         }
 
-        protected Account getLastUsedAccount(final Context context) {
-            return Accounts.getLastUsedAccount(context);
+        protected Account getAccount(final Context context) {
+            return Accounts.getAccount(context);
         }
 
-        protected Account getAccount(final Context context, final String name) {
-            return Accounts.getAccount(context, name);
-        }
-
-        protected void setLastUsedAccountName(final Context context, final String name) {
-            AuthPreferences.setLastUsedAccountName(context, name);
+        protected void setAccountName(final Context context, final String name) {
+            AuthPreferences.setAccountName(context, name);
         }
 
         protected Response getFailureAuthResponse(final Exception e) {

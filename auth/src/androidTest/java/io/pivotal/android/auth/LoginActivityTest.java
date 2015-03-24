@@ -110,9 +110,11 @@ public class LoginActivityTest extends AndroidTestCase {
 
     public void testAuthorizationCompleteAddsAccountAndSetsAccessToken() {
         final Token token = new Token(ACCESS_TOKEN, REFRESH_TOKEN);
+        final Account account = new Account(USERNAME, UUID.randomUUID().toString());
         final AccountsProxy provider = Mockito.mock(AccountsProxy.class);
         final TestLoginActivity activity = Mockito.spy(new TestLoginActivity());
 
+        Mockito.doReturn(new Account[] {account}).when(provider).getAccounts();
         Mockito.doNothing().when(provider).addAccount(Mockito.any(Account.class), Mockito.eq(REFRESH_TOKEN));
         Mockito.doNothing().when(provider).setAccessToken(Mockito.any(Account.class), Mockito.eq(ACCESS_TOKEN));
         Mockito.doReturn(USERNAME).when(activity).getUserName();
@@ -128,6 +130,24 @@ public class LoginActivityTest extends AndroidTestCase {
         Mockito.verify(activity).getUserName();
         Mockito.verify(activity).setResultIntent(token, USERNAME);
         Mockito.verify(activity).finish();
+    }
+
+    public void testAuthorizationCompleteFailsToAddAccount() {
+        final Token token = new Token(ACCESS_TOKEN, REFRESH_TOKEN);
+        final Account account = new Account(UUID.randomUUID().toString(), UUID.randomUUID().toString());
+        final AccountsProxy provider = Mockito.mock(AccountsProxy.class);
+        final TestLoginActivity activity = Mockito.spy(new TestLoginActivity());
+
+        Mockito.doReturn(new Account[] {account}).when(provider).getAccounts();
+        Mockito.doNothing().when(activity).onAuthorizationFailed(Mockito.any(Error.class));
+
+        AccountsProxyHolder.init(provider);
+
+        activity.onAuthorizationComplete(token);
+
+        Mockito.verify(provider, Mockito.never()).addAccount(Mockito.any(Account.class), Mockito.eq(REFRESH_TOKEN));
+        Mockito.verify(provider, Mockito.never()).setAccessToken(Mockito.any(Account.class), Mockito.eq(ACCESS_TOKEN));
+        Mockito.verify(activity).onAuthorizationFailed(Mockito.any(Error.class));
     }
 
     public void testSetResultIntent() {
