@@ -9,12 +9,13 @@ import android.test.AndroidTestCase;
 
 import org.mockito.Mockito;
 
-public class AccountsChangedReceiverTest extends AndroidTestCase {
+public class AccountsChangedListenerTest extends AndroidTestCase {
 
     @Override
     protected void setUp() throws Exception {
         super.setUp();
         System.setProperty("dexmaker.dexcache", mContext.getCacheDir().getPath());
+        AccountsChangedListener.sAccountsChangedListener = null;
     }
 
     @Override
@@ -30,15 +31,16 @@ public class AccountsChangedReceiverTest extends AndroidTestCase {
         final Account[] accounts = new Account[] {account};
         final AccountsProxy accountsProxy = Mockito.mock(AccountsProxy.class);
         final LoginListener listener = Mockito.mock(LoginListener.class);
+        final AccountsChangedListener accountsChangedListener = AccountsChangedListener.getInstance(context);
 
         Mockito.when(accountsProxy.getAccounts()).thenReturn(accounts);
 
         AccountsProxyHolder.init(accountsProxy);
-        AccountsChangedReceiver.registerLoginListener(context, listener);
-        AccountsChangedReceiver.setIsLoggedIn(false);
+        accountsChangedListener.registerLoginListener(listener);
+        accountsChangedListener.setIsLoggedIn(false);
 
-        final AccountsChangedReceiver receiver = new AccountsChangedReceiver();
-        receiver.onReceive(context, null);
+
+        accountsChangedListener.onAccountsUpdated(accounts);
 
         Mockito.verify(listener).onLogin(context);
     }
@@ -49,15 +51,15 @@ public class AccountsChangedReceiverTest extends AndroidTestCase {
         final Account[] accounts = new Account[] {account};
         final AccountsProxy accountsProxy = Mockito.mock(AccountsProxy.class);
         final LoginListener listener = Mockito.mock(LoginListener.class);
+        final AccountsChangedListener accountsChangedListener = AccountsChangedListener.getInstance(context);
 
         Mockito.when(accountsProxy.getAccounts()).thenReturn(accounts);
 
         AccountsProxyHolder.init(accountsProxy);
-        AccountsChangedReceiver.registerLoginListener(context, listener);
-        AccountsChangedReceiver.setIsLoggedIn(true);
+        accountsChangedListener.registerLoginListener(listener);
+        accountsChangedListener.setIsLoggedIn(true);
 
-        final AccountsChangedReceiver receiver = new AccountsChangedReceiver();
-        receiver.onReceive(context, null);
+        accountsChangedListener.onAccountsUpdated(accounts);
 
         Mockito.verify(listener, Mockito.never()).onLogin(context);
     }
@@ -68,15 +70,15 @@ public class AccountsChangedReceiverTest extends AndroidTestCase {
         final Account[] accounts = new Account[] {account};
         final AccountsProxy accountsProxy = Mockito.mock(AccountsProxy.class);
         final LogoutListener listener = Mockito.mock(LogoutListener.class);
+        final AccountsChangedListener accountsChangedListener = AccountsChangedListener.getInstance(context);
 
         Mockito.when(accountsProxy.getAccounts()).thenReturn(accounts);
 
         AccountsProxyHolder.init(accountsProxy);
-        AccountsChangedReceiver.registerLogoutListener(context, listener);
-        AccountsChangedReceiver.setIsLoggedIn(false);
+        accountsChangedListener.registerLogoutListener(listener);
+        accountsChangedListener.setIsLoggedIn(false);
 
-        final AccountsChangedReceiver receiver = new AccountsChangedReceiver();
-        receiver.onReceive(context, null);
+        accountsChangedListener.onAccountsUpdated(accounts);
 
         Mockito.verify(listener, Mockito.never()).onLogout(context);
 
@@ -87,15 +89,15 @@ public class AccountsChangedReceiverTest extends AndroidTestCase {
         final Account[] accounts = new Account[] { null };
         final AccountsProxy accountsProxy = Mockito.mock(AccountsProxy.class);
         final LogoutListener listener = Mockito.mock(LogoutListener.class);
+        final AccountsChangedListener accountsChangedListener = AccountsChangedListener.getInstance(context);
 
         Mockito.when(accountsProxy.getAccounts()).thenReturn(accounts);
 
         AccountsProxyHolder.init(accountsProxy);
-        AccountsChangedReceiver.registerLogoutListener(context, listener);
-        AccountsChangedReceiver.setIsLoggedIn(true);
+        accountsChangedListener.registerLogoutListener(listener);
+        accountsChangedListener.setIsLoggedIn(true);
 
-        final AccountsChangedReceiver receiver = new AccountsChangedReceiver();
-        receiver.onReceive(context, null);
+        accountsChangedListener.onAccountsUpdated(accounts);
 
         Mockito.verify(listener).onLogout(context);
 

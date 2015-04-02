@@ -6,6 +6,7 @@ package io.pivotal.android.auth;
 import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.accounts.AccountManagerFuture;
+import android.accounts.OnAccountsUpdateListener;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
@@ -34,6 +35,9 @@ import android.os.Bundle;
 
     public AccountManagerFuture<Bundle> getAuthToken(Account account);
 
+    public void addOnAccountsUpdatedListener(AccountsChangedListener listener);
+
+    public void removeOnAccountsUpdatedListener(AccountsChangedListener listener);
 
     /* package */ class Default implements AccountsProxy {
 
@@ -92,6 +96,16 @@ import android.os.Bundle;
         @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
         public AccountManagerFuture<Bundle> getAuthToken(final Account account) {
             return mManager.getAuthToken(account, Pivotal.getTokenType(), null, false, null, null);
+        }
+
+        @Override
+        public void addOnAccountsUpdatedListener(AccountsChangedListener listener) {
+            mManager.addOnAccountsUpdatedListener(listener, null, true);
+        }
+
+        @Override
+        public void removeOnAccountsUpdatedListener(AccountsChangedListener listener) {
+            mManager.removeOnAccountsUpdatedListener(listener);
         }
     }
 }

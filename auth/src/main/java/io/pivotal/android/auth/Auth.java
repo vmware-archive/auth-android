@@ -10,10 +10,24 @@ import android.webkit.CookieManager;
 public class Auth {
 
     public static Response getAccessToken(final Context context) {
+        AccountsProxyHolder.get(context).removeOnAccountsUpdatedListener(AccountsChangedListener.getInstance(context));
+
+        // only add listener if there isn't already a logged in user
+        if (Accounts.getAccount(context) == null) {
+            AccountsProxyHolder.get(context).addOnAccountsUpdatedListener(AccountsChangedListener.getInstance(context));
+        }
+
         return AuthClientHolder.get(context).requestAccessToken(context);
     }
 
     public static void getAccessToken(final Context context, final Listener listener) {
+        AccountsProxyHolder.get(context).removeOnAccountsUpdatedListener(AccountsChangedListener.getInstance(context));
+
+        // only add listener if there isn't already a logged in user
+        if (Accounts.getAccount(context) == null) {
+            AccountsProxyHolder.get(context).addOnAccountsUpdatedListener(AccountsChangedListener.getInstance(context));
+        }
+
         AuthClientHolder.get(context).requestAccessToken(context, listener);
     }
 
@@ -24,9 +38,16 @@ public class Auth {
         proxy.invalidateAccessToken(accessToken);
     }
 
-    public static void logout(final Context context) {
-        Accounts.removeAccount(context);
-        CookieManager.getInstance().removeAllCookie();
+    public static void logout(final Context context) throws AuthError {
+        AccountsProxyHolder.get(context).removeOnAccountsUpdatedListener(AccountsChangedListener.getInstance(context));
+
+        if (Accounts.getAccount(context) != null) {
+            AccountsProxyHolder.get(context).addOnAccountsUpdatedListener(AccountsChangedListener.getInstance(context));
+            Accounts.removeAccount(context);
+            CookieManager.getInstance().removeAllCookie();
+        } else {
+            throw new AuthError(new Exception("Already logged out"));
+        }
     }
 
     public static void setShouldShowUserPrompt(final Context context, final boolean enabled) {
@@ -34,11 +55,11 @@ public class Auth {
     }
 
     public static void registerLoginListener(final Context context, final LoginListener listener) {
-        AccountsChangedReceiver.registerLoginListener(context, listener);
+        AccountsChangedListener.getInstance(context).registerLoginListener(listener);
     }
 
     public static void registerLogoutListener(final Context context, final LogoutListener listener) {
-        AccountsChangedReceiver.registerLogoutListener(context, listener);
+        AccountsChangedListener.getInstance(context).registerLogoutListener(listener);
     }
 
     public static interface Listener {
