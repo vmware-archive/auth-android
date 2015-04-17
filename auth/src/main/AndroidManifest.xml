@@ -21,12 +21,6 @@
                 android:name="android.accounts.AccountAuthenticator"
                 android:resource="@xml/authenticator" />
         </service>
-
-        <receiver android:name=".AccountsChangedListener">
-            <intent-filter>
-                <action android:name="android.accounts.LOGIN_ACCOUNTS_CHANGED_ACTION"/>
-            </intent-filter>
-        </receiver>
     </application>
 
 </manifest>
