@@ -12,6 +12,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.os.Build;
 import android.os.Bundle;
+import android.webkit.CookieManager;
 
 /* package */ interface AccountsProxy {
 
@@ -38,6 +39,8 @@ import android.os.Bundle;
     public void addOnAccountsUpdatedListener(AccountsChangedListener listener);
 
     public void removeOnAccountsUpdatedListener(AccountsChangedListener listener);
+
+    public void clearCookies();
 
     /* package */ class Default implements AccountsProxy {
 
@@ -106,6 +109,11 @@ import android.os.Bundle;
         @Override
         public void removeOnAccountsUpdatedListener(AccountsChangedListener listener) {
             mManager.removeOnAccountsUpdatedListener(listener);
+        }
+
+        @Override
+        public void clearCookies() {
+            CookieManager.getInstance().removeAllCookie();
         }
     }
 }

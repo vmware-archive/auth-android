@@ -44,7 +44,7 @@ public class Auth {
         if (Accounts.getAccount(context) != null) {
             AccountsProxyHolder.get(context).addOnAccountsUpdatedListener(AccountsChangedListener.getInstance(context));
             Accounts.removeAccount(context);
-            CookieManager.getInstance().removeAllCookie();
+            AccountsProxyHolder.get(context).clearCookies();
         } else {
             throw new AuthError(new Exception("Already logged out"));
         }

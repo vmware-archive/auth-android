@@ -134,6 +134,7 @@ public class AuthTest extends AndroidTestCase {
         final AccountsProxy accountsProxy = Mockito.mock(AccountsProxy.class);
 
         AccountsProxyHolder.init(accountsProxy);
+
         Account account = new Account("hi", "bye");
         Mockito.when(accountsProxy.getAccounts()).thenReturn(new Account[]{ account });
 
