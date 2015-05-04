@@ -14,7 +14,7 @@ buildscript {
 }
 
 ext {
-    versionName = "1.0.0"
+    versionName = "1.0.1"
     versionCode = 1
     isSnapshot = false
 }
@@ -44,9 +44,9 @@ ext.pomInfo = {
             email 'jwinters@pivotal.io'
         }
         developer {
-            id 'rszumlakowski'
-            name 'Robert Szumlakowski'
-            email 'rszumlakowski@pivotal.io'
+            id 'dfallak'
+            name 'Devin Fallak'
+            email 'dfallak@pivotal.io'
         }
     }
 }

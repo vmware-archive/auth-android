@@ -5,7 +5,6 @@ package io.pivotal.android.auth;
 
 import android.accounts.Account;
 import android.content.Context;
-import android.webkit.CookieManager;
 
 public class Auth {
 
@@ -38,15 +37,14 @@ public class Auth {
         proxy.invalidateAccessToken(accessToken);
     }
 
-    public static void logout(final Context context) throws AuthError {
-        AccountsProxyHolder.get(context).removeOnAccountsUpdatedListener(AccountsChangedListener.getInstance(context));
+    public static void logout(final Context context) {
+        final AccountsProxy accountsProxy = AccountsProxyHolder.get(context);
+        accountsProxy.removeOnAccountsUpdatedListener(AccountsChangedListener.getInstance(context));
 
         if (Accounts.getAccount(context) != null) {
-            AccountsProxyHolder.get(context).addOnAccountsUpdatedListener(AccountsChangedListener.getInstance(context));
+            accountsProxy.addOnAccountsUpdatedListener(AccountsChangedListener.getInstance(context));
+            accountsProxy.clearCookies();
             Accounts.removeAccount(context);
-            AccountsProxyHolder.get(context).clearCookies();
-        } else {
-            throw new AuthError(new Exception("Already logged out"));
         }
     }
 

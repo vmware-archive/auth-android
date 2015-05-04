@@ -8,8 +8,6 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.test.AndroidTestCase;
 
-import junit.framework.Assert;
-
 import org.mockito.Mockito;
 
 import java.util.Random;
@@ -154,15 +152,8 @@ public class AuthTest extends AndroidTestCase {
         Mockito.when(accountsProxy.getAccounts()).thenReturn(new Account[]{});
         Mockito.when(context.getSharedPreferences(Mockito.anyString(), Mockito.anyInt())).thenReturn(preferences);
 
-        boolean exceptionThrown = false;
+        Auth.logout(context);
 
-        try {
-            Auth.logout(context);
-        } catch (AuthError e) {
-            exceptionThrown = true;
-        }
-
-        Assert.assertTrue(exceptionThrown);
         Mockito.verify(accountsProxy, Mockito.never()).removeAccount(Mockito.any(Account.class));
         Mockito.verify(accountsProxy).removeOnAccountsUpdatedListener(Mockito.any(AccountsChangedListener.class));
         Mockito.verify(accountsProxy, Mockito.never()).addOnAccountsUpdatedListener(Mockito.any(AccountsChangedListener.class));

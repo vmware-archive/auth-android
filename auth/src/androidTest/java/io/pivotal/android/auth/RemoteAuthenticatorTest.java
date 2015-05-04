@@ -20,6 +20,7 @@ public class RemoteAuthenticatorTest extends AndroidTestCase {
     private static final String TOKEN_URL = "http://" + UUID.randomUUID().toString() + ".com";
     private static final String AUTHORIZE_URL = "http://" + UUID.randomUUID().toString() + ".com";
     private static final String REDIRECT_URL = "http://" + UUID.randomUUID().toString() + ".com";
+    private static final String SCOPE = UUID.randomUUID().toString();
 
     private static final String USERNAME = UUID.randomUUID().toString();
     private static final String PASSWORD = UUID.randomUUID().toString();
@@ -37,6 +38,7 @@ public class RemoteAuthenticatorTest extends AndroidTestCase {
         properties.setProperty("pivotal.auth.tokenUrl", TOKEN_URL);
         properties.setProperty("pivotal.auth.authorizeUrl", AUTHORIZE_URL);
         properties.setProperty("pivotal.auth.redirectUrl", REDIRECT_URL);
+        properties.setProperty("pivotal.auth.scopes", SCOPE);
 
         Pivotal.setProperties(properties);
     }
@@ -57,6 +59,7 @@ public class RemoteAuthenticatorTest extends AndroidTestCase {
 
         assertEquals(USERNAME, request.getUsername());
         assertEquals(PASSWORD, request.getPassword());
+        assertEquals(SCOPE, request.getScopes());
     }
 
     public void testCreateNewRefreshTokenRequest() throws Exception {
@@ -85,5 +88,7 @@ public class RemoteAuthenticatorTest extends AndroidTestCase {
         final AuthorizationCodeRequestUrl url = provider.newAuthorizationCodeUrl();
 
         assertEquals(REDIRECT_URL, url.getRedirectUri());
+        assertEquals(SCOPE, url.getScopes());
+        assertEquals("offline", url.get("access_type"));
     }
 }

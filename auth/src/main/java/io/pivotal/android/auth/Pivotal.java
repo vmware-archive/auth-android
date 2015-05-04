@@ -19,6 +19,7 @@ import java.util.Properties;
         private static final String REDIRECT_URL = "pivotal.auth.redirectUrl";
         private static final String ACCOUNT_TYPE = "pivotal.auth.accountType";
         private static final String TOKEN_TYPE = "pivotal.auth.tokenType";
+        private static final String SCOPES = "pivotal.auth.scopes";
     }
 
 
@@ -98,5 +99,9 @@ import java.util.Properties;
 
     public static String getTokenType() {
         return get(Keys.TOKEN_TYPE);
+    }
+
+    public static String getScopes() {
+        return get(Keys.SCOPES);
     }
 }

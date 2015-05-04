@@ -19,7 +19,6 @@ import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
 
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.UUID;
 
 public interface RemoteAuthenticator {
@@ -40,15 +39,13 @@ public interface RemoteAuthenticator {
 
         private static final HttpExecuteInterceptor INTERCEPTOR = new BasicAuthentication(Pivotal.getClientId(), Pivotal.getClientSecret());
 
-        private static final Collection<String> SCOPES = Arrays.asList("offline_access", "openid");
-
         @Override
         public PasswordTokenRequest newPasswordTokenRequest(final String username, final String password) {
             final PasswordTokenRequest request = new PasswordTokenRequest(TRANSPORT, JSON_FACTORY, TOKEN_URL, username, password);
             request.set("client_id", Pivotal.getClientId());
             request.set("client_secret", Pivotal.getClientSecret());
             request.setClientAuthentication(INTERCEPTOR);
-            request.setScopes(SCOPES);
+            request.setScopes(Arrays.asList(Pivotal.getScopes().split(" ")));
             return request;
         }
 
@@ -81,7 +78,7 @@ public interface RemoteAuthenticator {
             private static final Credential.AccessMethod METHOD = BearerToken.authorizationHeaderAccessMethod();
 
             public DefaultAuthorizationCodeFlow() {
-                super(new Builder(METHOD, TRANSPORT, JSON_FACTORY, TOKEN_URL, INTERCEPTOR, Pivotal.getClientId(), Pivotal.getAuthorizeUrl()).setScopes(SCOPES));
+                super(new Builder(METHOD, TRANSPORT, JSON_FACTORY, TOKEN_URL, INTERCEPTOR, Pivotal.getClientId(), Pivotal.getAuthorizeUrl()).setScopes(Arrays.asList(Pivotal.getScopes().split(" "))));
             }
 
             @Override
@@ -96,6 +93,7 @@ public interface RemoteAuthenticator {
                 final AuthorizationCodeRequestUrl requestUrl = super.newAuthorizationUrl();
                 requestUrl.setRedirectUri(Pivotal.getRedirectUrl());
                 requestUrl.setState(UUID.randomUUID().toString());
+                requestUrl.set("access_type", "offline");
                 return requestUrl;
             }
         }

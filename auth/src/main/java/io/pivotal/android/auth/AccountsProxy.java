@@ -6,7 +6,6 @@ package io.pivotal.android.auth;
 import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.accounts.AccountManagerFuture;
-import android.accounts.OnAccountsUpdateListener;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
@@ -112,6 +111,7 @@ import android.webkit.CookieManager;
         }
 
         @Override
+        @SuppressWarnings("deprecation")
         public void clearCookies() {
             CookieManager.getInstance().removeAllCookie();
         }

@@ -122,4 +122,14 @@ public class PivotalTest extends AndroidTestCase {
 
         assertEquals(value, Pivotal.getTokenType());
     }
+
+    public void testScopes() {
+        final String value = UUID.randomUUID().toString();
+
+        final Properties properties = new Properties();
+        properties.setProperty("pivotal.auth.scopes", value);
+        Pivotal.setProperties(properties);
+
+        assertEquals(value, Pivotal.getScopes());
+    }
 }
