@@ -16,7 +16,7 @@ buildscript {
 ext {
     versionName = "1.0.1"
     versionCode = 1
-    isSnapshot = false
+    isSnapshot = true
 }
 
 ext.pomInfo = {
@@ -88,16 +88,15 @@ subprojects {
         repositories.mavenDeployer {
 
             // Publishes AAR to local Maven cache:
-            repository(url: 'file://' + new File(System.getProperty('user.home'), '.m2').absolutePath)
+            // repository(url: 'file://' + new File(System.getProperty('user.home'), '.m2').absolutePath)
 
             // Publishes AAR to remote maven.xtremelabs.com:
-
-//            repository(url: 'https://maven.xtremelabs.com/artifactory/libs-release-local') {
-//                authentication(userName: MAVEN_USER, password: MAVEN_PASS)
-//            }
-//            snapshotRepository(url: 'https://maven.xtremelabs.com/artifactory/libs-snapshot-local') {
-//                authentication(userName: MAVEN_USER, password: MAVEN_PASS)
-//            }
+            repository(url: 'https://maven.xtremelabs.com/artifactory/libs-release-local') {
+                authentication(userName: MAVEN_USER, password: MAVEN_PASS)
+            }
+            snapshotRepository(url: 'https://maven.xtremelabs.com/artifactory/libs-snapshot-local') {
+                authentication(userName: MAVEN_USER, password: MAVEN_PASS)
+            }
 
         }
     }
