@@ -12,6 +12,7 @@ import android.content.Context;
 import android.os.Build;
 import android.os.Bundle;
 import android.webkit.CookieManager;
+import android.webkit.CookieSyncManager;
 
 /* package */ interface AccountsProxy {
 
@@ -39,7 +40,7 @@ import android.webkit.CookieManager;
 
     public void removeOnAccountsUpdatedListener(AccountsChangedListener listener);
 
-    public void clearCookies();
+    public void clearCookies(Context context);
 
     /* package */ class Default implements AccountsProxy {
 
@@ -112,7 +113,8 @@ import android.webkit.CookieManager;
 
         @Override
         @SuppressWarnings("deprecation")
-        public void clearCookies() {
+        public void clearCookies(final Context context) {
+            CookieSyncManager.createInstance(context);
             CookieManager.getInstance().removeAllCookie();
         }
     }

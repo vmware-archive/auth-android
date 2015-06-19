@@ -43,7 +43,7 @@ public class Auth {
 
         if (Accounts.getAccount(context) != null) {
             accountsProxy.addOnAccountsUpdatedListener(AccountsChangedListener.getInstance(context));
-            accountsProxy.clearCookies();
+            accountsProxy.clearCookies(context);
             Accounts.removeAccount(context);
         }
     }
