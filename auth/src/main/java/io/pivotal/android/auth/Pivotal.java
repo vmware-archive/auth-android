@@ -7,6 +7,9 @@ import android.text.TextUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Properties;
 
 /* package */ class Pivotal {
@@ -20,6 +23,8 @@ import java.util.Properties;
         private static final String ACCOUNT_TYPE = "pivotal.auth.accountType";
         private static final String TOKEN_TYPE = "pivotal.auth.tokenType";
         private static final String SCOPES = "pivotal.auth.scopes";
+        private static final String PINNED_SSL_CERTIFICATE_NAMES = "pivotal.auth.pinnedSslCertificateNames";
+        private static final String TRUST_ALL_SSL_CERTIFICATES = "pivotal.auth.trustAllSslCertificates";
     }
 
 
@@ -103,5 +108,24 @@ import java.util.Properties;
 
     public static String getScopes() {
         return get(Keys.SCOPES);
+    }
+
+    public static Boolean trustAllSslCertificates() {
+        try {
+            final String trustAllSslCertificates = get(Keys.TRUST_ALL_SSL_CERTIFICATES);
+            return Boolean.valueOf(trustAllSslCertificates);
+        } catch (final IllegalStateException e) {
+            return false;
+        }
+    }
+
+    public static List<String> getPinnedSslCertificateNames() {
+        try {
+            final String pinnedSslCertificateNames = get(Keys.PINNED_SSL_CERTIFICATE_NAMES);
+            final String[] sslCertificateNames = pinnedSslCertificateNames.split(" ");
+            return Arrays.asList(sslCertificateNames);
+        } catch (final IllegalStateException e) {
+            return new ArrayList<String>();
+        }
     }
 }

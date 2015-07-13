@@ -21,7 +21,7 @@ public abstract class LoginActivity extends AccountAuthenticatorActivity impleme
 
 
     protected String getAuthorizationUrl() {
-        final RemoteAuthenticator authenticator = RemoteAuthenticatorHolder.get();
+        final RemoteAuthenticator authenticator = RemoteAuthenticatorHolder.get(this);
         return authenticator.newAuthorizationCodeUrl().build();
     }
 

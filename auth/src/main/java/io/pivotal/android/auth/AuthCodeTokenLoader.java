@@ -22,7 +22,7 @@ import com.google.api.client.auth.oauth2.TokenResponse;
     @Override
     public TokenResponse loadInBackground() {
         try {
-            final RemoteAuthenticator authenticator = RemoteAuthenticatorHolder.get();
+            final RemoteAuthenticator authenticator = RemoteAuthenticatorHolder.get(getContext());
             return authenticator.newAuthorizationCodeTokenRequest(mAuthCode).execute();
         } catch (final Exception e) {
             Logger.ex(e);

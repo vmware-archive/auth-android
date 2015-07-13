@@ -3,6 +3,8 @@
  */
 package io.pivotal.android.auth;
 
+import android.content.Context;
+
 import com.google.api.client.auth.oauth2.AuthorizationCodeFlow;
 import com.google.api.client.auth.oauth2.AuthorizationCodeRequestUrl;
 import com.google.api.client.auth.oauth2.AuthorizationCodeTokenRequest;
@@ -18,6 +20,7 @@ import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
 
+import java.security.KeyStore;
 import java.util.Arrays;
 import java.util.UUID;
 
@@ -33,15 +36,57 @@ public interface RemoteAuthenticator {
 
     public static class Default implements RemoteAuthenticator {
 
-        private static final HttpTransport TRANSPORT = new NetHttpTransport();
+        private static final Object LOCK = new Object();
         private static final JsonFactory JSON_FACTORY = new JacksonFactory();
         private static final GenericUrl TOKEN_URL = new GenericUrl(Pivotal.getTokenUrl());
-
         private static final HttpExecuteInterceptor INTERCEPTOR = new BasicAuthentication(Pivotal.getClientId(), Pivotal.getClientSecret());
+        private static final Credential.AccessMethod METHOD = BearerToken.authorizationHeaderAccessMethod();
+
+        private static HttpTransport sTransport;
+        private final Context mContext;
+
+        public Default(final Context context) {
+            mContext = context;
+        }
+
+        protected HttpTransport getHttpTransport() {
+            if (sTransport == null) {
+                synchronized (LOCK) {
+                    sTransport = createHttpTransport();
+                }
+            }
+            return sTransport;
+        }
+
+        protected NetHttpTransport createHttpTransport() {
+            try {
+                final NetHttpTransportBuilder builder = createNetHttpTransportBuilder();
+
+                if (Pivotal.trustAllSslCertificates()) {
+                    builder.doNotValidateCertificate();
+                }
+
+                if (Pivotal.getPinnedSslCertificateNames().size() > 0) {
+                    builder.trustCertificates(createKeyStore());
+                }
+
+                return builder.build();
+            } catch (final Exception e) {
+                throw new IllegalStateException(e);
+            }
+        }
+
+        protected NetHttpTransportBuilder createNetHttpTransportBuilder() {
+            return new NetHttpTransportBuilder();
+        }
+
+        protected KeyStore createKeyStore() throws Exception {
+            return new KeyStoreFactory(mContext).getKeyStore();
+        }
 
         @Override
         public PasswordTokenRequest newPasswordTokenRequest(final String username, final String password) {
-            final PasswordTokenRequest request = new PasswordTokenRequest(TRANSPORT, JSON_FACTORY, TOKEN_URL, username, password);
+            final PasswordTokenRequest request = new PasswordTokenRequest(getHttpTransport(), JSON_FACTORY, TOKEN_URL, username, password);
             request.set("client_id", Pivotal.getClientId());
             request.set("client_secret", Pivotal.getClientSecret());
             request.setClientAuthentication(INTERCEPTOR);
@@ -51,7 +96,7 @@ public interface RemoteAuthenticator {
 
         @Override
         public RefreshTokenRequest newRefreshTokenRequest(final String refreshToken) {
-            final RefreshTokenRequest request = new RefreshTokenRequest(TRANSPORT, JSON_FACTORY, TOKEN_URL, refreshToken);
+            final RefreshTokenRequest request = new RefreshTokenRequest(getHttpTransport(), JSON_FACTORY, TOKEN_URL, refreshToken);
             request.set("client_id", Pivotal.getClientId());
             request.set("client_secret", Pivotal.getClientSecret());
             request.setClientAuthentication(INTERCEPTOR);
@@ -73,12 +118,10 @@ public interface RemoteAuthenticator {
             return flow.newAuthorizationUrl();
         }
 
-        private static final class DefaultAuthorizationCodeFlow extends AuthorizationCodeFlow {
-
-            private static final Credential.AccessMethod METHOD = BearerToken.authorizationHeaderAccessMethod();
+        private final class DefaultAuthorizationCodeFlow extends AuthorizationCodeFlow {
 
             public DefaultAuthorizationCodeFlow() {
-                super(new Builder(METHOD, TRANSPORT, JSON_FACTORY, TOKEN_URL, INTERCEPTOR, Pivotal.getClientId(), Pivotal.getAuthorizeUrl()).setScopes(Arrays.asList(Pivotal.getScopes().split(" "))));
+                super(new Builder(METHOD, getHttpTransport(), JSON_FACTORY, TOKEN_URL, INTERCEPTOR, Pivotal.getClientId(), Pivotal.getAuthorizeUrl()).setScopes(Arrays.asList(Pivotal.getScopes().split(" "))));
             }
 
             @Override

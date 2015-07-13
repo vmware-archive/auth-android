@@ -135,7 +135,7 @@ public class AccountAuthenticator extends AbstractAccountAuthenticator {
 
     protected Bundle newAuthTokenBundle(final AccountAuthenticatorResponse response, final Account account, final String refreshToken) {
         try {
-            final RemoteAuthenticator authenticator = RemoteAuthenticatorHolder.get();
+            final RemoteAuthenticator authenticator = RemoteAuthenticatorHolder.get(mContext);
             final RefreshTokenRequest request = authenticator.newRefreshTokenRequest(refreshToken);
             final String accessToken = request.execute().getAccessToken();
 

@@ -33,7 +33,7 @@ public class RemoteAuthenticatorHolderTest extends AndroidTestCase {
     public void testWithInitialization() {
         final RemoteAuthenticator custom = Mockito.mock(RemoteAuthenticator.class);
         RemoteAuthenticatorHolder.init(custom);
-        final RemoteAuthenticator authenticator = RemoteAuthenticatorHolder.get();
+        final RemoteAuthenticator authenticator = RemoteAuthenticatorHolder.get(mContext);
         assertEquals(custom, authenticator);
     }
 
@@ -45,7 +45,7 @@ public class RemoteAuthenticatorHolderTest extends AndroidTestCase {
         Pivotal.setProperties(properties);
 
         RemoteAuthenticatorHolder.init(null);
-        final RemoteAuthenticator instance = RemoteAuthenticatorHolder.get();
+        final RemoteAuthenticator instance = RemoteAuthenticatorHolder.get(mContext);
         final RemoteAuthenticator.Default authenticator = (RemoteAuthenticator.Default) instance;
         assertNotNull(authenticator);
     }
