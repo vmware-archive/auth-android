@@ -153,4 +153,5 @@ public class RemoteAuthenticatorTest extends AndroidTestCase {
         assertEquals(SCOPE, url.getScopes());
         assertEquals("offline", url.get("access_type"));
     }
+
 }
