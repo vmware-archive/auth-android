@@ -5,6 +5,8 @@ package io.pivotal.android.auth;
 
 import com.google.api.client.http.javanet.NetHttpTransport;
 
+import org.apache.http.conn.ssl.StrictHostnameVerifier;
+
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 
@@ -23,6 +25,7 @@ public class NetHttpTransportBuilder {
 
     public NetHttpTransportBuilder trustCertificates(final KeyStore keyStore) throws GeneralSecurityException {
         mBuilder.trustCertificates(keyStore);
+        mBuilder.setHostnameVerifier(new StrictHostnameVerifier());
         return this;
     }
 
